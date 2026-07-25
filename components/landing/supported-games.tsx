@@ -1,31 +1,39 @@
-const games = [
-  "League of Legends",
-  "Valorant",
-  "Teamfight Tactics",
-  "Fortnite",
-  "Apex Legends",
-  "Overwatch 2",
-]
+import { games } from "@/lib/data/games";
+import { GameCard } from "@/components/cards/game-card";
 
-export default function SupportedGames() {
+export function SupportedGames() {
   return (
-    <section id="games" className="border-y border-white/10 bg-white/[0.02]">
-      <div className="mx-auto max-w-6xl px-6 py-10">
-        <p className="text-center text-sm uppercase tracking-[0.3em] text-zinc-500">
-          Supported games
-        </p>
+    <section
+      id="games"
+      className="border-y border-white/10 bg-white/[0.02]"
+    >
+      <div className="mx-auto max-w-7xl px-6 py-20">
+        <div className="text-center">
+          <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">
+            Supported Games
+          </p>
 
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+          <h2 className="mt-4 text-4xl font-bold">
+            One platform.
+            <br />
+            Every game event.
+          </h2>
+
+          <p className="mx-auto mt-5 max-w-2xl text-lg text-zinc-400">
+            Track limited-time modes, seasonal events, Night Markets,
+            Twitch Drops, beta access, special rotations and much more.
+          </p>
+        </div>
+
+        <div className="mt-14 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {games.map((game) => (
-            <div
-              key={game}
-              className="rounded-full border border-white/10 bg-black/40 px-5 py-3 text-sm text-zinc-200"
-            >
-              {game}
-            </div>
+            <GameCard
+              key={game.id}
+              game={game}
+            />
           ))}
         </div>
       </div>
     </section>
-  )
+  );
 }

@@ -1,7 +1,7 @@
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function Navbar() {
+export function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-black/70 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center px-6">

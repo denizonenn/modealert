@@ -1,5 +1,9 @@
-export const SITE = {
-  name: "ModeAlert",
-  slogan: "Never miss limited-time game content.",
-  description: "...",
+export const SITE={
+
+title:"ModeAlert",
+
+headline:"Never miss anything that disappears.",
+
+description:"Track limited-time game events across every game."
+
 }

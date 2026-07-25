@@ -1,11 +1,13 @@
-export interface Game {
-  id: string
-  name: string
-  slug: string
+export interface Game{
 
-  logo: string
+id:string
 
-  color: string
+name:string
 
-  active: boolean
+slug:string
+
+logo:string
+
+color:string
+
 }

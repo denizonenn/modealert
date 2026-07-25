@@ -1,5 +1,5 @@
-import { featuredEvents } from "@/lib/data/events"
+import { events } from "../data/events";
 
 export function getFeaturedEvents() {
-  return featuredEvents.filter((event) => event.featured)
+  return events.slice(0, 4);
 }

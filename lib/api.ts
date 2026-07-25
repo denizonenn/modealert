@@ -1,13 +1,9 @@
-import { Event } from "@/types/event"
+export async function fetcher<T>(url: string): Promise<T> {
+  const response = await fetch(url);
 
-export async function getEvents():Promise<Event[]>{
+  if (!response.ok) {
+    throw new Error("API Error");
+  }
 
-    const res = await fetch("http://localhost:3000/api/mock/events",{
-
-        cache:"no-store"
-
-    })
-
-    return res.json()
-
+  return response.json();
 }

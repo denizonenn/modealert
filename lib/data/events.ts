@@ -1,67 +1,34 @@
-import { GameEvent } from "@/types/event"
-
-export const featuredEvents: GameEvent[] = [
+export const events = [
   {
     id: "urf",
-
-    gameId: "lol",
-
-    name: "URF",
-
-    slug: "urf",
-
-    category: "Game Mode",
-
-    live: false,
-
-    featured: true,
+    game: "lol",
+    title: "Ultra Rapid Fire",
+    status: "LIVE",
+    trackedUsers: 12841,
+    lastChecked: "42 sec ago",
   },
-
   {
     id: "arena",
-
-    gameId: "lol",
-
-    name: "Arena",
-
-    slug: "arena",
-
-    category: "Game Mode",
-
-    live: false,
-
-    featured: true,
+    game: "lol",
+    title: "Arena",
+    status: "UPCOMING",
+    trackedUsers: 8422,
+    lastChecked: "1 min ago",
   },
-
   {
     id: "night-market",
-
-    gameId: "valorant",
-
-    name: "Night Market",
-
-    slug: "night-market",
-
-    category: "Store",
-
-    live: false,
-
-    featured: true,
+    game: "valorant",
+    title: "Night Market",
+    status: "TRACKING",
+    trackedUsers: 10294,
+    lastChecked: "15 sec ago",
   },
-
   {
-    id: "steam-sale",
-
-    gameId: "steam",
-
-    name: "Summer Sale",
-
-    slug: "summer-sale",
-
-    category: "Sale",
-
-    live: false,
-
-    featured: true,
+    id: "fortnite-og",
+    game: "fortnite",
+    title: "Fortnite OG",
+    status: "ENDED",
+    trackedUsers: 6230,
+    lastChecked: "39 sec ago",
   },
-]
+];
