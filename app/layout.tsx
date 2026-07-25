@@ -1,19 +1,21 @@
-import type { Metadata } from "next";
-import "./globals.css";
+import "./globals.css"
+import type { Metadata } from "next"
 
 export const metadata: Metadata = {
   title: "ModeAlert",
-  description: "Never miss your favorite game modes again.",
-};
+  description: "Track limited-time events across every game."
+}
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="bg-black text-white antialiased">
+        {children}
+      </body>
     </html>
-  );
+  )
 }
