@@ -1,13 +1,15 @@
-export interface Game{
+export interface Game {
+  id: string;
+  name: string;
+  slug: string;
+  logo: string;
+  color: string;
 
-id:string
+  shortName: string;
 
-name:string
+  supportedEvents: number;
 
-slug:string
+  activeUsers: string;
 
-logo:string
-
-color:string
-
+  featured: boolean;
 }

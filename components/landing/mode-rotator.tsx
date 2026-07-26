@@ -42,7 +42,7 @@ export function ModeRotator() {
           </span>
 
           <span className="font-semibold text-white">
-            "{mode.event}"
+            &ldquo;{mode.event}&rdquo;
           </span>
 
           <span className="text-zinc-400">

@@ -1,13 +1,19 @@
+export type EventStatus =
+  | "LIVE"
+  | "UPCOMING"
+  | "TRACKING"
+  | "ENDED";
+
 export interface Event {
+  id: string;
 
-  id:number
+  game: string;
 
-  game:string
+  title: string;
 
-  event:string
+  status: EventStatus;
 
-  status:"live" | "offline"
+  trackedUsers: number;
 
-  tracking:number
-
+  lastChecked: string;
 }

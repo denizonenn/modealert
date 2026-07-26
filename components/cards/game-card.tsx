@@ -1,10 +1,12 @@
-import { Game } from "@/lib/data/games";
+import { Game } from "@/types/game";
 
 interface Props {
   game: Game;
 }
 
-export function GameCard({ game }: Props) {
+export default function GameCard({
+  game,
+}: Props) {
   return (
     <div className="group rounded-2xl border border-white/10 bg-white/5 p-5 transition-all hover:border-white/20 hover:bg-white/10">
       <div className="flex items-center gap-4">

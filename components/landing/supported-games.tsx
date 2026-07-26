@@ -1,5 +1,5 @@
 import { games } from "@/lib/data/games";
-import { GameCard } from "@/components/cards/game-card";
+import GameCard from "@/components/cards/game-card";
 
 export function SupportedGames() {
   return (
@@ -20,8 +20,10 @@ export function SupportedGames() {
           </h2>
 
           <p className="mx-auto mt-5 max-w-2xl text-lg text-zinc-400">
-            Track limited-time modes, seasonal events, Night Markets,
-            Twitch Drops, beta access, special rotations and much more.
+            Track limited-time modes, seasonal events,
+            Night Markets, Twitch Drops,
+            beta access, special rotations
+            and much more.
           </p>
         </div>
 

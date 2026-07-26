@@ -1,4 +1,6 @@
-export const events = [
+import { Event } from "@/types/event";
+
+export const events: Event[] = [
   {
     id: "urf",
     game: "lol",
@@ -7,6 +9,7 @@ export const events = [
     trackedUsers: 12841,
     lastChecked: "42 sec ago",
   },
+
   {
     id: "arena",
     game: "lol",
@@ -15,6 +18,7 @@ export const events = [
     trackedUsers: 8422,
     lastChecked: "1 min ago",
   },
+
   {
     id: "night-market",
     game: "valorant",
@@ -23,6 +27,7 @@ export const events = [
     trackedUsers: 10294,
     lastChecked: "15 sec ago",
   },
+
   {
     id: "fortnite-og",
     game: "fortnite",

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ArrowRight, Bell, Zap } from "lucide-react"
+import { ArrowRight, Zap } from "lucide-react";
 import { DashboardPreview } from "./dashboard-preview"
 import Link from "next/link"
 import { ModeRotator } from "./mode-rotator"
