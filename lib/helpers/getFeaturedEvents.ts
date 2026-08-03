@@ -1,5 +1,10 @@
-import { events } from "../data/events";
+import { prisma } from "@/lib/db/prisma";
 
-export function getFeaturedEvents() {
-  return events.slice(0, 4);
+export async function getFeaturedEvents() {
+  return prisma.event.findMany({
+    take: 4,
+    include: {
+      game: true,
+    },
+  });
 }

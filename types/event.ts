@@ -1,13 +1,12 @@
-export type EventStatus =
-  | "LIVE"
-  | "UPCOMING"
-  | "TRACKING"
-  | "ENDED";
+import { EventStatus } from "./status";
+import { Game } from "./game";
 
 export interface Event {
   id: string;
 
-  game: string;
+  gameId: string;
+
+  game: Game;
 
   title: string;
 

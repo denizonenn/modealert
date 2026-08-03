@@ -1,5 +1,10 @@
-import { getNotificationsByUser } from "@/lib/repositories/notification.repository";
-import { Notification } from "@/types/notification";
+import {
+  getNotificationsByUser,
+  createNotification,
+  markNotificationRead,
+  markAllNotificationsRead,
+  deleteNotification,
+} from "@/lib/repositories/notification.repository";
 
 export const notificationService = {
   async getByUser(userId: string) {
@@ -7,8 +12,33 @@ export const notificationService = {
   },
 
   async getUnread(userId: string) {
-    return getNotificationsByUser(userId).filter(
-      (notification: Notification) => !notification.read
+    const notifications =
+      await getNotificationsByUser(userId);
+
+    return notifications.filter(
+      (notification) => !notification.read
     );
+  },
+
+  async create(data: {
+    userId: string;
+    eventId: string;
+    title: string;
+    message: string;
+    channel: string;
+  }) {
+    return createNotification(data);
+  },
+
+  async markRead(id: string) {
+    return markNotificationRead(id);
+  },
+
+  async markAllRead(userId: string) {
+    return markAllNotificationsRead(userId);
+  },
+
+  async delete(id: string) {
+    return deleteNotification(id);
   },
 };

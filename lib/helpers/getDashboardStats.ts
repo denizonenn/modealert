@@ -1,16 +1,18 @@
-import { events } from "@/lib/data/events";
+import { eventService } from "@/lib/services/event.service";
 
-export function getDashboardStats() {
+export async function getDashboardStats() {
+  const events = await eventService.getAllEvents();
+
   return {
     watched: events.length,
 
     live: events.filter(
-      (x) => x.status === "LIVE"
+      (event) => event.status === "LIVE"
     ).length,
 
     nextEvent:
       events.find(
-        (x) => x.status === "UPCOMING"
+        (event) => event.status === "UPCOMING"
       )?.title ?? "Unknown",
   };
 }

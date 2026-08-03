@@ -1,13 +1,28 @@
-import { games } from "@/lib/data/games";
+import { prisma } from "@/lib/db/prisma";
 
-export function getGames() {
-  return games;
+export async function getGames() {
+  return prisma.game.findMany({
+    orderBy: {
+      name: "asc",
+    },
+  });
 }
 
-export function getGameById(id: string) {
-  return games.find((game) => game.id === id);
+export async function getGameById(id: string) {
+  return prisma.game.findUnique({
+    where: {
+      id,
+    },
+  });
 }
 
-export function getFeaturedGames() {
-  return games.filter((game) => game.featured);
+export async function getFeaturedGames() {
+  return prisma.game.findMany({
+    where: {
+      featured: true,
+    },
+    orderBy: {
+      name: "asc",
+    },
+  });
 }

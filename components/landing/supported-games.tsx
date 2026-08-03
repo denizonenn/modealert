@@ -1,7 +1,42 @@
-import { games } from "@/lib/data/games";
+"use client";
+
 import GameCard from "@/components/cards/game-card";
 
+import { useGames } from "@/hooks/use-games";
+
 export function SupportedGames() {
+  const {
+    games,
+    isLoading,
+    error,
+  } = useGames();
+
+  if (isLoading) {
+    return (
+      <section
+        id="games"
+        className="border-y border-white/10 bg-white/[0.02]"
+      >
+        <div className="mx-auto max-w-7xl px-6 py-20">
+          <p>Loading games...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section
+        id="games"
+        className="border-y border-white/10 bg-white/[0.02]"
+      >
+        <div className="mx-auto max-w-7xl px-6 py-20">
+          <p>Failed to load games.</p>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section
       id="games"

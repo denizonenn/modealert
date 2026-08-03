@@ -1,3 +1,4 @@
+import Card from "@/components/shared/card";
 import StatusBadge from "@/components/shared/status-badge";
 import { EventStatus } from "@/types/status";
 
@@ -15,7 +16,7 @@ export default function EventStatusCard({
   updatedAt,
 }: Props) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-6 transition hover:border-white/20">
+    <Card>
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm text-zinc-500">
@@ -33,6 +34,6 @@ export default function EventStatusCard({
       <p className="mt-6 text-sm text-zinc-400">
         Last checked {updatedAt}
       </p>
-    </div>
+    </Card>
   );
 }

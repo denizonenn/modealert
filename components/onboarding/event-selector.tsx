@@ -1,43 +1,55 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-import { Event } from "@/types/event";
-
-import { eventService } from "@/lib/services/event.service";
+import { useMemo } from "react";
 
 import { useOnboardingStore } from "@/stores/onboarding-store";
+
+import { useEvents } from "@/hooks/use-events";
 
 import EventCard from "../cards/event-card";
 
 export default function EventSelector() {
-  const { selectedGames } = useOnboardingStore();
+  const { selectedGames } =
+    useOnboardingStore();
 
-  const [events, setEvents] = useState<Event[]>([]);
+  const {
+    events,
+    isLoading,
+    error,
+  } = useEvents();
 
-  useEffect(() => {
-    async function load() {
-      const allEvents =
-        await eventService.getAllEvents();
+  const filteredEvents = useMemo(
+    () =>
+      events.filter((event) =>
+        selectedGames.includes(event.gameId)
+      ),
+    [events, selectedGames]
+  );
 
-      setEvents(
-        allEvents.filter((event) =>
-          selectedGames.includes(event.game)
-        )
-      );
-    }
+  if (isLoading) {
+    return (
+      <div className="mt-10">
+        Loading events...
+      </div>
+    );
+  }
 
-    load();
-  }, [selectedGames]);
+  if (error) {
+    return (
+      <div className="mt-10">
+        Failed to load events.
+      </div>
+    );
+  }
 
   return (
     <div className="mt-10 grid gap-5 md:grid-cols-2">
-      {events.map((event) => (
+      {filteredEvents.map((event) => (
         <EventCard
           key={event.id}
           id={event.id}
           name={event.title}
-          description={event.game}
+          description={event.game.name}
           selected={false}
           onClick={() => {}}
         />

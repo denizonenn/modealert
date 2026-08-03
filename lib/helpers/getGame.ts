@@ -1,7 +1,5 @@
-import { games } from "@/lib/data/games"
+import { gameService } from "@/lib/services/game.service";
 
-export function getGame(id:string){
-
-return games.find(game=>game.id===id)
-
+export async function getGame(id: string) {
+  return gameService.getById(id);
 }

@@ -16,4 +16,20 @@ export const eventService = {
   async getByGame(gameId: string) {
     return getEventsByGame(gameId);
   },
+
+  async getLiveEvents() {
+    const events = await getEvents();
+
+    return events.filter(
+      (event) => event.status === "LIVE"
+    );
+  },
+
+  async getUpcomingEvents() {
+    const events = await getEvents();
+
+    return events.filter(
+      (event) => event.status === "UPCOMING"
+    );
+  },
 };

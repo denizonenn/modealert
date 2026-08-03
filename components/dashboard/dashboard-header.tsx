@@ -1,3 +1,5 @@
+import StatCard from "./stat-card";
+
 interface Props {
   watched: number;
   live: number;
@@ -9,10 +11,12 @@ export default function DashboardHeader({
   live,
   nextEvent,
 }: Props) {
+  const hour = new Date().getHours();
+
   const greeting =
-    new Date().getHours() < 12
+    hour < 12
       ? "Good Morning"
-      : new Date().getHours() < 18
+      : hour < 18
       ? "Good Afternoon"
       : "Good Evening";
 
@@ -26,44 +30,27 @@ export default function DashboardHeader({
         Your Dashboard
       </h1>
 
-      <div className="mt-6 flex flex-wrap gap-8 text-sm">
+      <p className="mt-3 max-w-xl text-zinc-400">
+        Track every game event you&apos;re following in one place.
+      </p>
 
-        <div>
+      <div className="mt-8 flex flex-wrap gap-5">
+        <StatCard
+          title="Watching"
+          value={watched}
+        />
 
-          <p className="text-zinc-500">
-            Watching
-          </p>
+        <StatCard
+          title="Live Now"
+          value={live}
+          accent="text-emerald-400"
+        />
 
-          <p className="text-2xl font-semibold">
-            {watched}
-          </p>
-
-        </div>
-
-        <div>
-
-          <p className="text-zinc-500">
-            Live Now
-          </p>
-
-          <p className="text-2xl font-semibold text-emerald-400">
-            {live}
-          </p>
-
-        </div>
-
-        <div>
-
-          <p className="text-zinc-500">
-            Next Expected
-          </p>
-
-          <p className="text-xl">
-            {nextEvent}
-          </p>
-
-        </div>
-
+        <StatCard
+          title="Next Event"
+          value={nextEvent}
+          accent="text-blue-400"
+        />
       </div>
     </section>
   );

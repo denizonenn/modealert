@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  name          String?
+
+  watchlists    Watchlist[]
+  notifications Notification[]
+}
+
+model Game {
+  id              String      @id
+  name            String
+  slug            String      @unique
+  logo            String
+  color           String
+
+  shortName       String
+  supportedEvents Int
+  activeUsers     String
+  featured        Boolean
+
+  events          Event[]
+}
+
+model Event {
+  id            String         @id
+  gameId        String
+
+  title         String
+  status        String
+
+  trackedUsers  Int
+  lastChecked   String
+
+  game          Game           @relation(fields: [gameId], references: [id])
+
+  watchlists    Watchlist[]
+  notifications Notification[]
+
+  history       EventHistory[]
+}
+
+model EventHistory {
+  id          String   @id @default(cuid())
+
+  eventId     String
+
+  status      String
+
+  startedAt   DateTime
+
+  endedAt     DateTime?
+
+  createdAt   DateTime @default(now())
+
+ event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+
+  @@index([startedAt])
+}
+
+model Watchlist {
+  id        String   @id @default(cuid())
+
+  userId    String
+  eventId   String
+
+  user      User     @relation(fields: [userId], references: [id])
+  event     Event    @relation(fields: [eventId], references: [id])
+
+  @@unique([userId, eventId])
+}
+
+model Notification {
+  id         String   @id @default(cuid())
+
+  userId     String
+  eventId    String
+
+  title      String
+  message    String
+
+  channel    String
+
+  read       Boolean
+
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id])
+  event      Event    @relation(fields: [eventId], references: [id])
+}
