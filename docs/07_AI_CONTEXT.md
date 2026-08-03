@@ -1,327 +1,176 @@
 # AI Context
 
-Status: Active
+> This document is the first document that every AI assistant must read before making any change to the project.
+
+---
+
+# Project
+
+Project Name:
+
+ModeAlert
 
 ---
 
 # Purpose
 
-This document exists to rapidly onboard an AI assistant into the ModeAlert project.
+ModeAlert is a passive income SaaS.
 
-It should answer:
+The project monitors temporary game modes and events across multiple games.
 
-- What is this project?
-- Why does it exist?
-- How is it structured?
-- What should never change?
-- How should future work be approached?
+Users can subscribe to events.
 
-The goal is that a new AI conversation can become productive within minutes.
+When an event starts or changes, the system sends notifications.
+
+The long term goal is to become the best event tracker for online games.
+
+Everything should be designed for scalability.
+
+Everything should require as little maintenance as possible.
 
 ---
 
-# Project Summary
+# Business Goal
 
-ModeAlert is a SaaS platform that monitors gaming events from multiple providers and sends personalized notifications.
+The software should eventually generate passive income.
 
-The project is designed around:
+The owner should not manually update event data.
+
+Everything should be synchronized automatically.
+
+New games should be pluggable.
+
+---
+
+# Owner
+
+Owner:
+Deniz Önen
+
+Background:
+
+Management Engineer
+
+NOT a software engineer.
+
+Therefore:
+
+Every code response must contain
+
+- complete file
+- complete path
+- terminal commands if necessary
+
+Never answer with partial snippets.
+
+Never assume manual editing.
+
+---
+
+# AI Rules
+
+The assistant MUST
+
+- always give full files
+- never omit unchanged sections
+- always specify file path
+- explain terminal commands
+- prefer clean architecture
+- prefer extensibility
+- prefer low maintenance
+
+---
+
+# Documentation Order
+
+Always read in this order.
+
+00_PROJECT.md
+
+01_VISION.md
+
+02_REQUIREMENTS.md
+
+03_ARCHITECTURE.md
+
+04_ROADMAP.md
+
+05_CONVENTIONS.md
+
+06_DECISIONS.md
+
+07_AI_CONTEXT.md
+
+---
+
+# Existing Architecture
+
+The project already uses
 
 Provider Architecture
 
-↓
+Repository Pattern
 
-Normalization
+Service Layer
 
-↓
-
-Database
-
-↓
-
-Event Detection
-
-↓
+Scheduler
 
 Notification Engine
 
-↓
+Prisma
 
-Frontend
+Next.js API Routes
 
-League of Legends is only the first provider.
+CommunityDragon Provider
 
-The architecture is intentionally game-agnostic.
+Riot Provider
 
----
+Provider Registry
 
-# Main Goal
+Notification Provider Registry
 
-Generate recurring passive income through a low-maintenance software platform.
+Event Sync Pipeline
 
-Every architectural decision should reduce future maintenance.
-
----
-
-# Important Philosophy
-
-This project optimizes for:
-
-Maintainability
-
-Scalability
-
-Automation
-
-Developer Experience
-
-Long-term stability
-
-NOT rapid feature development.
+Do not rewrite architecture unless absolutely necessary.
 
 ---
 
-# Current Tech Stack
+# Current Status
 
-Frontend
+Backend architecture exists.
 
-- Next.js
-- React
-- TypeScript
+Database exists.
 
-Backend
+Provider system exists.
 
-- Next.js Route Handlers
-- Service Layer
+Notification system exists.
 
-Database
+Dashboard exists.
 
-- Prisma
-
-Providers
-
-- Riot API
-- CommunityDragon
-
-Notification System
-
-Designed to support multiple notification providers.
-
-Console provider exists as initial implementation.
+Next goal is completing production-ready synchronization.
 
 ---
 
-# Architecture
+# Coding Philosophy
 
-Project follows a layered architecture.
+Prefer
 
-UI
+small services
 
-↓
+dependency injection
 
-API
+composition
 
-↓
+testability
 
-Services
+single responsibility
 
-↓
-
-Repositories
-
-↓
-
-Database
-
-External providers are isolated.
-
-Business logic belongs inside services.
-
-Repositories only handle persistence.
-
-Providers only fetch external data.
+Never introduce unnecessary abstractions.
 
 ---
 
-# Core Components
+# Golden Rule
 
-Provider Layer
+If documentation conflicts with assumptions,
 
-Responsible for external APIs.
-
-Examples:
-
-Riot
-
-CommunityDragon
-
-Future:
-
-Steam
-
-Blizzard
-
-Epic
-
-Valve
-
----
-
-Normalization
-
-Every provider returns different data.
-
-Normalizers convert provider-specific responses into a common internal model.
-
-The rest of the application should never care where the data came from.
-
----
-
-Synchronization
-
-Provider Sync
-
-↓
-
-Normalization
-
-↓
-
-Comparison
-
-↓
-
-Database Update
-
-↓
-
-History
-
-↓
-
-Notification Trigger
-
----
-
-Notification Engine
-
-Responsible for sending notifications.
-
-Must support multiple providers.
-
-Console is only the first implementation.
-
-Future examples:
-
-Discord
-
-Telegram
-
-Email
-
-Push
-
-Mobile
-
-Webhook
-
-Slack
-
----
-
-# Coding Rules
-
-Always prefer readability.
-
-Avoid unnecessary abstractions.
-
-Never place business logic inside API routes.
-
-Never duplicate provider logic.
-
-Never hardcode provider-specific assumptions outside provider implementations.
-
----
-
-# Development Workflow
-
-When adding a feature:
-
-Understand architecture first.
-
-Determine affected layers.
-
-Update documentation.
-
-Implement feature.
-
-Verify architecture consistency.
-
----
-
-# AI Responsibilities
-
-When helping with this project:
-
-Respect the existing architecture.
-
-Prefer extension over modification.
-
-Avoid introducing coupling.
-
-Suggest maintainable solutions.
-
-Think like a software architect.
-
-Not like a code generator.
-
----
-
-# Things the AI should frequently ask
-
-Will this increase maintenance?
-
-Can this become provider-independent?
-
-Does this belong in Services?
-
-Can this be reused?
-
-Does this violate modularity?
-
-Will this still make sense in two years?
-
----
-
-# Current Project Direction
-
-Current focus:
-
-Complete backend architecture.
-
-Complete synchronization engine.
-
-Integrate Riot provider.
-
-Integrate CommunityDragon.
-
-Implement notification pipeline.
-
-After backend stabilizes:
-
-Improve frontend.
-
-Add authentication.
-
-Deploy production.
-
-Launch MVP.
-
-Acquire first users.
-
----
-
-# Ultimate Goal
-
-Build software that earns money while requiring as little manual work as possible.
-
-Every line of code should move the project toward that goal.
+documentation wins.
