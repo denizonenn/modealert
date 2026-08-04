@@ -36,29 +36,48 @@ Eventually it should require minimal manual intervention while generating recurr
 
 Status:
 
-Early MVP
+MVP live in production (2026-08-04) — https://modealert.vercel.app
 
 Completed:
 
-✔ Provider Architecture
+✔ Provider Architecture (Riot, CommunityDragon, Valorant — 3 real
+  providers, all verified against live data)
 
 ✔ Repository Layer
 
 ✔ Service Layer
 
-✔ Scheduler Foundation
+✔ Event Engine (new/updated/removed detection, source-scoped expiry,
+  history lifecycle)
 
-✔ Notification Architecture
+✔ Notification Architecture (Console + Email/Resend, per-recipient,
+  DB-persisted)
 
-✔ Database Schema
+✔ Database Schema (Postgres/Neon, migrated off SQLite)
 
-✔ CommunityDragon Provider
+✔ CommunityDragon Provider (event-hub, live+pbe patchline comparison)
 
-✔ Riot Provider Foundation
+✔ Riot Provider (platform status, champion rotation)
 
-In Progress:
+✔ Valorant Provider (platform status, act/episode detection)
 
-Event Synchronization
+✔ Dashboard (real watchlist add/remove, live stats)
+
+✔ Onboarding flow (Games → Events → Finish, creates real watchlist
+  entries)
+
+✔ Automated deploy (push to feature/landing-page-v2 → auto production
+  deploy)
+
+✔ Automated daily sync (Vercel Cron, Hobby plan limit)
+
+In Progress / Not Started:
+
+- Auth (everything runs on a single hardcoded "demo" user — Phase 7)
+- Discord/Telegram notifications (deliberately deferred)
+- More game providers (Steam, Epic, Blizzard — crawler/ stubs exist
+  but are empty)
+- Prediction engine (Phase 5)
 
 ---
 

@@ -293,11 +293,141 @@ spam klasörü dışında neredeyse her yerde çalışır.
 - Uçtan uca doğrulandı: gerçek bir event durum değişikliği tetiklendi,
   doğru recipient'a console bildirimi gitti, doğru `title`/`message`/
   `channel` ile `Notification` DB kaydı oluştu.
-- **Gerçek e-posta gönderimi henüz aktif değil** — Deniz'in
-  resend.com'da (kredi kartsız, ücretsiz katman) hesap açıp
-  `RESEND_API_KEY`'i `.env`'e eklemesi gerekiyor. Şu anki `from` adresi
-  varsayılan `onboarding@resend.dev` — gerçek gönderim için ileride
-  kendi domain'ini Resend'de doğrulaması önerilir (deliverability ve
-  marka güveni için).
+- **Güncelleme (2026-08-04, aynı gün içinde):** Deniz resend.com'da
+  hesap açıp `RESEND_API_KEY`'i verdi — email artık gerçekten aktif ve
+  canlıda çalışıyor. `denizate@gmail.com`'a gerçek bir test maili
+  gönderilip doğrulandı (message id: `1eea6a9f-e8c7-4bcb-8ee9-ea173b7a58df`).
+  `from` adresi hâlâ varsayılan `onboarding@resend.dev` — kendi domain'ini
+  Resend'de doğrulaması deliverability/marka güveni için hâlâ önerilir
+  ama artık acil değil.
 - Discord/Telegram/Push backlog'da "Future" olarak kaldı, öncelik
   sırası Deniz'in isteğiyle değişti (bkz. docs/09_BACKLOG.md).
+
+---
+
+# ADR-004: Production'a Çıkış — Postgres, Deploy Otomasyonu, Watchlist, Onboarding, Tasarım Sistemi
+
+Status: Accepted
+
+Date: 2026-08-04
+
+## Bağlam
+
+ADR-003'ten sonra aynı gün içinde proje local'den gerçek production'a
+taşındı ve "proje gibi duran" bir şeyden gerçekten kullanılabilir bir
+ürüne dönüştü. Çok sayıda karar tek oturumda alındığı için burada
+toplu özetleniyor — her biri ayrı ayrı ADR açmak yerine, gelecekte
+"neden böyle" sorusuna tek yerden cevap vermek için.
+
+## Kararlar
+
+### 1. SQLite → Postgres (Neon, Vercel Storage Marketplace)
+
+Local SQLite dosyası Vercel'in serverless fonksiyonlarında kalıcı
+disk olmadığı için tamamen çalışmaz durumdaydı — her cold start'ta
+veri sıfırlanırdı. Vercel'in Storage sekmesinden Neon eklendi
+(eskiden "Vercel Postgres" denen şeyin ta kendisi, artık marketplace
+üzerinden). `DATABASE_URL` (pooled, uygulama için) + `DATABASE_URL_UNPOOLED`
+(direct, migration'lar için) — Vercel'in otomatik enjekte ettiği
+değişken isimleriyle birebir eşleşecek şekilde kuruldu, elle yeniden
+adlandırma gerekmedi. Eski SQLite migration geçmişi silindi, Postgres
+için sıfırdan `init_postgres` migration'ı oluşturuldu.
+
+### 2. Vercel deploy otomasyonu — iki kez kırıldı, iki kez düzeltildi
+
+İlk sorun: Vercel'in yeni arayüzünde "Production Branch" ayarı artık
+**Settings → Git**'te değil, ayrı bir **Settings → Environments**
+sayfasında (Production ortamına tıkla → Branch Tracking). Bu yüzden
+`feature/landing-page-v2`'ye push etmek uzun süre sadece **Preview**
+deployment üretti, production domain'e (`modealert.vercel.app`) hiç
+dokunmadı — "Redeploy" butonu da yardımcı olmadı çünkü o buton aynı
+eski commit'i yeniden build ediyor, branch ayarındaki değişikliği
+yakalamıyor. Geçici çözüm: Deployments listesinden doğru build'i elle
+**"Promote to Production"** yapmak. Kalıcı çözüm: Settings → Environments
+→ Production → Branch Tracking'i doğru branch'e ayarlamak (dropdown'dan
+seçmek, elle yazıp trailing space hatası yapmamak).
+
+Bu düzeltmeden sonra her push gerçekten otomatik production deploy
+tetikliyor — doğrulandı (birden fazla push'ta).
+
+### 3. Watchlist özelliği — vardı ama bağlı değildi, bir de tip hatası vardı
+
+`lib/repositories/watchlist.repository.ts`, `watchlistService`,
+`/api/watchlists` route'u zaten tam çalışır haldeydi ama hiçbir UI
+bileşeni kullanmıyordu. `hooks/use-watchlist.ts` da gerçek dönen veriyle
+(Watchlist join-row, nested `event` alanıyla) uyuşmayan yanlış bir tipe
+(`EventWithGame[]`) sahipti — kullanılsaydı runtime'da patlardı.
+
+Hook `toggle()` odaklı, optimistic update yapan basit bir yapıya
+yeniden yazıldı. Dashboard'a yıldız butonu eklendi, "Your Watchlist"
+(sadece takip edilenler) ve "All Events" (keşfet + ekle/çıkar) olarak
+ikiye bölündü. `getDashboardStats` de artık TÜM event'leri değil,
+gerçek watchlist'i sayıyor — "Watching: 30" daha önce "sistemde 30
+event var" demekti, artık gerçekten "30 şeyi takip ediyorum" demek.
+
+Test sırasında ikinci bir cache bug'ı bulundu: watchlist toggle,
+dashboard stat kartlarını güncellemiyordu çünkü `useWatchlist` ve
+`useDashboard` ayrı SWR cache key'leri kullanıyordu. `toggle()` artık
+`/api/dashboard` cache'ini de global `mutate()` ile invalidate ediyor.
+
+### 4. Onboarding akışı — sitenin ana kırık CTA'sıydı
+
+`/onboarding`, Hero ve CTA bölümlerindeki "Start Tracking" butonlarının
+hedefiydi ama placeholder bir sayfaydı ("Event selection flow will be
+implemented here"). Bileşenlerin çoğu (`GameSelector`, `EventSelector`,
+`SelectableGameCard`, `EventCard`, Zustand store, `Progress`) zaten
+yazılmıştı ama hiç birleştirilmemişti — ve `GameSelector`, Prisma
+kullanan `gameService.getAllGames()`'i doğrudan bir `"use client"`
+component'ten çağırıyordu, yani kullanılsaydı çökerdi.
+
+Düzeltildi: `GameSelector` artık `useGames()` hook'unu kullanıyor.
+Store'a `selectedEvents`/`toggleEvent` eklendi. 4 adım 3'e indirildi
+(Games → Events → Finish) — eski 4. adım "Create your account"'tı,
+ama auth sistemi yok, o yüzden sahte bir vaat vermek yerine kaldırıldı.
+Finish adımı seçilen event'leri gerçekten `/api/watchlists`'e yazıyor
+ve `/dashboard`'a yönlendiriyor. Uçtan uca tarayıcıda doğrulandı.
+
+### 5. "Yazılmış ama bağlanmamış" örüntüsü — üçüncü kez tekrarlandı
+
+Dashboard (ADR-002), onboarding (bu ADR) ve şimdi de bulunan ama HENÜZ
+ÇÖZÜLMEMİŞ üçüncü örnek: `components/notifications/*` (notification-center,
+notification-item, notification-settings) ve `hooks/use-notifications.ts`
+yazılmış, hiçbir sayfaya bağlanmamış. Navbar'daki zil ikonu dekoratif,
+tıklanamıyor. Muhtemelen aynı önceki (GPT destekli) oturumdan kalma —
+bu proje boyunca bu örüntüye tekrar tekrar rastlanıyor, gelecekte
+"neden bu component var ama kullanılmıyor" sorusu çıkarsa önce bunu
+kontrol et.
+
+### 6. Tasarım sistemi — gerçek font bug'ı + gradient marka kimliği
+
+Deniz'in paylaştığı iki HTML template'i (Cyborg, BekoMaster) incelenirken
+kritik bir bug bulundu: `globals.css`'teki `--font-heading`/`--font-sans`
+CSS değişkenlerine hiçbir yerde gerçek bir font atanmamıştı (`next/font`
+kurulumu hiç yapılmamıştı) — bütün başlıklar sessizce tarayıcı
+varsayılan **serif** fontunda render oluyordu. `next/font/google` ile
+Inter (body) + Space Grotesk (başlıklar) yüklendi, tek bir
+`h1-h6 { @apply font-heading }` kuralıyla sitenin her yerinde otomatik
+düzeldi.
+
+Template'lerin asset'leri kopyalanmadı (lisans) ama enerjileri
+(gradient, kalın tipografi) `text-gradient-brand`/`bg-gradient-brand`
+utility'leri (mor→pembe→mavi) olarak kendi sistemine çevrildi — Hero,
+CTA, Features kartları, How It Works, dashboard stat kartları, yeni
+`SectionEyebrow` component'i. Oyun ikonları da emoji yerine gerçek
+marka ikonlarına geçirildi (`react-icons/si`: `SiLeagueoflegends`,
+`SiValorant`, `SiFortnite`) — `components/shared/game-icon.tsx` artık
+`Game.color`'ı da (daha önce hiç kullanılmıyordu) aksan rengi olarak
+kullanıyor.
+
+## Sonuçlar
+
+- Production tamamen doğrulandı: 3 provider, gerçek watchlist,
+  tamamlanmış onboarding, gerçek email, otomatik deploy, otomatik
+  günlük sync — hepsi `modealert.vercel.app`'te canlı ve test edildi.
+- Kalan bilinen açık: auth yok (tek "demo" kullanıcı), notification
+  center bağlı değil, Discord/Telegram yapılmadı (bilinçli), daha
+  fazla oyun provider'ı yok (crawler/ hâlâ boş).
+- "Yazılmış ama bağlanmamış component" örüntüsü artık üç kez görüldü
+  (dashboard, onboarding, notifications) — yeni bir component
+  klasörüyle karşılaşınca önce "gerçekten bir route'tan import
+  ediliyor mu" diye kontrol etmek, doğrudan güvenmemek gerekiyor.

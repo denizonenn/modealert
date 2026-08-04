@@ -38,13 +38,38 @@ biliyor. Buna göre:
   health(), name, priority. Bağımsız ve değiştirilebilir olmalı.
 - Prisma sadece repository katmanı içinden kullanılır.
 
-## Şu Anki Durum
+## Şu Anki Durum (2026-08-04 itibarıyla)
 
 - Asıl geliştirme `feature/landing-page-v2` branch'inde yapılıyor.
-- `main` branch'i şu an sadece create-next-app iskeleti.
-- Aktif provider'lar: Riot API, CommunityDragon (live). PBE patchline
-  entegrasyonu ve LCU (kişiselleştirme amaçlı, event keşfi için değil)
-  yol haritada.
+  `main` branch'i hâlâ sadece create-next-app iskeleti.
+- **Canlıda:** https://modealert.vercel.app — Vercel'e bağlı, her push
+  otomatik deploy ediyor (Settings → Environments → Production →
+  Branch Tracking = `feature/landing-page-v2`).
+- **Veritabanı:** Neon Postgres (Vercel Storage Marketplace üzerinden).
+  Artık SQLite değil — `DATABASE_URL` (pooled) + `DATABASE_URL_UNPOOLED`
+  (migration'lar için) kullanılıyor.
+- **Aktif provider'lar (3, hepsi gerçek veriyle doğrulandı):** Riot API
+  (platform status + champion rotation), CommunityDragon (event-hub,
+  live+pbe patchline), Valorant (platform status + act/episode).
+  LCU sadece kişiselleştirme için — event keşfi için KULLANILMAZ
+  (bkz. docs/06_DECISIONS.md ADR-001).
+- **Cron:** `/api/cron/sync` günde 1 kez (Vercel Hobby plan limiti —
+  Pro'ya geçilirse saatliğe çekilebilir).
+- **Bildirimler:** Email (Resend) canlı, per-recipient gönderim,
+  gerçek `Notification` DB kaydı. Discord/Telegram bilinçli olarak
+  en sona bırakıldı (Deniz'in isteği — Türkiye'de Discord erişim
+  sorunu).
+- **Frontend tamamlanan akışlar:** Landing page (Hero/Features/HowItWorks/
+  FAQ/CTA — gradient marka sistemi + gerçek fontlar), `/dashboard`
+  (gerçek watchlist ekle/çıkar), `/live` (CommunityDragon canlı kontrol),
+  `/onboarding` (3 adım: Games → Events → Finish, gerçek watchlist
+  kaydı oluşturur).
+- **Auth yok.** Her şey hardcoded `"demo"` kullanıcısı üzerinden çalışıyor
+  — Phase 7'ye kadar böyle kalacak, bilinçli bir sınır (bkz.
+  docs/06_DECISIONS.md).
+- Detaylı karar geçmişi için **docs/06_DECISIONS.md** her zaman en
+  güncel ve en güvenilir kaynak — yeni bir oturuma başlarken önce
+  orayı oku.
 
 ## Belgeleme Kuralı
 

@@ -27,7 +27,7 @@ Prisma
 
 ↓
 
-SQLite/PostgreSQL
+PostgreSQL (Neon, Vercel Storage Marketplace)
 
 ↓
 
@@ -430,13 +430,7 @@ Duration
 
 Current
 
-SQLite
-
-↓
-
-Future
-
-PostgreSQL
+PostgreSQL (Neon)
 
 ↓
 

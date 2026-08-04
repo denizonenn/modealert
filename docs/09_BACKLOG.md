@@ -26,7 +26,11 @@ Target:
 
 Status:
 
-🟡 In Progress
+🟢 Live in production (2026-08-04) — https://modealert.vercel.app
+(feature/landing-page-v2 branch, auto-deploys on push)
+
+Next milestone: real auth (Phase 7) so watchlists/notifications are
+per-real-user instead of the shared "demo" account.
 
 ---
 
@@ -200,49 +204,68 @@ Remaining
 
 ---
 
+# P0 — Onboarding
+
+Status: 🟢
+
+Completed (2026-08-04)
+
+- Was the site's main broken CTA: every "Start Tracking" button led
+  to a static placeholder page. Now a real 3-step flow: Games →
+  Events → Finish.
+- Fixed a real bug found while wiring it up: `GameSelector` called
+  `gameService.getAllGames()` (Prisma) directly from a `"use client"`
+  component — would have crashed the moment it rendered. Switched to
+  the `useGames()` hook.
+- Finish step creates real Watchlist rows via `/api/watchlists`,
+  redirects to `/dashboard`.
+- The old 4th step ("Create your account") was removed rather than
+  faked — there's no auth system yet, so it's out until Phase 7.
+
+Remaining
+
+- Nothing blocking. Revisit once auth exists to add a real account
+  step and per-user identity instead of the "demo" user.
+
+---
+
 # P0 — Dashboard
 
-Status: 🟡
+Status: 🟢
 
-Need
+Completed (2026-08-04)
 
-- Live statistics
+- Live statistics (Watching / Live Now / Next Event — scoped to the
+  real watchlist, not global event count)
+- "Your Watchlist" (only watched events) + "All Events" (browse/add)
+  sections, grouped by status (Live/Upcoming/Tracking/Ended)
+- Real add/remove watchlist toggle (star button), optimistic UI
+- Corporate-quality visual pass: real fonts (was accidentally
+  rendering in browser-default serif — see docs/06_DECISIONS.md),
+  gradient accent system, skeleton loading states
 
-- Upcoming events
+Remaining
 
-- Active events
-
-- Notification history
-
-- Sync health
-
-- Provider status
+- Notification history view
+- Sync health / provider status page (data exists via
+  `/api/providers/health`, no UI yet)
 
 ---
 
 # P1 — Watchlists
 
-Status: 🟡
+Status: 🟢
 
-Need
+Completed
 
-Users can follow
-
-- Game
-
-- Queue
-
-- Champion
-
-- Event
-
-- Skin
-
-- Rotation
+- Users can follow individual Events (star toggle on dashboard,
+  also created during onboarding finish step)
+- Real DB persistence (`/api/watchlists`), optimistic updates
 
 Future
 
-Custom filters
+- Follow by Game/Queue/Champion (currently only Event-level)
+- Custom filters
 
 ---
 
@@ -461,15 +484,25 @@ Current
 - Logging improvements
 
 - ~~Repo kökünde dokümante edilmemiş, eski bir frontend katmanı var~~ —
-  **dashboard kısmı çözüldü** (2026-08-04, `app/dashboard` gerçek route
-  oldu). **Onboarding kısmı hâlâ açık**: `components/onboarding/*` sadece
-  ilk 2/4 adımı kapsıyor, Notifications ve Account (auth) adımları
-  yazılmamış — auth netleşmeden tamamlanmayacak (bkz. docs/06_DECISIONS.md
-  ADR-002). `crawler/*/get-events.ts` hâlâ tamamen boş, kullanılabilir
-  değil.
+  **dashboard ve onboarding kısımları çözüldü** (2026-08-04). Kalan tek
+  parça: `crawler/*/get-events.ts` (blizzard/epic/riot/steam/twitch)
+  hâlâ tamamen boş, kullanılabilir değil — yeni bir oyun eklenirken
+  sıfırdan yazılacak (Valorant'ta yapıldığı gibi).
 
 - **Riot dev API key 24 saatte bir expire oluyor** — gerçek "low
-  maintenance" için production key başvurusu gerekiyor.
+  maintenance" için production key başvurusu gerekiyor. Şu an manuel
+  güncelleniyor.
+
+- **Auth yok.** Her şey `"demo"` adında tek, hardcoded bir kullanıcı
+  üzerinden çalışıyor (watchlist, notification, dashboard stats hepsi
+  bu kullanıcıya bağlı). Gerçek çok-kullanıcılı davranış için Phase 7
+  gerekiyor — bkz. docs/09_BACKLOG.md "P2 — User Accounts".
+
+- **`components/notifications/*` (notification-center, notification-item,
+  notification-settings) ve `hooks/use-notifications.ts` yazılmış ama
+  hiçbir sayfaya bağlanmamış** — dashboard/onboarding'de bulduğumuz
+  "yazılmış ama bağlanmamış" örüntüsünün bir tekrarı daha. Navbar'daki
+  zil ikonu şu an sadece dekoratif, tıklanamıyor.
 
 ---
 
@@ -522,3 +555,28 @@ Completed milestones
 ✅ Riot provider foundation
 
 ✅ API routes
+
+✅ Valorant provider (2026-08-04)
+
+✅ Real Event Engine — new/updated/removed detection, source-scoped
+  expiry, history lifecycle (2026-08-04)
+
+✅ Email notifications (Resend), per-recipient, DB-persisted
+  (2026-08-04)
+
+✅ Postgres migration (Neon) — SQLite was incompatible with Vercel's
+  serverless functions (2026-08-04)
+
+✅ Production deploy live — https://modealert.vercel.app, auto-deploy
+  on push (2026-08-04)
+
+✅ Daily automated sync (Vercel Cron) (2026-08-04)
+
+✅ Dashboard: real watchlist add/remove, live stats (2026-08-04)
+
+✅ Onboarding flow: Games → Events → Finish, creates real watchlist
+  entries (2026-08-04)
+
+✅ Corporate-quality UI pass: real fonts, gradient brand system,
+  real brand icons (react-icons/si), FAQ/CTA/How-It-Works sections
+  built (were empty placeholder files) (2026-08-04)
