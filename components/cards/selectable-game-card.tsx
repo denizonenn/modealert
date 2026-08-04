@@ -2,6 +2,7 @@
 
 import { Check } from "lucide-react";
 import { Game } from "@/types/game";
+import { GameIcon } from "@/components/shared/game-icon";
 
 interface Props {
   game: Game;
@@ -25,9 +26,12 @@ export default function SelectableGameCard({
       }`}
     >
       <div className="flex flex-col items-center gap-4">
-        <div className="text-5xl">
-          {game.logo}
-        </div>
+        <GameIcon
+          gameId={game.id}
+          logo={game.logo}
+          color={game.color}
+          size="lg"
+        />
 
         <p className="font-medium">
           {game.name}

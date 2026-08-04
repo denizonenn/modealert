@@ -11,12 +11,7 @@ export const ONBOARDING_STEPS = [
   },
   {
     id: 3,
-    title: "Notifications",
-    description: "Choose where to receive alerts",
-  },
-  {
-    id: 4,
-    title: "Account",
-    description: "Create your account",
+    title: "Finish",
+    description: "Review and start tracking",
   },
 ];
