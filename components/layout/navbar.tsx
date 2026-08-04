@@ -1,36 +1,47 @@
-import { Bell } from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { Bell, Menu } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+
+const NAV_LINKS = [
+  { href: "#features", label: "Features" },
+  { href: "#games", label: "Games" },
+  { href: "#faq", label: "FAQ" },
+  { href: "/live", label: "Live" },
+  { href: "/dashboard", label: "Dashboard" },
+];
 
 export function Navbar() {
+  const [open, setOpen] = useState(false);
+
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-black/70 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center px-6">
-        <div className="flex items-center gap-2 font-semibold">
+        <Link href="/" className="flex items-center gap-2 font-semibold">
           <div className="rounded-lg bg-white p-2 text-black">
             <Bell className="h-4 w-4" />
           </div>
           <span className="text-lg">ModeAlert</span>
-        </div>
+        </Link>
 
         <nav className="ml-10 hidden items-center gap-6 text-sm text-zinc-400 md:flex">
-          <a href="#features" className="hover:text-white">
-            Features
-          </a>
-          <a href="#games" className="hover:text-white">
-            Games
-          </a>
-          <a href="#faq" className="hover:text-white">
-            FAQ
-          </a>
-          <a href="/live" className="hover:text-white">
-            Live
-          </a>
-          <a href="/dashboard" className="hover:text-white">
-            Dashboard
-          </a>
+          {NAV_LINKS.map((link) => (
+            <a key={link.href} href={link.href} className="hover:text-white">
+              {link.label}
+            </a>
+          ))}
         </nav>
 
-        <div className="ml-auto flex items-center gap-3">
+        <div className="ml-auto hidden items-center gap-3 md:flex">
           <Button variant="ghost" className="text-white hover:bg-white/10">
             Sign in
           </Button>
@@ -38,6 +49,63 @@ export function Navbar() {
             Get Started
           </Button>
         </div>
+
+        <Drawer
+          open={open}
+          onOpenChange={setOpen}
+          swipeDirection="right"
+        >
+          <DrawerTrigger
+            render={
+              <button
+                type="button"
+                className="ml-auto flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-white md:hidden"
+                aria-label="Open menu"
+              />
+            }
+          >
+            <Menu className="h-5 w-5" />
+          </DrawerTrigger>
+
+          <DrawerContent className="border-l border-white/10 bg-black text-white">
+            <div className="flex h-full flex-col p-6">
+              <div className="flex items-center gap-2 font-semibold">
+                <div className="rounded-lg bg-white p-2 text-black">
+                  <Bell className="h-4 w-4" />
+                </div>
+                <span className="text-lg">ModeAlert</span>
+              </div>
+
+              <nav className="mt-10 flex flex-col gap-6 text-lg">
+                {NAV_LINKS.map((link) => (
+                  <DrawerClose
+                    key={link.href}
+                    render={
+                      <a
+                        href={link.href}
+                        className="text-zinc-300 hover:text-white"
+                      />
+                    }
+                  >
+                    {link.label}
+                  </DrawerClose>
+                ))}
+              </nav>
+
+              <div className="mt-auto flex flex-col gap-3">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-center border border-white/10 text-white hover:bg-white/10"
+                >
+                  Sign in
+                </Button>
+                <Button className="w-full justify-center bg-white text-black hover:bg-zinc-200">
+                  Get Started
+                </Button>
+              </div>
+            </div>
+          </DrawerContent>
+        </Drawer>
       </div>
     </header>
   );

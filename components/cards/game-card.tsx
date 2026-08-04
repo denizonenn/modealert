@@ -1,21 +1,43 @@
-import { Game } from "@/types/game";
+"use client"
+
+import { motion } from "framer-motion"
+
+import { Game } from "@/types/game"
+import { GameIcon } from "@/components/shared/game-icon"
 
 interface Props {
-  game: Game;
+  game: Game
+  index?: number
 }
 
 export default function GameCard({
   game,
+  index = 0,
 }: Props) {
   return (
-    <div className="group rounded-2xl border border-white/10 bg-white/5 p-5 transition-all hover:border-white/20 hover:bg-white/10">
-      <div className="flex items-center gap-4">
-        <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-black text-3xl">
-          {game.logo}
-        </div>
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.4, delay: index * 0.08 }}
+      whileHover={{ y: -4 }}
+      className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 transition-colors hover:border-white/20"
+    >
+      <div
+        className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full opacity-20 blur-3xl transition-opacity group-hover:opacity-30"
+        style={{ backgroundColor: game.color }}
+      />
+
+      <div className="relative flex items-center gap-4">
+        <GameIcon
+          gameId={game.id}
+          logo={game.logo}
+          color={game.color}
+          size="lg"
+        />
 
         <div className="flex-1">
-          <h3 className="font-semibold">
+          <h3 className="text-lg font-semibold">
             {game.name}
           </h3>
 
@@ -23,17 +45,28 @@ export default function GameCard({
             {game.supportedEvents} supported events
           </p>
         </div>
+      </div>
 
-        <div className="text-right">
-          <div className="font-semibold">
+      <div className="relative mt-6 flex items-center justify-between border-t border-white/10 pt-4">
+        <div>
+          <div className="text-xl font-bold">
             {game.activeUsers}
           </div>
-
           <div className="text-xs text-zinc-500">
-            tracking
+            players tracking
           </div>
         </div>
+
+        <div
+          className="rounded-full px-3 py-1 text-xs font-semibold"
+          style={{
+            backgroundColor: `${game.color}22`,
+            color: game.color,
+          }}
+        >
+          {game.shortName}
+        </div>
       </div>
-    </div>
-  );
+    </motion.div>
+  )
 }

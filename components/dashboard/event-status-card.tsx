@@ -11,6 +11,7 @@ import type { EventStatus } from "@/types/status"
 
 interface Props {
   game: {
+    id: string
     name: string
     logo: string
     color: string
@@ -40,6 +41,7 @@ export default function EventStatusCard({
     >
       <div className="flex min-w-0 items-center gap-4">
         <GameIcon
+          gameId={game.id}
           logo={game.logo}
           color={game.color}
           size="sm"

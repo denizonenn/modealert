@@ -3,37 +3,42 @@
 import { motion } from "framer-motion";
 import {
   Bell,
+  CheckCircle2,
   Clock3,
- CheckCircle2,
   Gamepad2,
 } from "lucide-react";
 
+import { GAME_BRAND_ICONS } from "@/components/shared/game-brand-icons";
+
 const events = [
   {
+    gameId: "lol",
     game: "League of Legends",
     mode: "URF",
     status: "LIVE",
-    color: "bg-emerald-500",
+    color: "#2563eb",
   },
   {
+    gameId: "valorant",
     game: "Valorant",
     mode: "Night Market",
     status: "Tracking",
-    color: "bg-blue-500",
+    color: "#ef4444",
   },
   {
+    gameId: "fortnite",
     game: "Fortnite",
     mode: "OG",
     status: "Upcoming",
-    color: "bg-orange-500",
-  },
-  {
-    game: "Overwatch 2",
-    mode: "Archives",
-    status: "Waiting",
-    color: "bg-zinc-600",
+    color: "#22c55e",
   },
 ];
+
+const STATUS_STYLES: Record<string, string> = {
+  LIVE: "bg-emerald-500",
+  Tracking: "bg-blue-500",
+  Upcoming: "bg-amber-500",
+};
 
 export function DashboardPreview() {
   return (
@@ -63,41 +68,55 @@ export function DashboardPreview() {
 
         <div className="space-y-4">
 
-          {events.map((event) => (
-            <motion.div
-              key={event.game}
-              whileHover={{ scale: 1.02 }}
-              className="rounded-2xl border border-white/10 bg-black/40 p-5"
-            >
-              <div className="flex items-center justify-between">
+          {events.map((event) => {
+            const BrandIcon = GAME_BRAND_ICONS[event.gameId];
 
-                <div className="flex items-center gap-4">
+            return (
+              <motion.div
+                key={event.game}
+                whileHover={{ scale: 1.02 }}
+                className="rounded-2xl border border-white/10 bg-black/40 p-5"
+              >
+                <div className="flex items-center justify-between">
 
-                  <div className="rounded-xl bg-white/10 p-3">
-                    <Gamepad2 size={20} />
+                  <div className="flex items-center gap-4">
+
+                    <div
+                      className="flex h-11 w-11 items-center justify-center rounded-xl border"
+                      style={{
+                        backgroundColor: `${event.color}1a`,
+                        borderColor: `${event.color}40`,
+                      }}
+                    >
+                      {BrandIcon ? (
+                        <BrandIcon size={20} style={{ color: event.color }} />
+                      ) : (
+                        <Gamepad2 size={20} />
+                      )}
+                    </div>
+
+                    <div>
+                      <p className="text-sm text-zinc-500">
+                        {event.game}
+                      </p>
+
+                      <h4 className="font-semibold">
+                        {event.mode}
+                      </h4>
+                    </div>
+
                   </div>
 
-                  <div>
-                    <p className="text-sm text-zinc-500">
-                      {event.game}
-                    </p>
-
-                    <h4 className="font-semibold">
-                      {event.mode}
-                    </h4>
+                  <div
+                    className={`rounded-full px-3 py-1 text-xs font-semibold text-black ${STATUS_STYLES[event.status]}`}
+                  >
+                    {event.status}
                   </div>
 
                 </div>
-
-                <div
-                  className={`rounded-full px-3 py-1 text-xs font-semibold text-black ${event.color}`}
-                >
-                  {event.status}
-                </div>
-
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            );
+          })}
 
         </div>
 
@@ -114,7 +133,7 @@ export function DashboardPreview() {
 
             <div className="flex items-center gap-3">
               <Clock3 size={18} />
-              Checks every hour
+              Checks automatically, around the clock
             </div>
 
             <div className="flex items-center gap-3">
