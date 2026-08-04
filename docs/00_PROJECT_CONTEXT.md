@@ -231,6 +231,19 @@ Future Riot APIs
 
 ---
 
+Valorant Provider
+
+Status:
+Implemented (2026-08-04)
+
+Purpose:
+
+Platform Status
+
+Active Act/Episode detection (eu.api.riotgames.com)
+
+---
+
 Future Providers
 
 LCU Provider
