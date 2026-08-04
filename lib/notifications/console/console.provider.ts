@@ -1,5 +1,6 @@
 import type {
   NotificationProvider,
+  NotificationRecipient,
 } from "../core/notification-provider";
 
 import type {
@@ -19,6 +20,7 @@ export const consoleNotificationProvider: NotificationProvider =
     enabled: true,
 
     async send(
+      recipient: NotificationRecipient,
       event: ProviderEvent,
       previous: EventWithGame | null
     ) {
@@ -30,6 +32,11 @@ export const consoleNotificationProvider: NotificationProvider =
 
       console.log(
         "[Console Notification]"
+      );
+
+      console.log(
+        "Recipient:",
+        recipient.email
       );
 
       console.log(

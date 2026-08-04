@@ -23,9 +23,7 @@ export interface RiotPlatformStatusResponse {
 }
 
 export interface RiotChampionRotationResponse {
-  freeChampionIds: number[];
+  sr: number[];
 
-  freeChampionIdsForNewPlayers: number[];
-
-  maxNewPlayerLevel: number;
+  newplayer: number[];
 }

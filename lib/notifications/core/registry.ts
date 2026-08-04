@@ -6,9 +6,14 @@ import {
   consoleNotificationProvider,
 } from "../console/console.provider";
 
+import {
+  emailNotificationProvider,
+} from "../email/email.provider";
+
 const providers: NotificationProvider[] =
   [
     consoleNotificationProvider,
+    emailNotificationProvider,
   ];
 
 export function registerNotificationProvider(

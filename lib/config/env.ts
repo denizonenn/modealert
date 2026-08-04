@@ -26,4 +26,11 @@ export const env = {
 
   RIOT_API_KEY:
     process.env.RIOT_API_KEY ?? "",
+
+  RESEND_API_KEY:
+    process.env.RESEND_API_KEY ?? "",
+
+  EMAIL_FROM:
+    process.env.EMAIL_FROM ??
+    "ModeAlert <onboarding@resend.dev>",
 } as const;

@@ -6,6 +6,8 @@ import type {
   RiotChampionRotationResponse,
 } from "./types";
 
+import { GAME_IDS } from "@/lib/constants/games";
+
 export function mapChampionRotation(
   rotation: RiotChampionRotationResponse
 ): ProviderEvent[] {
@@ -13,9 +15,9 @@ export function mapChampionRotation(
     {
       id: "riot-champion-rotation",
 
-      gameId: "league-of-legends",
+      gameId: GAME_IDS.LEAGUE_OF_LEGENDS,
 
-      title: `Champion Rotation (${rotation.freeChampionIds.length} Champions)`,
+      title: `Champion Rotation (${rotation.sr.length} Champions)`,
 
       status: "LIVE",
 

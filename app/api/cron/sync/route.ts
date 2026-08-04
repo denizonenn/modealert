@@ -12,13 +12,14 @@ import {
 export async function GET(
   request: NextRequest
 ) {
-  const secret =
+  const authHeader =
     request.headers.get(
-      "x-cron-secret"
+      "authorization"
     );
 
   if (
-    secret !== env.CRON_SECRET
+    authHeader !==
+    `Bearer ${env.CRON_SECRET}`
   ) {
     return NextResponse.json(
       {

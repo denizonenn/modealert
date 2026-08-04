@@ -6,6 +6,12 @@ import type {
   EventWithGame,
 } from "@/lib/repositories/event.repository";
 
+export interface NotificationRecipient {
+  id: string;
+
+  email: string;
+}
+
 export interface NotificationProvider {
   readonly id: string;
 
@@ -14,6 +20,7 @@ export interface NotificationProvider {
   readonly enabled: boolean;
 
   send(
+    recipient: NotificationRecipient,
     event: ProviderEvent,
     previous: EventWithGame | null
   ): Promise<void>;

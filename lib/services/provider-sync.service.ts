@@ -26,28 +26,59 @@ export const providerSyncService = {
               };
             }
 
-            const events =
-              await provider.getEvents();
+            try {
+              const events =
+                await provider.getEvents();
 
-            const saved =
-              await eventSyncService.sync(
-                events
+              const saved =
+                await eventSyncService.sync(
+                  events,
+                  provider.id
+                );
+
+              return {
+                provider:
+                  provider.name,
+
+                received:
+                  events.length,
+
+                saved:
+                  saved.length,
+              };
+            } catch (error) {
+              console.error(
+                `[ProviderSync] ${provider.name} failed:`,
+                error
               );
 
-            return {
-              provider:
-                provider.name,
-
-              received:
-                events.length,
-
-              saved:
-                saved.length,
-            };
+              throw error;
+            }
           }
         )
       );
 
-    return results;
+    return results.map(
+      (result, index) => {
+        if (
+          result.status ===
+          "fulfilled"
+        ) {
+          return result.value;
+        }
+
+        return {
+          provider:
+            providers[index].name,
+
+          error:
+            result.reason instanceof
+            Error
+              ? result.reason
+                  .message
+              : "Unknown error",
+        };
+      }
+    );
   },
 };

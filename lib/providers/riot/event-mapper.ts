@@ -3,6 +3,8 @@ import type {
   ProviderEventStatus,
 } from "../core/provider";
 
+import { GAME_IDS } from "@/lib/constants/games";
+
 interface RiotPlatformStatus {
   id: string;
 
@@ -22,7 +24,7 @@ export function mapPlatformStatus(
     {
       id: `riot-platform-${status.id}`,
 
-      gameId: "league-of-legends",
+      gameId: GAME_IDS.LEAGUE_OF_LEGENDS,
 
       title: "Platform Status",
 

@@ -85,6 +85,9 @@ Status: ✅
 
 Status: 🟡
 
+Scope: Kişiselleştirme amaçlı (bkz. docs/06_DECISIONS.md ADR-001).
+Event keşfi LCU üzerinden YAPILMAZ.
+
 Completed
 
 - connect to LCU
@@ -94,20 +97,22 @@ Completed
 
 Remaining
 
-- event discovery
-- endpoint mapping
-- event extraction
+- endpoint mapping (kişiselleştirme endpoint'leri için)
+- current game context extraction
 - polling abstraction
 
 ---
 
 ## Riot API
 
-Status: 🟡
+Status: 🟢
 
-Need
+Completed
 
 - Champion Rotation
+- Platform Status
+- **Valorant provider** (`lib/providers/valorant/`) — platform status +
+  aktif act/episode tespiti, `eu.api.riotgames.com`. DB'de doğrulandı.
 
 Future
 
@@ -115,26 +120,27 @@ Future
 - Ranked data
 - TFT
 - LoR
-- Valorant (optional)
 
 ---
 
 # P0 — CommunityDragon
 
-Status: 🟡
+Status: 🟢
 
 Completed
 
 - queues
 - maps
 - game modes
+- event hub (gerçek `EventProvider` olarak bağlandı, DB'ye senkronize
+  oluyor — bkz. docs/06_DECISIONS.md ADR-001/ADR-002)
+- PBE patchline desteği (`/live` sayfasında live vs pbe karşılaştırması)
 
 Remaining
 
-- event hub
 - rotating modes
-- arena metadata
-- future events
+- arena metadata (cherry-lobby.json henüz kullanılmıyor)
+- event-passes.json entegrasyonu
 
 ---
 
@@ -142,55 +148,55 @@ Remaining
 
 Status: 🟡
 
+Completed
+
+- Provider abstraction (`NotificationProvider` — recipient/event/previous
+  alır)
+- Per-recipient dispatch (`notificationTriggerService` her watchlist
+  kaydı için ayrı ayrı gönderiyor, tek provider-level çağrı değil)
+- Notification DB kaydı (daha önce hiç yazılmıyordu — her gönderim artık
+  `Notification` tablosuna işleniyor, `read` durumu, `channel` ayrımıyla)
+- **Email provider** (Resend, `lib/notifications/email/`) — HTML + text,
+  `RESEND_API_KEY` yoksa otomatik disabled olur, pipeline'ı bozmaz.
+  Uçtan uca doğrulandı (gerçek event değişikliği → console + DB kaydı).
+  Gerçek e-posta gönderimi için Deniz'in resend.com'da hesap açıp key
+  vermesi gerekiyor (bkz. docs/06_DECISIONS.md).
+- Console provider (ops/debug amaçlı, kalıcı)
+
 Need
 
 - Notification Queue
-
-- Notification Scheduler
-
+- Notification Scheduler (şu an sadece cron sync tetikliyor)
 - Notification Rate Limiter
+- Retry Policy (tek deneme, başarısızlık sadece loglanıyor)
 
-- Retry Policy
+Future — bilinçli olarak ertelendi
 
-- Provider abstraction
-
-Current provider
-
-- Console
-
-Future
-
-- Discord
-
+- **Discord** — Türkiye'de erişim sorunu var, en sona bırakıldı
+  (Deniz'in isteği)
 - Telegram
-
-- Email
-
 - Push
 
 ---
 
 # P0 — Event Engine
 
-Status: 🔴
+Status: 🟡
 
-Needs implementation
+Completed (bkz. docs/06_DECISIONS.md ADR-002)
 
-Features
-
-- Event comparison
-
+- Event comparison (yeni/güncellenen — `eventChangeDetectorService`)
 - Detect new event
-
 - Detect updated event
+- Detect removed event (`source`'a göre scoped expiry — bir provider'ın
+  artık raporlamadığı event otomatik ENDED olur)
+- Historical tracking (LIVE/TRACKING → history start, ENDED → history
+  finish)
 
-- Detect removed event
+Remaining
 
-- Predict expiration
-
-- Confidence score
-
-- Historical tracking
+- Predict expiration (Phase 5 — Prediction Engine kapsamına ertelendi)
+- Confidence score (Phase 5)
 
 ---
 
@@ -344,11 +350,11 @@ Recommendation engine
 
 Potential games
 
-League of Legends
+League of Legends ✅
+
+Valorant ✅ (2026-08-04)
 
 TFT
-
-Valorant
 
 LoR
 
@@ -453,6 +459,17 @@ Current
 - Prisma optimization
 
 - Logging improvements
+
+- ~~Repo kökünde dokümante edilmemiş, eski bir frontend katmanı var~~ —
+  **dashboard kısmı çözüldü** (2026-08-04, `app/dashboard` gerçek route
+  oldu). **Onboarding kısmı hâlâ açık**: `components/onboarding/*` sadece
+  ilk 2/4 adımı kapsıyor, Notifications ve Account (auth) adımları
+  yazılmamış — auth netleşmeden tamamlanmayacak (bkz. docs/06_DECISIONS.md
+  ADR-002). `crawler/*/get-events.ts` hâlâ tamamen boş, kullanılabilir
+  değil.
+
+- **Riot dev API key 24 saatte bir expire oluyor** — gerçek "low
+  maintenance" için production key başvurusu gerekiyor.
 
 ---
 

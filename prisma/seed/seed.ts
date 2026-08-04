@@ -62,6 +62,7 @@ async function main() {
       {
         id: "urf",
         gameId: "lol",
+        source: "seed",
         title: "URF",
         status: "LIVE",
         trackedUsers: 15420,
@@ -70,6 +71,7 @@ async function main() {
       {
         id: "arena",
         gameId: "lol",
+        source: "seed",
         title: "Arena",
         status: "UPCOMING",
         trackedUsers: 8700,
@@ -78,6 +80,7 @@ async function main() {
       {
         id: "night-market",
         gameId: "valorant",
+        source: "seed",
         title: "Night Market",
         status: "UPCOMING",
         trackedUsers: 21000,
@@ -86,6 +89,7 @@ async function main() {
       {
         id: "fortnite-og",
         gameId: "fortnite",
+        source: "seed",
         title: "Fortnite OG",
         status: "ENDED",
         trackedUsers: 32000,

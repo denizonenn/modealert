@@ -34,6 +34,7 @@ model Game {
 model Event {
   id            String         @id
   gameId        String
+  source        String
 
   title         String
   status        String
@@ -47,6 +48,8 @@ model Event {
   notifications Notification[]
 
   history       EventHistory[]
+
+  @@index([source])
 }
 
 model EventHistory {

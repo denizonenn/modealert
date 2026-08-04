@@ -95,11 +95,28 @@ export async function getEventsByGame(
   });
 }
 
+export async function getEventsBySource(
+  source: string
+): Promise<EventWithGame[]> {
+  return prisma.event.findMany({
+    where: {
+      source,
+    },
+
+    include: {
+      game: true,
+    },
+  });
+}
+
 export async function upsertEvent(
-  event: ProviderEvent
+  event: ProviderEvent,
+  source: string
 ) {
   const data = {
     gameId: event.gameId,
+
+    source,
 
     title: event.title,
 

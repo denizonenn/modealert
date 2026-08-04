@@ -22,6 +22,12 @@ export function Navbar() {
           <a href="#faq" className="hover:text-white">
             FAQ
           </a>
+          <a href="/live" className="hover:text-white">
+            Live
+          </a>
+          <a href="/dashboard" className="hover:text-white">
+            Dashboard
+          </a>
         </nav>
 
         <div className="ml-auto flex items-center gap-3">
