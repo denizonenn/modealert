@@ -16,11 +16,11 @@ export function Cta() {
         transition={{ duration: 0.5 }}
         className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.08] via-white/[0.03] to-transparent px-8 py-16 text-center"
       >
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,rgba(255,255,255,0.1),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_50%_100%,rgba(168,85,247,0.2),transparent_60%)]" />
 
         <div className="relative">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-black">
-            <Zap className="h-5 w-5" />
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-brand">
+            <Zap className="h-5 w-5 text-white" />
           </div>
 
           <h2 className="mx-auto mt-6 max-w-2xl text-4xl font-bold tracking-tight md:text-5xl">
@@ -33,7 +33,7 @@ export function Cta() {
 
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link href="/onboarding">
-              <Button size="lg" className="h-12 px-8">
+              <Button size="lg" className="h-12 rounded-full bg-gradient-brand px-8 text-white shadow-[0_0_30px_rgba(168,85,247,0.35)] transition-shadow hover:shadow-[0_0_40px_rgba(168,85,247,0.5)]">
                 Start Tracking
               </Button>
             </Link>
@@ -42,7 +42,7 @@ export function Cta() {
               <Button
                 size="lg"
                 variant="outline"
-                className="h-12 border-white/15 bg-white/5 px-8 text-white hover:bg-white/10"
+                className="h-12 rounded-full border-white/15 bg-white/5 px-8 text-white hover:bg-white/10"
               >
                 View the dashboard
                 <ArrowRight className="ml-2 h-4 w-4" />
