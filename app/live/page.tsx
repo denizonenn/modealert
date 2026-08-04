@@ -1,12 +1,15 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { motion } from "framer-motion"
 
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { EventStatusBadge } from "@/components/shared/event-status-badge"
+import { Skeleton } from "@/components/shared/skeleton"
 import { AlertTriangle, RefreshCw } from "lucide-react"
 
 interface LiveEvent {
@@ -37,17 +40,32 @@ function formatDate(value: string) {
   })
 }
 
-function EventRow({ event }: { event: LiveEvent }) {
+function EventRow({ event, index = 0 }: { event: LiveEvent; index?: number }) {
   return (
-    <div className="flex items-center justify-between gap-4 border-b border-white/10 py-3 last:border-0">
-      <div>
-        <p className="font-medium">{event.title}</p>
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: Math.min(index * 0.04, 0.3) }}
+      className="flex items-center justify-between gap-4 rounded-xl border border-white/10 bg-black/30 px-4 py-3 transition-colors hover:border-white/20"
+    >
+      <div className="min-w-0">
+        <p className="truncate font-medium">{event.title}</p>
         <p className="text-xs text-zinc-500">{event.hubType}</p>
       </div>
-      <div className="text-right text-xs text-zinc-400">
+      <div className="shrink-0 text-right text-xs text-zinc-400">
         <p>Başlangıç: {formatDate(event.startDate)}</p>
         <p>Bitiş: {formatDate(event.endDate)}</p>
       </div>
+    </motion.div>
+  )
+}
+
+function SectionSkeleton() {
+  return (
+    <div className="space-y-2">
+      <Skeleton className="h-[52px] w-full rounded-xl" />
+      <Skeleton className="h-[52px] w-full rounded-xl" />
+      <Skeleton className="h-[52px] w-full rounded-xl" />
     </div>
   )
 }
@@ -74,12 +92,19 @@ export default function LivePage() {
     void Promise.resolve().then(load)
   }, [])
 
+  const isInitialLoad = loading && !data
+
   return (
     <main className="min-h-screen bg-black text-white">
       <Navbar />
 
       <section className="mx-auto max-w-5xl px-6 py-16">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="flex flex-wrap items-center justify-between gap-4"
+        >
           <div>
             <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">
               CommunityDragon — Live Check
@@ -98,7 +123,7 @@ export default function LivePage() {
             <RefreshCw className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
             Yenile
           </Button>
-        </div>
+        </motion.div>
 
         {data?.checkedAt && (
           <p className="mt-2 text-xs text-zinc-500">
@@ -119,15 +144,19 @@ export default function LivePage() {
           <Card className="border-white/10 bg-white/5 text-white">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Badge className="bg-emerald-500 text-black">LIVE</Badge>
+                <EventStatusBadge status="LIVE" />
                 Şu An Aktif
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {loading && !data ? (
-                <p className="text-sm text-zinc-500">Yükleniyor...</p>
+              {isInitialLoad ? (
+                <SectionSkeleton />
               ) : data?.liveEvents?.length ? (
-                data.liveEvents.map((event) => <EventRow key={event.id} event={event} />)
+                <div className="space-y-2">
+                  {data.liveEvents.map((event, index) => (
+                    <EventRow key={event.id} event={event} index={index} />
+                  ))}
+                </div>
               ) : (
                 <p className="text-sm text-zinc-500">Şu anda aktif event bulunamadı.</p>
               )}
@@ -137,15 +166,19 @@ export default function LivePage() {
           <Card className="border-white/10 bg-white/5 text-white">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Badge variant="secondary">UPCOMING</Badge>
+                <EventStatusBadge status="UPCOMING" />
                 Yaklaşanlar
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {loading && !data ? (
-                <p className="text-sm text-zinc-500">Yükleniyor...</p>
+              {isInitialLoad ? (
+                <SectionSkeleton />
               ) : data?.upcomingEvents?.length ? (
-                data.upcomingEvents.map((event) => <EventRow key={event.id} event={event} />)
+                <div className="space-y-2">
+                  {data.upcomingEvents.map((event, index) => (
+                    <EventRow key={event.id} event={event} index={index} />
+                  ))}
+                </div>
               ) : (
                 <p className="text-sm text-zinc-500">Yaklaşan planlı event bulunamadı.</p>
               )}
@@ -167,10 +200,14 @@ export default function LivePage() {
               <p className="text-sm text-zinc-500">
                 PBE kontrolü şu an başarısız oldu (PBE sunucusu geçici olarak erişilemez olabilir).
               </p>
-            ) : loading && !data ? (
-              <p className="text-sm text-zinc-500">Yükleniyor...</p>
+            ) : isInitialLoad ? (
+              <SectionSkeleton />
             ) : data?.pbeCandidates?.length ? (
-              data.pbeCandidates.map((event) => <EventRow key={event.id} event={event} />)
+              <div className="space-y-2">
+                {data.pbeCandidates.map((event, index) => (
+                  <EventRow key={event.id} event={event} index={index} />
+                ))}
+              </div>
             ) : (
               <p className="text-sm text-zinc-500">
                 Şu anda PBE&apos;de olup live&apos;da henüz olmayan bir event yok. Bu normal —

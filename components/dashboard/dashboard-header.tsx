@@ -1,9 +1,14 @@
-import StatCard from "./stat-card";
+"use client"
+
+import { motion } from "framer-motion"
+import { CalendarClock, Eye, Radio } from "lucide-react"
+
+import StatCard from "./stat-card"
 
 interface Props {
-  watched: number;
-  live: number;
-  nextEvent: string;
+  watched: number
+  live: number
+  nextEvent: string
 }
 
 export default function DashboardHeader({
@@ -11,47 +16,59 @@ export default function DashboardHeader({
   live,
   nextEvent,
 }: Props) {
-  const hour = new Date().getHours();
+  const hour = new Date().getHours()
 
   const greeting =
     hour < 12
       ? "Good Morning"
       : hour < 18
       ? "Good Afternoon"
-      : "Good Evening";
+      : "Good Evening"
 
   return (
     <section className="mb-12">
-      <p className="text-zinc-500">
-        {greeting}
-      </p>
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">
+          {greeting}
+        </p>
 
-      <h1 className="mt-2 text-5xl font-bold">
-        Your Dashboard
-      </h1>
+        <h1 className="mt-3 text-4xl font-bold tracking-tight md:text-5xl">
+          Your Dashboard
+        </h1>
 
-      <p className="mt-3 max-w-xl text-zinc-400">
-        Track every game event you&apos;re following in one place.
-      </p>
+        <p className="mt-3 max-w-xl text-zinc-400">
+          Track every game event you&apos;re following in one place.
+        </p>
+      </motion.div>
 
-      <div className="mt-8 flex flex-wrap gap-5">
+      <div className="mt-8 flex flex-wrap gap-4">
         <StatCard
-          title="Watching"
+          icon={Eye}
+          label="Watching"
           value={watched}
+          index={0}
         />
 
         <StatCard
-          title="Live Now"
+          icon={Radio}
+          label="Live Now"
           value={live}
           accent="text-emerald-400"
+          index={1}
         />
 
         <StatCard
-          title="Next Event"
+          icon={CalendarClock}
+          label="Next Event"
           value={nextEvent}
           accent="text-blue-400"
+          index={2}
         />
       </div>
     </section>
-  );
+  )
 }
