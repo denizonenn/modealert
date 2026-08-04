@@ -58,6 +58,7 @@ export default function DashboardHeader({
           label="Live Now"
           value={live}
           accent="text-emerald-400"
+          iconBg="bg-emerald-500/20"
           index={1}
         />
 
@@ -66,6 +67,7 @@ export default function DashboardHeader({
           label="Next Event"
           value={nextEvent}
           accent="text-blue-400"
+          iconBg="bg-blue-500/20"
           index={2}
         />
       </div>

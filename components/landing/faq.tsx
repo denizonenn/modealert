@@ -6,6 +6,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { SectionEyebrow } from "@/components/shared/section-eyebrow"
 
 const FAQS = [
   {
@@ -44,9 +45,9 @@ export function Faq() {
   return (
     <section id="faq" className="mx-auto max-w-3xl px-6 py-24">
       <div className="text-center">
-        <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">
+        <SectionEyebrow className="justify-center">
           FAQ
-        </p>
+        </SectionEyebrow>
 
         <h2 className="mt-4 text-4xl font-bold tracking-tight">
           Questions, answered.

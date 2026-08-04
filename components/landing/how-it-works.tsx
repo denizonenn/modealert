@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { SectionEyebrow } from "@/components/shared/section-eyebrow"
 import { Bell, Gamepad2, ListChecks } from "lucide-react"
 
 const STEPS = [
@@ -28,9 +29,9 @@ export function HowItWorks() {
   return (
     <section className="mx-auto max-w-7xl px-6 py-24">
       <div className="text-center">
-        <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">
+        <SectionEyebrow className="justify-center">
           How It Works
-        </p>
+        </SectionEyebrow>
 
         <h2 className="mt-4 text-4xl font-bold tracking-tight">
           Three steps. Zero maintenance.
@@ -38,7 +39,7 @@ export function HowItWorks() {
       </div>
 
       <div className="relative mt-16 grid gap-10 md:grid-cols-3">
-        <div className="absolute top-8 left-0 right-0 hidden h-px bg-gradient-to-r from-transparent via-white/10 to-transparent md:block" />
+        <div className="absolute top-8 left-0 right-0 hidden h-px bg-gradient-brand opacity-20 md:block" />
 
         {STEPS.map((step, index) => {
           const Icon = step.icon
@@ -52,7 +53,7 @@ export function HowItWorks() {
               transition={{ duration: 0.5, delay: index * 0.15 }}
               className="relative flex flex-col items-center text-center"
             >
-              <div className="relative z-10 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-black">
+              <div className="relative z-10 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-brand text-white shadow-[0_0_25px_rgba(168,85,247,0.35)]">
                 <Icon className="h-6 w-6" />
               </div>
 

@@ -2,6 +2,7 @@
 
 import GameCard from "@/components/cards/game-card";
 import { Skeleton } from "@/components/shared/skeleton";
+import { SectionEyebrow } from "@/components/shared/section-eyebrow";
 
 import { useGames } from "@/hooks/use-games";
 
@@ -19,9 +20,9 @@ export function SupportedGames() {
     >
       <div className="mx-auto max-w-7xl px-6 py-20">
         <div className="text-center">
-          <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">
+          <SectionEyebrow className="justify-center">
             Supported Games
-          </p>
+          </SectionEyebrow>
 
           <h2 className="mt-4 text-4xl font-bold">
             One platform.
