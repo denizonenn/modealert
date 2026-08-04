@@ -1,7 +1,15 @@
-import { eventService } from "@/lib/services/event.service";
+import { watchlistService } from "@/lib/services/watchlist.service";
 
-export async function getDashboardStats() {
-  const events = await eventService.getAllEvents();
+export async function getDashboardStats(
+  userId = "demo"
+) {
+  const watchlists = await watchlistService.getByUser(
+    userId
+  );
+
+  const events = watchlists.map(
+    (watchlist) => watchlist.event
+  );
 
   return {
     watched: events.length,
@@ -13,6 +21,6 @@ export async function getDashboardStats() {
     nextEvent:
       events.find(
         (event) => event.status === "UPCOMING"
-      )?.title ?? "Unknown",
+      )?.title ?? "None yet",
   };
 }

@@ -1,11 +1,13 @@
 "use client"
 
+import { useState } from "react"
 import { motion } from "framer-motion"
+import { Star } from "lucide-react"
 
 import { GameIcon } from "@/components/shared/game-icon"
 import { EventStatusBadge } from "@/components/shared/event-status-badge"
 
-import { formatRelativeTime } from "@/lib/utils"
+import { cn, formatRelativeTime } from "@/lib/utils"
 
 import type { EventStatus } from "@/types/status"
 
@@ -20,6 +22,8 @@ interface Props {
   status: EventStatus
   updatedAt: string
   index?: number
+  isWatched?: boolean
+  onToggleWatch?: () => Promise<void> | void
 }
 
 export default function EventStatusCard({
@@ -28,7 +32,25 @@ export default function EventStatusCard({
   status,
   updatedAt,
   index = 0,
+  isWatched,
+  onToggleWatch,
 }: Props) {
+  const [pending, setPending] = useState(false)
+
+  async function handleToggle() {
+    if (!onToggleWatch || pending) {
+      return
+    }
+
+    setPending(true)
+
+    try {
+      await onToggleWatch()
+    } finally {
+      setPending(false)
+    }
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -58,12 +80,37 @@ export default function EventStatusCard({
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-4">
+      <div className="flex shrink-0 items-center gap-3">
         <span className="hidden text-xs text-zinc-500 sm:inline">
           {formatRelativeTime(updatedAt)}
         </span>
 
         <EventStatusBadge status={status} />
+
+        {onToggleWatch && (
+          <button
+            type="button"
+            onClick={handleToggle}
+            disabled={pending}
+            aria-label={
+              isWatched
+                ? "Remove from watchlist"
+                : "Add to watchlist"
+            }
+            aria-pressed={isWatched}
+            className={cn(
+              "flex h-8 w-8 items-center justify-center rounded-lg border transition-colors disabled:opacity-50",
+              isWatched
+                ? "border-amber-400/30 bg-amber-500/15 text-amber-400 hover:bg-amber-500/25"
+                : "border-white/10 bg-black/30 text-zinc-500 hover:border-white/20 hover:text-white"
+            )}
+          >
+            <Star
+              className="h-4 w-4"
+              fill={isWatched ? "currentColor" : "none"}
+            />
+          </button>
+        )}
       </div>
     </motion.div>
   )
