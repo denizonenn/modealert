@@ -519,17 +519,28 @@ zorunlu kıldığı bir yan etki.
   `/api/dashboard`, `/api/notifications`, `/api/watchlists` session'sız
   istekte doğru şekilde 401 dönüyor; `/api/auth/providers` sadece
   `resend`'i listeliyor (Google/Discord env var'ları henüz boş).
-- **Deniz'in yapması gereken (kod tarafı bitti, dışarıda hesap açma
-  gerekiyor):** Google Cloud Console'da bir OAuth 2.0 Client ID
-  (Authorized redirect URI: `https://modealert.vercel.app/api/auth/callback/google`
-  ve local test için `http://localhost:3000/api/auth/callback/google`)
-  ve Discord Developer Portal'da bir OAuth App (aynı desende
-  `.../api/auth/callback/discord`) açıp `AUTH_GOOGLE_ID`/
-  `AUTH_GOOGLE_SECRET`/`AUTH_DISCORD_ID`/`AUTH_DISCORD_SECRET`'i hem
-  local `.env`'e hem Vercel'in Environment Variables ayarına eklemesi
-  gerekiyor. `AUTH_SECRET` local `.env`'e zaten eklendi — aynı değer
-  Vercel'e de eklenmeli (prod'da farklı/rastgele bir değer de olabilir,
-  önemli olan set edilmiş olması).
+- **Güncelleme (2026-08-05, aynı gün içinde): Google OAuth canlıda
+  aktif.** Deniz Google Cloud Console'da OAuth Client ID'yi açtı,
+  `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET` hem local `.env`'e hem Vercel
+  production environment'ına eklendi (`AUTH_SECRET` ile birlikte —
+  o da sadece local'de kalmıştı, bu düzeltmeyle prod'a eklendi).
+  Tarayıcıda uçtan uca doğrulandı: `/signin` → "Continue with Google"
+  → gerçek Google hesap seçim ekranı doğru redirect URI ile açılıyor
+  (`redirect_uri_mismatch` hatası yok).
+
+  Bu sırada bir bug bulundu ve düzeltildi: `/signin` sayfası Google ve
+  Discord butonlarını hep birlikte, hangi provider'ın gerçekten
+  yapılandırıldığından bağımsız olarak gösteriyordu — Discord henüz
+  kurulmadığı için tıklayan biri hataya düşerdi. Sayfa artık
+  `getProviders()` ile gerçek provider listesini çekip sadece
+  gerçekten aktif olanların butonunu gösteriyor.
+
+  **Discord bilinçli olarak ertelendi** — Discord Türkiye'den Deniz'in
+  makinesinde şu an erişilemez durumda (bkz. ADR-003'teki aynı erişim
+  sorunu, orada bildirim kanalı için, burada OAuth kurulumu için).
+  VPN ile Discord Developer Portal'a erişebildiğinde `AUTH_DISCORD_ID`/
+  `AUTH_DISCORD_SECRET` eklenip aynı şekilde devreye alınacak — kod
+  tarafı zaten hazır, sadece env var eksik.
 - Eski `"demo"` kullanıcısı DB'de kalmaya devam ediyor (artık hiçbir
   route ona yazmıyor) — `prisma/seed/seed.ts` hâlâ onu oluşturuyor,
   sadece local seed/test amaçlı, prod trafiğinde kullanılmıyor.

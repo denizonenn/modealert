@@ -65,13 +65,11 @@ biliyor. Buna göre:
   `/onboarding` (3 adım: Games → Events → Finish, gerçek watchlist
   kaydı oluşturur).
 - **Auth var (2026-08-05).** Auth.js v5 (`@auth/prisma-adapter`, database
-  session) — Google, Discord, email magic link (Resend). Google/Discord
-  sadece ilgili env var'lar doluysa aktif olur; şu an sadece email
-  magic link canlı çünkü Deniz henüz Google Cloud Console'da OAuth
-  Client + Discord Developer Portal'da OAuth App açıp
-  `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET`/`AUTH_DISCORD_ID`/
-  `AUTH_DISCORD_SECRET`'i (hem local `.env` hem Vercel) girmedi.
-  `AUTH_SECRET` local'de zaten var, Vercel'e de eklenmesi gerekiyor.
+  session) — Google ✅ canlı, email magic link ✅ canlı, Discord ⏸️
+  ertelendi (Discord Deniz'in konumundan VPN'siz erişilemiyor —
+  VPN'e geçince Discord Developer Portal'dan kurulacak, kod tarafı
+  hazır). `AUTH_SECRET`/`AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET` hem
+  local `.env` hem Vercel production'da set edilmiş durumda.
   Detay: docs/06_DECISIONS.md ADR-005.
 - Detaylı karar geçmişi için **docs/06_DECISIONS.md** her zaman en
   güncel ve en güvenilir kaynak — yeni bir oturuma başlarken önce

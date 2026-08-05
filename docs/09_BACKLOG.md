@@ -426,10 +426,12 @@ Future
 - Preferences
 - Notification settings (component exists — `notification-settings.tsx`
   — still not wired to a page, see Technical Debt below)
-- Deniz still needs to create the Google OAuth Client + Discord OAuth
-  App and set `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET`/`AUTH_DISCORD_ID`/
-  `AUTH_DISCORD_SECRET` locally and on Vercel — until then only the
-  email magic-link provider is active.
+- ~~Deniz still needs to create the Google OAuth Client...~~ — Google
+  done and live (2026-08-05). Discord deferred: Discord is currently
+  blocked from Deniz's location without a VPN, so Discord Developer
+  Portal setup is on hold until he's on VPN. `/signin` now only shows
+  buttons for providers that are actually configured (see
+  docs/06_DECISIONS.md ADR-005 update).
 
 ---
 
