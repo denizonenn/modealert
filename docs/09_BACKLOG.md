@@ -572,6 +572,13 @@ Future
   to Google or the email magic link to get in. Revisit if this becomes
   a real support burden.
 
+- ~~`/signin` defaulted to the magic-link form, hiding email+password
+  behind a "Prefer a password instead?" toggle.~~ — fixed (2026-08-05).
+  Since signup already collects email+password together, sign-in now
+  shows the same fields by default; magic-link is the toggle instead.
+  Google sign-in was also re-tested live in production during this fix
+  and works correctly end-to-end — no separate bug found there.
+
 ---
 
 # P2 — Monetization
