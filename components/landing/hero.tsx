@@ -27,7 +27,7 @@ export function Hero() {
         </h1>
 
         <p className="mt-6 max-w-2xl text-lg text-zinc-400 md:text-xl">
-          Get instant alerts when URF, Arena, Night Market, Fortnite OG and other limited-time events go live.
+          Get instant alerts when URF, Arena, Night Market, Iron Banner and other limited-time events go live.
         </p>
 
         <div className="mt-10 flex flex-col gap-4 sm:flex-row">

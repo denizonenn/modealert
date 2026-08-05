@@ -26,11 +26,11 @@ const events = [
     color: "#ef4444",
   },
   {
-    gameId: "fortnite",
-    game: "Fortnite",
-    mode: "OG",
+    gameId: "destiny",
+    game: "Destiny 2",
+    mode: "Iron Banner",
     status: "Upcoming",
-    color: "#22c55e",
+    color: "#f59e0b",
   },
 ];
 
@@ -125,7 +125,7 @@ export function DashboardPreview() {
           <div className="flex items-center gap-3">
             <CheckCircle2 className="text-emerald-400" />
             <span className="font-semibold">
-              Monitoring 24/7
+              Monitoring automatically
             </span>
           </div>
 
@@ -133,7 +133,7 @@ export function DashboardPreview() {
 
             <div className="flex items-center gap-3">
               <Clock3 size={18} />
-              Checks automatically, around the clock
+              Checks automatically, once a day
             </div>
 
             <div className="flex items-center gap-3">

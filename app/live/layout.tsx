@@ -1,9 +1,9 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Live Patch Comparison",
+  title: "Live Status",
   description:
-    "Compare League of Legends' live patch against the PBE (Public Beta Environment) in real time — see new modes, events, and content before they officially launch.",
+    "See the live status of every tracked mode across League of Legends, Valorant, and Destiny 2 — plus a League of Legends live-vs-PBE comparison for early signal on new content.",
 }
 
 export default function LiveLayout({

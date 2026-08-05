@@ -13,7 +13,7 @@ import { gameService } from "@/lib/services/game.service"
 export const metadata: Metadata = {
   title: "Supported Games",
   description:
-    "ModeAlert tracks League of Legends, Valorant, and Fortnite today — limited-time modes, seasonal events, Night Markets, Twitch Drops, and special rotations, all from one watchlist.",
+    "ModeAlert tracks League of Legends, Valorant, and Destiny 2 today — limited-time modes, seasonal events, Night Markets, raid rotations, and special events, all from one watchlist.",
 }
 
 export default async function GamesPage() {

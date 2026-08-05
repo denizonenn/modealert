@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { EventStatusBadge } from "@/components/shared/event-status-badge"
 import { Skeleton } from "@/components/shared/skeleton"
+import { AllGamesStatus } from "@/components/live/all-games-status"
 import { AlertTriangle, RefreshCw } from "lucide-react"
 
 interface LiveEvent {
@@ -103,33 +104,55 @@ export default function LivePage() {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="flex flex-wrap items-center justify-between gap-4"
         >
-          <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">
-              CommunityDragon — Live Check
-            </p>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight md:text-4xl">
-              League of Legends&apos;ta Şu An Ne Var?
-            </h1>
-          </div>
-
-          <Button
-            variant="ghost"
-            className="border border-white/10 text-white hover:bg-white/10"
-            onClick={load}
-            disabled={loading}
-          >
-            <RefreshCw className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
-            Yenile
-          </Button>
+          <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">
+            All Games — Live Status
+          </p>
+          <h1 className="mt-3 text-3xl font-bold tracking-tight md:text-4xl">
+            Şu An Ne Var?
+          </h1>
+          <p className="mt-2 text-sm text-zinc-400">
+            Her oyundaki takip edilen modların anlık durumu — aktif (LIVE),
+            yaklaşan, izlenen veya bitmiş.
+          </p>
         </motion.div>
 
-        {data?.checkedAt && (
-          <p className="mt-2 text-xs text-zinc-500">
-            Son kontrol: {formatDate(data.checkedAt)} · Kaynak: raw.communitydragon.org (live + pbe)
-          </p>
-        )}
+        <div className="mt-8">
+          <AllGamesStatus />
+        </div>
+
+        <div className="mt-16 border-t border-white/10 pt-10">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="flex flex-wrap items-center justify-between gap-4"
+          >
+            <div>
+              <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">
+                CommunityDragon — Live Check
+              </p>
+              <h2 className="mt-3 text-2xl font-bold tracking-tight md:text-3xl">
+                League of Legends&apos;ta Erken Sinyal Detayı
+              </h2>
+            </div>
+
+            <Button
+              variant="ghost"
+              className="border border-white/10 text-white hover:bg-white/10"
+              onClick={load}
+              disabled={loading}
+            >
+              <RefreshCw className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
+              Yenile
+            </Button>
+          </motion.div>
+
+          {data?.checkedAt && (
+            <p className="mt-2 text-xs text-zinc-500">
+              Son kontrol: {formatDate(data.checkedAt)} · Kaynak: raw.communitydragon.org (live + pbe)
+            </p>
+          )}
 
         {data && !data.success && (
           <Card className="mt-8 border-red-500/30 bg-red-500/10 text-white">
@@ -239,6 +262,7 @@ export default function LivePage() {
             </p>
           </CardContent>
         </Card>
+        </div>
       </section>
 
       <Footer />

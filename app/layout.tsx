@@ -20,7 +20,7 @@ const spaceGrotesk = Space_Grotesk({
 const SITE_URL = "https://modealert.vercel.app"
 
 const DEFAULT_DESCRIPTION =
-  "ModeAlert tracks limited-time game events, modes, and battle passes across League of Legends, Valorant, and Fortnite — and emails you the moment something changes. No client, no extension, free during early access."
+  "ModeAlert tracks limited-time game events, modes, and battle passes across League of Legends, Valorant, and Destiny 2 — and emails you the moment something changes. No client, no extension, free during early access."
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     "game event tracker",
     "League of Legends event tracker",
     "Valorant event tracker",
-    "Fortnite event tracker",
+    "Destiny 2 event tracker",
     "game mode notifications",
     "limited-time game mode alert",
   ],

@@ -268,6 +268,28 @@ Done (2026-08-05)
   this — another instance of the "written but not connected" pattern,
   this time backend-only.
 
+- ~~`/live` only showed League of Legends~~ — added an "All Games —
+  Live Status" section (`components/live/all-games-status.tsx`) above
+  the existing LoL-specific PBE early-signal deep dive, grouping every
+  tracked event by game with its LIVE/UPCOMING/TRACKING status badge.
+  Reuses `useEvents()` (already existed, already used by
+  dashboard/onboarding) — no new API route needed.
+
+- ~~Marketing copy across the site said "Fortnite" as one of the three
+  live-supported games~~ — Fortnite has no working provider (empty
+  `crawler/*/get-events.ts`, placeholder `Game` row only). Swapped to
+  Destiny 2 (the game that's actually real) across FAQ, hero, landing
+  sections, OG image, and every page's meta description. Same class
+  of fix as the earlier "hourly" → "daily" correction — false claims
+  in indexed/shared content are worse than in throwaway UI text.
+
+- ~~Destiny 2's icon fell back to an unsized emoji span~~ — added
+  `SiBungie` (react-icons/si has an official Bungie mark) to
+  `GAME_BRAND_ICONS`, matching every other game. Also hardened the
+  emoji fallback itself (`game-icon.tsx`) to scale with the `size`
+  prop, so the same bug can't silently recur for the next game added
+  without a mapped icon.
+
 ---
 
 # P1 — SEO & Discoverability

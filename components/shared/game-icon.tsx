@@ -47,7 +47,12 @@ export function GameIcon({
           style={{ color }}
         />
       ) : (
-        <span>{logo}</span>
+        <span
+          className="leading-none"
+          style={{ fontSize: ICON_SIZES[size] }}
+        >
+          {logo}
+        </span>
       )}
     </div>
   )

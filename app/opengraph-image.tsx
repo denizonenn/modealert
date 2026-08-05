@@ -57,7 +57,7 @@ export default async function Image() {
             color: "#71717a",
           }}
         >
-          League of Legends · Valorant · Fortnite
+          League of Legends · Valorant · Destiny 2
         </div>
       </div>
     ),

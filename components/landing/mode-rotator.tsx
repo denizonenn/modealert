@@ -7,7 +7,7 @@ const modes = [
   { game: "League of Legends", event: "URF" },
   { game: "League of Legends", event: "Arena" },
   { game: "Valorant", event: "Night Market" },
-  { game: "Fortnite", event: "OG" },
+  { game: "Destiny 2", event: "Iron Banner" },
   { game: "Apex Legends", event: "Shadow Royale" },
   { game: "Overwatch 2", event: "Archives" },
   { game: "TFT", event: "Set Revival" },

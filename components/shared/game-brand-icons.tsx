@@ -1,4 +1,5 @@
 import {
+  SiBungie,
   SiFortnite,
   SiLeagueoflegends,
   SiValorant,
@@ -13,4 +14,5 @@ export const GAME_BRAND_ICONS: Record<
   lol: SiLeagueoflegends,
   valorant: SiValorant,
   fortnite: SiFortnite,
+  destiny: SiBungie,
 }
