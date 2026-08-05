@@ -69,7 +69,7 @@ async function main() {
         id: "tft",
         name: "Teamfight Tactics",
         slug: "teamfight-tactics",
-        logo: "♟️",
+        logo: "🎲",
         color: "#a855f7",
         shortName: "TFT",
         supportedEvents: 1,

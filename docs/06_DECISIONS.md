@@ -842,3 +842,65 @@ Duty araştırmasıyla aynı disiplin.
   ("Games tracked") otomatik olarak güncellendi, elle dokunulmadı.
 - Riot dev key'in 24 saatte bir expire olma sorunu hâlâ çözülmedi —
   production key başvurusu backlog'da kalmaya devam ediyor.
+- **Güncelleme (aynı gün):** Deniz `♟️`'nin kendi cihazında bozuk
+  göründüğünü bildirdi — bu sembol Unicode'un "Miscellaneous Symbols"
+  bloğundan, tek renkli/eksik glyph olarak render edilme riski diğer
+  oyunlarda kullanılan tam-renkli emoji'lere (🚀, 🎯 vb.) göre çok daha
+  yüksek. `🎲` (zar) ile değiştirildi — hem seed hem prod DB'de.
+
+---
+
+# ADR-010: Oyun Detay Sayfaları (`/games/[slug]`) — Geçmiş + Tahmin
+
+Status: Accepted
+
+Date: 2026-08-05
+
+## Bağlam
+
+Deniz her oyun için ayrı bir sayfa istedi — geçmişte event'lerin ne
+zaman geldiğini ve tahmini ne zaman geleceğini gösteren. Kod tabanını
+incelerken `lib/services/event-prediction.service.ts`'in **tamamen
+implemente edilmiş** ama **hiçbir yerden çağrılmadığı** bulundu —
+bu oturun boyunca beşinci veya altıncı kez karşılaşılan "yazılmış ama
+bağlanmamış" örüntüsü (bildirim zili, dashboard, onboarding, provider
+health, unsubscribe'dan sonra).
+
+## Karar
+
+1. `/games/[slug]` eklendi — `gameService.getBySlug()` (yeni,
+   `Game.slug` üzerinden lookup) ile oyunu bulup
+   `eventQueryService.getByGame()` ile tüm event'lerini çekiyor, her
+   biri için `eventStatisticsService` (geçmiş: ilk görülme, kaç kez
+   görüldü, ortalama süre) ve `eventPredictionService` (tahmini bitiş
+   + güven skoru) paralel olarak hesaplanıyor.
+2. `GameCard` artık `/games/[slug]`'a link veriyor (hem ana sayfadaki
+   teaser'da hem `/games`'te).
+3. **Yetersiz veri durumu dürüstçe gösteriliyor.** `eventPredictionService.predict()`
+   sadece geçmişte en az bir kez tamamlanmış (endedAt dolu) bir kayıt
+   varsa gerçek bir tahmin döndürüyor; yoksa `confidence: 0` ile
+   "tahmin yok" durumuna düşüyor. Şu an event engine sadece
+   2026-08-04'ten beri history tutuyor, yani her event "yeterli
+   geçmiş verisi yok" mesajı gösteriyor — bu doğru ve beklenen, sahte
+   bir tahmin uydurmak yerine.
+4. `sitemap.ts` artık her oyunun detay sayfasını da içeriyor
+   (`gameService.getAllGames()` ile dinamik olarak).
+
+## Gerekçe
+
+Article II ("yazılmış ama bağlanmamış" örüntüsünün her bulunduğunda
+düzeltilmesi) ve bu oturun boyunca tekrar eden "sahte veri yerine
+dürüst 'yeterli veri yok' mesajı" ilkesi (players tracking, dashboard
+preview widget'ında olduğu gibi).
+
+## Sonuçlar
+
+- Uçtan uca doğrulandı: `/games/destiny-2` gerçek event'leri
+  (Root of Nightmares, Platform Status, vb.) doğru sırayla (LIVE önce)
+  gösteriyor, geçersiz slug 404 dönüyor, kart tıklaması doğru sayfaya
+  gidiyor.
+- JSX'te bir whitespace bug'ı bulundu ve düzeltildi: `{game.name} —`
+  şeklinde bir ifadeden sonra yeni satırda başlayan metin, JSX'in
+  satır-başı boşluk trim kuralı yüzünden boşluğu yutuyordu
+  ("Destiny 2— current" gibi görünüyordu) — `{" "}` ile açıkça
+  düzeltildi.

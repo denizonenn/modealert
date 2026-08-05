@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { motion } from "framer-motion"
 
 import { Game } from "@/types/game"
@@ -24,7 +25,11 @@ export default function GameCard({
       viewport={{ once: true }}
       transition={{ duration: 0.4, delay: index * 0.08 }}
       whileHover={{ y: -4 }}
-      className={`group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 transition-colors hover:border-white/20 ${
+      className="block"
+    >
+    <Link
+      href={`/games/${game.slug}`}
+      className={`group relative block overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 transition-colors hover:border-white/20 ${
         isLive ? "" : "opacity-60"
       }`}
     >
@@ -80,6 +85,7 @@ export default function GameCard({
           {game.shortName}
         </div>
       </div>
+    </Link>
     </motion.div>
   )
 }

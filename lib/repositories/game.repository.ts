@@ -16,6 +16,14 @@ export async function getGameById(id: string) {
   });
 }
 
+export async function getGameBySlug(slug: string) {
+  return prisma.game.findUnique({
+    where: {
+      slug,
+    },
+  });
+}
+
 export async function getFeaturedGames() {
   return prisma.game.findMany({
     where: {

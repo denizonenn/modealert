@@ -32,6 +32,24 @@ export function formatRelativeTime(
   return `${diffMonth}mo ago`
 }
 
+export function formatDuration(ms: number): string {
+  const days = Math.floor(ms / (1000 * 60 * 60 * 24))
+  const hours = Math.floor(
+    (ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+  )
+
+  if (days > 0) {
+    return hours > 0 ? `${days}d ${hours}h` : `${days}d`
+  }
+
+  if (hours > 0) {
+    return `${hours}h`
+  }
+
+  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60))
+  return `${Math.max(minutes, 1)}m`
+}
+
 export function formatCount(count: number): string {
   if (count >= 1_000_000) {
     return `${(count / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`

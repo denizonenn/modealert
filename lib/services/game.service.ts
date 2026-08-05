@@ -1,6 +1,7 @@
 import {
   getGames,
   getGameById,
+  getGameBySlug,
   getFeaturedGames,
 } from "@/lib/repositories/game.repository";
 
@@ -23,6 +24,10 @@ export const gameService = {
 
   async getById(id: string) {
     return getGameById(id);
+  },
+
+  async getBySlug(slug: string) {
+    return getGameBySlug(slug);
   },
 
   async getFeaturedGames() {

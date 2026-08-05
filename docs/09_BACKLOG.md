@@ -515,6 +515,19 @@ Evaluated and rejected
 - ~~Wild Rift~~ — no known public API at all (403 on every guessed
   endpoint, no official docs). See ADR-009.
 
+Done (2026-08-05)
+
+- ~~Per-game detail pages~~ — `/games/[slug]` added. Every `GameCard`
+  now links to it. Shows every event ever tracked for that game with
+  real history (first tracked, times seen, average duration once
+  completed at least once) and — using `eventPredictionService`,
+  which existed and was fully implemented but had zero callers
+  anywhere (found via the same "written but not connected" audit that
+  caught the notification bell, dashboard, and onboarding earlier) —
+  an estimated end date + confidence once there's enough data. Right
+  now every event shows "not enough history yet" honestly, since the
+  event engine only started recording history 2026-08-04.
+
 Future — richer data per existing game (not just more games)
 
 - TFT: only platform status right now — no live-verified secondary

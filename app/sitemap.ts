@@ -1,9 +1,11 @@
 import type { MetadataRoute } from "next"
 
 import { SITE_URL } from "@/lib/constants/site"
+import { gameService } from "@/lib/services/game.service"
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date()
+  const games = await gameService.getAllGames()
 
   return [
     {
@@ -24,6 +26,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 0.8,
     },
+    ...games.map((game) => ({
+      url: `${SITE_URL}/games/${game.slug}`,
+      lastModified: now,
+      changeFrequency: "daily" as const,
+      priority: 0.6,
+    })),
     {
       url: `${SITE_URL}/live`,
       lastModified: now,
