@@ -2,10 +2,12 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, Zap } from "lucide-react";
 import { DashboardPreview, type PreviewEvent } from "./dashboard-preview"
+import { StatsBar } from "./stats-bar"
 import Link from "next/link"
 import { ModeRotator } from "./mode-rotator"
 
 import { eventQueryService } from "@/lib/services/event-query.service"
+import { GAMES_WITH_PROVIDER } from "@/lib/constants/games"
 
 const STATUS_ORDER: Record<string, number> = {
   LIVE: 0,
@@ -17,6 +19,7 @@ const STATUS_ORDER: Record<string, number> = {
 async function getPreviewData(): Promise<{
   events: PreviewEvent[]
   monitoredCount: number
+  gameCount: number
 }> {
   const events = await eventQueryService.getAll()
 
@@ -52,11 +55,15 @@ async function getPreviewData(): Promise<{
     (event) => event.status !== "ENDED"
   ).length
 
-  return { events: previewEvents, monitoredCount }
+  return {
+    events: previewEvents,
+    monitoredCount,
+    gameCount: GAMES_WITH_PROVIDER.size,
+  }
 }
 
 export async function Hero() {
-  const { events, monitoredCount } = await getPreviewData()
+  const { events, monitoredCount, gameCount } = await getPreviewData()
 
   return (
     <section className="relative overflow-hidden">
@@ -94,6 +101,8 @@ export async function Hero() {
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
+
+        <StatsBar gameCount={gameCount} eventCount={monitoredCount} />
 
         <DashboardPreview events={events} monitoredCount={monitoredCount} />
       </div>
