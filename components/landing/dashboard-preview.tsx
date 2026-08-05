@@ -10,37 +10,26 @@ import {
 
 import { GAME_BRAND_ICONS } from "@/components/shared/game-brand-icons";
 
-const events = [
-  {
-    gameId: "lol",
-    game: "League of Legends",
-    mode: "URF",
-    status: "LIVE",
-    color: "#2563eb",
-  },
-  {
-    gameId: "valorant",
-    game: "Valorant",
-    mode: "Night Market",
-    status: "Tracking",
-    color: "#ef4444",
-  },
-  {
-    gameId: "destiny",
-    game: "Destiny 2",
-    mode: "Iron Banner",
-    status: "Upcoming",
-    color: "#f59e0b",
-  },
-];
+export interface PreviewEvent {
+  gameId: string;
+  game: string;
+  mode: string;
+  status: string;
+  color: string;
+}
+
+interface Props {
+  events: PreviewEvent[];
+  monitoredCount: number;
+}
 
 const STATUS_STYLES: Record<string, string> = {
   LIVE: "bg-emerald-500",
-  Tracking: "bg-blue-500",
-  Upcoming: "bg-amber-500",
+  TRACKING: "bg-blue-500",
+  UPCOMING: "bg-amber-500",
 };
 
-export function DashboardPreview() {
+export function DashboardPreview({ events, monitoredCount }: Props) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 40 }}
@@ -68,55 +57,61 @@ export function DashboardPreview() {
 
         <div className="space-y-4">
 
-          {events.map((event) => {
-            const BrandIcon = GAME_BRAND_ICONS[event.gameId];
+          {events.length === 0 ? (
+            <p className="text-sm text-zinc-500">
+              Waiting on the next sync — real events will show up here.
+            </p>
+          ) : (
+            events.map((event) => {
+              const BrandIcon = GAME_BRAND_ICONS[event.gameId];
 
-            return (
-              <motion.div
-                key={event.game}
-                whileHover={{ scale: 1.02 }}
-                className="rounded-2xl border border-white/10 bg-black/40 p-5"
-              >
-                <div className="flex items-center justify-between">
+              return (
+                <motion.div
+                  key={event.gameId}
+                  whileHover={{ scale: 1.02 }}
+                  className="rounded-2xl border border-white/10 bg-black/40 p-5"
+                >
+                  <div className="flex items-center justify-between">
 
-                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4">
+
+                      <div
+                        className="flex h-11 w-11 items-center justify-center rounded-xl border"
+                        style={{
+                          backgroundColor: `${event.color}1a`,
+                          borderColor: `${event.color}40`,
+                        }}
+                      >
+                        {BrandIcon ? (
+                          <BrandIcon size={20} style={{ color: event.color }} />
+                        ) : (
+                          <Gamepad2 size={20} />
+                        )}
+                      </div>
+
+                      <div>
+                        <p className="text-sm text-zinc-500">
+                          {event.game}
+                        </p>
+
+                        <h4 className="truncate font-semibold">
+                          {event.mode}
+                        </h4>
+                      </div>
+
+                    </div>
 
                     <div
-                      className="flex h-11 w-11 items-center justify-center rounded-xl border"
-                      style={{
-                        backgroundColor: `${event.color}1a`,
-                        borderColor: `${event.color}40`,
-                      }}
+                      className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold text-black ${STATUS_STYLES[event.status] ?? "bg-zinc-500"}`}
                     >
-                      {BrandIcon ? (
-                        <BrandIcon size={20} style={{ color: event.color }} />
-                      ) : (
-                        <Gamepad2 size={20} />
-                      )}
-                    </div>
-
-                    <div>
-                      <p className="text-sm text-zinc-500">
-                        {event.game}
-                      </p>
-
-                      <h4 className="font-semibold">
-                        {event.mode}
-                      </h4>
+                      {event.status}
                     </div>
 
                   </div>
-
-                  <div
-                    className={`rounded-full px-3 py-1 text-xs font-semibold text-black ${STATUS_STYLES[event.status]}`}
-                  >
-                    {event.status}
-                  </div>
-
-                </div>
-              </motion.div>
-            );
-          })}
+                </motion.div>
+              );
+            })
+          )}
 
         </div>
 
@@ -151,7 +146,7 @@ export function DashboardPreview() {
           <div className="mt-8 rounded-xl bg-emerald-500/15 p-5">
 
             <p className="text-3xl font-bold text-emerald-400">
-              24
+              {monitoredCount}
             </p>
 
             <p className="mt-2 text-sm text-zinc-400">

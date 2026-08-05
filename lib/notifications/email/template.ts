@@ -1,6 +1,7 @@
 export function buildEmailHtml(
   title: string,
-  message: string
+  message: string,
+  unsubscribeUrl: string
 ): string {
   return `<!doctype html>
 <html>
@@ -27,6 +28,7 @@ export function buildEmailHtml(
       <tr>
         <td style="padding-top:16px;font-size:12px;color:#666666;">
           Bu e-postayı, takip listene eklediğin bir event güncellendiği için alıyorsun.
+          <a href="${unsubscribeUrl}" style="color:#666666;">Unsubscribe</a>
         </td>
       </tr>
     </table>

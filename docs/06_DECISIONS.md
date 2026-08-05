@@ -644,3 +644,82 @@ sorusuna sebep olacak türden bir teknik borç.
 - `BUNGIE_API_KEY` local `.env` + Vercel production'a eklendi.
 - Call of Duty backlog'da "değerlendirildi, reddedildi" olarak
   kayıtlı — resmi bir API çıkmadan yeniden gündeme gelmemeli.
+
+---
+
+# ADR-007: Ana Sayfadaki Sahte Veriler — Gerçek Veriyle Değiştirildi, Gerçek Unsubscribe Eklendi
+
+Status: Accepted
+
+Date: 2026-08-05
+
+## Bağlam
+
+Deniz iki somut, doğru tespit yaptı: (1) ana sayfadaki "ModeAlert
+Dashboard" önizleme widget'ı URF'ü sabit olarak "LIVE" gösteriyordu —
+gerçekte URF o an live olmayabilirdi, tamamen hardcoded bir mockup'tı.
+(2) `/games` kartlarındaki "players tracking" sayıları (120K, 95K, 40K)
+`prisma/seed/seed.ts`'te elle yazılmış sahte pazarlama rakamlarıydı,
+gerçek watchlist verisiyle hiç bağlantısı yoktu. Bunları düzeltirken
+aynı kategoriden üçüncü bir sorun bulundu: `/signin` sayfası "Unsubscribe
+anytime" diye söz veriyordu ama hiçbir unsubscribe mekanizması yoktu —
+tüm oturum boyunca avladığımız "yanlış vaat" bug'larının aynısı.
+
+## Karar
+
+1. **Ana sayfa önizleme widget'ı artık gerçek veri kullanıyor.**
+   `Hero` component'i (`components/landing/hero.tsx`) async bir Server
+   Component'e çevrildi, `eventQueryService.getAll()` ile gerçek
+   event'leri çekip oyun başına en öncelikli durumdaki event'i
+   (LIVE > UPCOMING > TRACKING) seçiyor, `DashboardPreview`'a prop
+   olarak geçiyor. "Events currently monitored" sayısı da gerçek
+   (ENDED olmayan event sayısı).
+2. **Bu, ana sayfayı statik-ama-bayat yapardı — ISR eklendi.**
+   Sayfa DB'ye doğrudan bağlandığı için Next.js onu build anında
+   dondurup statik HTML'e gömüyordu (bir sonraki deploy'a kadar hiç
+   değişmezdi). `app/page.tsx`'e `export const revalidate = 1800`
+   eklendi — event'ler günde bir senkronize olduğu için 30 dakikalık
+   pencere fazlasıyla yeterli, hâlâ CDN cache'inin performans
+   avantajını koruyor.
+3. **"Players tracking" artık gerçek.** `getTrackedUserCountsByGame()`
+   (`lib/repositories/watchlist.repository.ts`) her oyun için gerçek,
+   distinct kullanıcı sayısını (watchlist'e göre) hesaplıyor.
+   `gameService.getAllGames()` bunu `Game.activeUsers` alanının
+   yerine koyuyor — DB'deki seed değeri artık hiç okunmuyor.
+   Sayılar şu an küçük (erken aşama, gerçek), bu bilinçli — sahte
+   sosyal kanıt yerine dürüstlük tercih edildi.
+4. **Gerçek unsubscribe mekanizması eklendi.** `User.emailOptOut`
+   (migration `20260805145019_add_email_opt_out`). Her bildirim
+   e-postasının altında imzasız, DB'de ayrı bir token tablosu
+   gerektirmeyen bir link var: `HMAC-SHA256(userId, AUTH_SECRET)` ile
+   üretilen bir token, `/api/unsubscribe?userId=&token=` — sabit
+   zamanlı karşılaştırma (`timingSafeEqual`) ile doğrulanıyor, tahmin
+   edilemez. `notification-trigger.service.ts` artık email göndermeden
+   önce `emailOptOut` kontrolü yapıyor (in-app `Notification` kaydı
+   etkilenmiyor — sadece email kanalı atlanıyor). `/unsubscribed`
+   sayfası tek tıkla "resubscribe" seçeneği de sunuyor.
+5. **Ana sayfadaki "Games" bölümü artık sadece gerçek provider'ı olan
+   oyunları gösteriyor** (`GAMES_WITH_PROVIDER` filtresiyle) — Fortnite
+   hâlâ `/games` sayfasında "Tracking coming soon" olarak görünüyor,
+   sadece ana sayfa teaser'ından çıkarıldı (dikkat dağıtmasın diye).
+
+## Gerekçe
+
+Article I ve bu oturum boyunca tekrar eden tema: kullanıcıya (ve
+arama motorlarına, ve şimdi de e-posta alıcılarına) yanlış bilgi
+vermemek. Sahte "40K kullanıcı" rakamı klasik bir "dark pattern" —
+gerçek olmayan sosyal kanıt. Unsubscribe vaadi verip mekanizma
+kurmamak ise hem güven hem pratik bir sorun (e-posta teslim
+edilebilirliği, spam şikayetleri — çoğu sağlayıcı unsubscribe linki
+olmayan gönderenleri cezalandırır).
+
+## Sonuçlar
+
+- Yerel ortamda uçtan uca doğrulandı: ana sayfa gerçek event'leri
+  gösteriyor (ör. "Destiny 2 — Root of Nightmares — LIVE"), `/games`
+  gerçek sayıları gösteriyor (ör. "0 players tracking" — dürüst,
+  erken aşama rakamı), unsubscribe/resubscribe döngüsü DB'yi doğru
+  güncelliyor, geçersiz token reddediliyor.
+- `SITE_URL` artık `lib/constants/site.ts`'te tek bir yerden geliyor
+  (önceden `app/layout.tsx`, `app/robots.ts`, `app/sitemap.ts`'te ayrı
+  ayrı tanımlıydı) — email linkleri de aynı sabiti kullanıyor.

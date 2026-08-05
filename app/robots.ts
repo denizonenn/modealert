@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next"
 
-const SITE_URL = "https://modealert.vercel.app"
+import { SITE_URL } from "@/lib/constants/site"
 
 export default function robots(): MetadataRoute.Robots {
   return {

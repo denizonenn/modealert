@@ -8,13 +8,18 @@ import { Skeleton } from "@/components/shared/skeleton";
 import { SectionEyebrow } from "@/components/shared/section-eyebrow";
 
 import { useGames } from "@/hooks/use-games";
+import { GAMES_WITH_PROVIDER } from "@/lib/constants/games";
 
 export function SupportedGames() {
   const {
-    games,
+    games: allGames,
     isLoading,
     error,
   } = useGames();
+
+  const games = allGames.filter((game) =>
+    GAMES_WITH_PROVIDER.has(game.id)
+  );
 
   return (
     <section

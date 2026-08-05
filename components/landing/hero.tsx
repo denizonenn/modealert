@@ -1,11 +1,63 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, Zap } from "lucide-react";
-import { DashboardPreview } from "./dashboard-preview"
+import { DashboardPreview, type PreviewEvent } from "./dashboard-preview"
 import Link from "next/link"
 import { ModeRotator } from "./mode-rotator"
 
-export function Hero() {
+import { eventQueryService } from "@/lib/services/event-query.service"
+
+const STATUS_ORDER: Record<string, number> = {
+  LIVE: 0,
+  UPCOMING: 1,
+  TRACKING: 2,
+  ENDED: 3,
+}
+
+async function getPreviewData(): Promise<{
+  events: PreviewEvent[]
+  monitoredCount: number
+}> {
+  const events = await eventQueryService.getAll()
+
+  const bestPerGame = new Map<string, (typeof events)[number]>()
+
+  for (const event of events) {
+    if (event.status === "ENDED") {
+      continue
+    }
+
+    const existing = bestPerGame.get(event.gameId)
+
+    if (
+      !existing ||
+      STATUS_ORDER[event.status] < STATUS_ORDER[existing.status]
+    ) {
+      bestPerGame.set(event.gameId, event)
+    }
+  }
+
+  const previewEvents: PreviewEvent[] = Array.from(bestPerGame.values())
+    .sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status])
+    .slice(0, 3)
+    .map((event) => ({
+      gameId: event.gameId,
+      game: event.game.name,
+      mode: event.title,
+      status: event.status,
+      color: event.game.color,
+    }))
+
+  const monitoredCount = events.filter(
+    (event) => event.status !== "ENDED"
+  ).length
+
+  return { events: previewEvents, monitoredCount }
+}
+
+export async function Hero() {
+  const { events, monitoredCount } = await getPreviewData()
+
   return (
     <section className="relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_0%,rgba(168,85,247,0.18),transparent_60%)]" />
@@ -43,7 +95,7 @@ export function Hero() {
           </Button>
         </div>
 
-        <DashboardPreview />
+        <DashboardPreview events={events} monitoredCount={monitoredCount} />
       </div>
     </section>
   )

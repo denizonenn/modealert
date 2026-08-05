@@ -92,6 +92,13 @@ export const notificationTriggerService = {
           };
 
           for (const provider of providers) {
+            if (
+              provider.id === "email" &&
+              watchlist.user.emailOptOut
+            ) {
+              continue;
+            }
+
             try {
               await sendWithRetry(
                 provider,

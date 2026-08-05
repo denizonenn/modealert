@@ -16,8 +16,10 @@ import type {
 import { buildNotificationContent } from "../core/message-builder";
 
 import { buildEmailHtml } from "./template";
+import { createUnsubscribeToken } from "./unsubscribe-token";
 
 import { env } from "@/lib/config/env";
+import { SITE_URL } from "@/lib/constants/site";
 
 const resend = env.RESEND_API_KEY
   ? new Resend(env.RESEND_API_KEY)
@@ -48,6 +50,12 @@ export const emailNotificationProvider: NotificationProvider =
           previous
         );
 
+      const unsubscribeToken =
+        createUnsubscribeToken(recipient.id);
+
+      const unsubscribeUrl =
+        `${SITE_URL}/api/unsubscribe?userId=${recipient.id}&token=${unsubscribeToken}`;
+
       await resend.emails.send({
         from: env.EMAIL_FROM,
 
@@ -55,11 +63,12 @@ export const emailNotificationProvider: NotificationProvider =
 
         subject: title,
 
-        text: message,
+        text: `${message}\n\nUnsubscribe: ${unsubscribeUrl}`,
 
         html: buildEmailHtml(
           title,
-          message
+          message,
+          unsubscribeUrl
         ),
       });
     },

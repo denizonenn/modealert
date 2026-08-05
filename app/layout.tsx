@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Inter, Space_Grotesk } from "next/font/google"
 
 import { SessionProvider } from "@/components/providers/session-provider"
+import { SITE_URL } from "@/lib/constants/site"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -16,8 +17,6 @@ const spaceGrotesk = Space_Grotesk({
   variable: "--font-heading",
   display: "swap",
 })
-
-const SITE_URL = "https://modealert.vercel.app"
 
 const DEFAULT_DESCRIPTION =
   "ModeAlert tracks limited-time game events, modes, and battle passes across League of Legends, Valorant, and Destiny 2 — and emails you the moment something changes. No client, no extension, free during early access."

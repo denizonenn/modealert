@@ -7,8 +7,13 @@ import { Faq } from "@/components/landing/faq"
 import { Cta } from "@/components/landing/cta"
 import { Footer } from "@/components/layout/footer"
 import { FAQS } from "@/lib/constants/faq"
+import { SITE_URL } from "@/lib/constants/site"
 
-const SITE_URL = "https://modealert.vercel.app"
+// Hero fetches real event data server-side for the dashboard preview
+// widget — revalidate periodically so it doesn't go stale between
+// deploys (events sync once a day, this just needs to be in that
+// ballpark, not real-time).
+export const revalidate = 1800
 
 const jsonLd = [
   {

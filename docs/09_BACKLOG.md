@@ -174,6 +174,11 @@ Need
 - Notification Queue
 - Notification Scheduler (şu an sadece cron sync tetikliyor)
 - Notification Rate Limiter
+- ~~Unsubscribe mekanizması~~ — **çözüldü (2026-08-05).** `/signin`
+  "Unsubscribe anytime" diyordu ama gerçek bir mekanizma yoktu.
+  `User.emailOptOut` + HMAC tabanlı, DB'de ayrı token tablosu
+  gerektirmeyen imzasız link (`/api/unsubscribe`), her e-postanın
+  altında. Bkz. docs/06_DECISIONS.md ADR-007.
 - ~~Retry Policy (tek deneme, başarısızlık sadece loglanıyor)~~ —
   **kısmen çözüldü (2026-08-05):** `notification-trigger.service.ts`
   artık her gönderimi 3 deneme, artan gecikmeyle (500ms/1s) yapıyor.
@@ -300,6 +305,14 @@ Done (2026-08-05)
   for games without one; onboarding's `GameSelector` filters them out
   entirely so users can't pick a game, reach the event-selection step,
   and hit an empty list with no path forward.
+
+- ~~Homepage "ModeAlert Dashboard" preview widget hardcoded URF as
+  LIVE~~ and ~~`Game.activeUsers` ("players tracking") was a
+  hand-written marketing number from the seed~~ — both fixed
+  (2026-08-05), see docs/06_DECISIONS.md ADR-007. Homepage now shows
+  real synced events and real watchlist-derived counts; homepage
+  Games teaser trimmed to only real-provider games (Fortnite still
+  shown on the full `/games` page).
 
 ---
 
