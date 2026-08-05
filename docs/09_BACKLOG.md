@@ -249,8 +249,14 @@ Completed (2026-08-04)
 Remaining
 
 - Notification history view
-- Sync health / provider status page (data exists via
-  `/api/providers/health`, no UI yet)
+
+Done (2026-08-05)
+
+- ~~Sync health / provider status page~~ — public `/status` page added
+  (`hooks/use-provider-health.ts`, 60s auto-refresh), linked from the
+  footer. `/api/providers/health` existed with zero consumers before
+  this — another instance of the "written but not connected" pattern,
+  this time backend-only.
 
 ---
 
