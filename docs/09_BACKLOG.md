@@ -431,19 +431,32 @@ Recommendation engine
 
 # P2 — Multi Game Support
 
-Potential games
+Status: 🟢 4 real providers (2026-08-05)
 
-League of Legends ✅
+Live providers
 
-Valorant ✅ (2026-08-04)
+- League of Legends ✅ (Riot + CommunityDragon)
+- Valorant ✅ (2026-08-04, Riot)
+- Destiny 2 ✅ (2026-08-05, Bungie API — platform status + active
+  weekly milestones/raid rotation. See docs/06_DECISIONS.md ADR-006.)
 
-TFT
+Seeded but no provider yet
 
-LoR
+- Fortnite — `Game` row exists (placeholder from the original seed),
+  `crawler/*/get-events.ts` is still empty. No official Epic events
+  API investigated yet.
 
-Wild Rift
+Evaluated and rejected
 
-Future Riot titles
+- ~~Call of Duty~~ — no official Activision API; unofficial routes
+  need a real account login (not an API key) and don't even expose
+  event/playlist data, only player stats. See ADR-006.
+
+Potential (Riot titles, same API family as LoL/Valorant)
+
+- TFT
+- LoR
+- Wild Rift
 
 ---
 

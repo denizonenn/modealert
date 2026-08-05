@@ -569,3 +569,78 @@ zorunlu kıldığı bir yan etki.
   Tarayıcıda uçtan uca doğrulandı: kayıt → otomatik giriş → dashboard,
   çıkış → şifreyle tekrar giriş → dashboard, yanlış şifre → red,
   5 yanlış deneme → kilit, aynı email'le ikinci kayıt → red.
+
+---
+
+# ADR-006: Dördüncü Oyun Provider'ı — Destiny 2 (Bungie API), Call of Duty Reddedildi
+
+Status: Accepted
+
+Date: 2026-08-05
+
+## Bağlam
+
+Deniz yeni oyun provider'ları eklenmesini istedi, örnek olarak Destiny
+ve Call of Duty'yi verdi. İkisi de kod yazılmadan önce fizibilite
+açısından araştırıldı (bir subagent ile), varsayıma dayanmadan.
+
+**Destiny 2 (Bungie):** Resmi, ücretsiz, dökümante bir API var
+(bungie-net.github.io). Bungie.net'te ücretsiz hesap + `bungie.net/en/User/API`'den
+API key alımı Riot'un dev portal süreciyle aynı seviyede kolay. Deniz
+key'i aldı: `bungie.net/en/User/API` üzerinden bir "app" oluşturup
+API Key'i paylaştı.
+
+**Call of Duty (Activision):** Hiç resmi public API'si yok. Topluluk
+paketleri (`call-of-duty-api`, `Node-CallOfDuty`) gerçek bir CoD
+hesabıyla (email+şifre) login gerektiren, dökümente edilmemiş private
+endpoint'leri kullanıyor — API key değil. Üstelik bu endpoint'ler
+oyuncu istatistiği için, event/playlist/double-XP verisi için değil —
+yani teknik olarak mümkün olsa bile ModeAlert'in ihtiyacını
+karşılamıyor. 2019'da Activision bir gecede kırıp üçüncü parti
+sitelerin çoğunu çökertmişti, ana npm paketi artık bakımsız.
+
+## Karar
+
+1. **Destiny 2 provider'ı eklendi** (`lib/providers/destiny/`),
+   Valorant'ın dosya yapısı birebir şablon alınarak (`client.ts` →
+   `types.ts` → `event-mapper.ts` → `service.ts` → `provider.ts`).
+2. **Call of Duty eklenmedi.** "Low maintenance" ve "her provider
+   dökümente/kararlı bir kaynağa dayanır" ilkelerine açıkça aykırı —
+   şifre saklamak yeni bir güvenlik yüzeyi açar, dökümente edilmemiş
+   bir private API'ye bağımlı kalmak öngörülemez şekilde kırılabilir,
+   ve zaten aradığımız veriyi (event/playlist takvimi) sağlamıyor.
+   İleride Activision resmi bir API yayınlarsa yeniden değerlendirilir.
+3. **Veri kaynağı seçimi (Bungie API içinde):** `Destiny2.GetPublicMilestones`
+   sadece hash döner, isim dönmez — insan-okunur başlık için
+   `Destiny2.Manifest`'ten `DestinyMilestoneDefinition` component'i
+   ayrıca çekiliyor (tüm manifest DEĞİL — sadece bu component, ~37KB,
+   31 kayıt). Manifest'in versiyon path'i her sync'te taze çekiliyor
+   (`/Destiny2/Manifest/` → `jsonWorldComponentContentPaths.en.DestinyMilestoneDefinition`),
+   sabit bir path hardcode edilmedi — Bungie içerik güncellediğinde
+   path değişiyor, versiyonlama/cache'leme karmaşıklığına hiç
+   girilmedi, her sync'te taze çekmek yeterince ucuz (37KB).
+   Platform durumu için `Settings` endpoint'indeki
+   `systems.Destiny2.enabled` kullanıldı (Riot/Valorant'taki platform
+   status deseniyle aynı).
+
+## Gerekçe
+
+Article II ("low maintenance") ve mevcut provider mimarisinin
+("her provider bağımsız, dökümente bir kaynağa dayanır") doğrudan
+uygulanması. Call of Duty'yi zorlamak, projenin "boring/stable
+technology" ilkesini (ADR-003) ihlal ederdi — şifre tabanlı, dökümente
+edilmemiş bir entegrasyon, gelecekte "neden bu bir gecede kırıldı"
+sorusuna sebep olacak türden bir teknik borç.
+
+## Sonuçlar
+
+- `GAME_IDS.DESTINY_2 = "destiny"`, `Game` tablosuna eklendi (seed.ts
+  güncellendi, prod DB'ye ayrıca tek satır upsert ile eklendi — seed.ts
+  DESTRUCTIVE, tüm tabloları siliyor, prod'a karşı ÇALIŞTIRILMADI).
+- Uçtan uca doğrulandı: `/api/providers/health` → `destiny` `healthy: true`,
+  gerçek cron sync → 13 gerçek event (platform status + 12 aktif
+  raid/milestone, örn. "Vault of Glass", "King's Fall", "The Desert
+  Perpetual"), `/games` sayfasında kart doğru render oluyor.
+- `BUNGIE_API_KEY` local `.env` + Vercel production'a eklendi.
+- Call of Duty backlog'da "değerlendirildi, reddedildi" olarak
+  kayıtlı — resmi bir API çıkmadan yeniden gündeme gelmemeli.

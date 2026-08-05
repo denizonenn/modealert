@@ -40,8 +40,8 @@ MVP live in production (2026-08-04) — https://modealert.vercel.app
 
 Completed:
 
-✔ Provider Architecture (Riot, CommunityDragon, Valorant — 3 real
-  providers, all verified against live data)
+✔ Provider Architecture (Riot, CommunityDragon, Valorant, Destiny 2 —
+  4 real providers, all verified against live data)
 
 ✔ Repository Layer
 
@@ -60,6 +60,9 @@ Completed:
 ✔ Riot Provider (platform status, champion rotation)
 
 ✔ Valorant Provider (platform status, act/episode detection)
+
+✔ Destiny 2 Provider (Bungie API — platform status, active weekly
+  milestones/raid rotation, 2026-08-05)
 
 ✔ Dashboard (real watchlist add/remove, live stats)
 

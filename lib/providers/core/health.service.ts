@@ -18,7 +18,8 @@ function explainError(
   ) {
     return (
       "API key expired or invalid — needs manual renewal " +
-      "(developer.riotgames.com for Riot/Valorant)"
+      "(developer.riotgames.com for Riot/Valorant, " +
+      "bungie.net/en/User/API for Destiny 2)"
     );
   }
 

@@ -54,6 +54,17 @@ async function main() {
         activeUsers: "150K",
         featured: true,
       },
+      {
+        id: "destiny",
+        name: "Destiny 2",
+        slug: "destiny-2",
+        logo: "🚀",
+        color: "#f59e0b",
+        shortName: "D2",
+        supportedEvents: 2,
+        activeUsers: "40K",
+        featured: false,
+      },
     ],
   });
 
