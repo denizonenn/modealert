@@ -174,7 +174,15 @@ Need
 - Notification Queue
 - Notification Scheduler (şu an sadece cron sync tetikliyor)
 - Notification Rate Limiter
-- Retry Policy (tek deneme, başarısızlık sadece loglanıyor)
+- ~~Retry Policy (tek deneme, başarısızlık sadece loglanıyor)~~ —
+  **kısmen çözüldü (2026-08-05):** `notification-trigger.service.ts`
+  artık her gönderimi 3 deneme, artan gecikmeyle (500ms/1s) yapıyor.
+  Bilinçli olarak dışarıda bırakılan: kalıcı bir "failed notification"
+  kaydı/görünürlüğü (Vercel serverless log'ları geçicidir — 3 deneme
+  de başarısız olursa hâlâ sessizce kayboluyor). Şu anki trafik
+  hacminde ayrı bir queue/worker altyapısı kurmak erken optimizasyon
+  olurdu; hacim büyüdükçe (veya sık başarısızlık gözlemlenirse) yeniden
+  değerlendirilmeli.
 
 Future — bilinçli olarak ertelendi
 

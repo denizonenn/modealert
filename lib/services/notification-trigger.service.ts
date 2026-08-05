@@ -22,6 +22,42 @@ import {
   getWatchlistsByEvent,
 } from "@/lib/repositories/watchlist.repository";
 
+import type {
+  NotificationProvider,
+  NotificationRecipient,
+} from "@/lib/notifications/core/notification-provider";
+
+const RETRY_ATTEMPTS = 3;
+const RETRY_DELAY_MS = 500;
+
+function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function sendWithRetry(
+  provider: NotificationProvider,
+  recipient: NotificationRecipient,
+  event: ProviderEvent,
+  previous: EventWithGame | null
+) {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= RETRY_ATTEMPTS; attempt++) {
+    try {
+      await provider.send(recipient, event, previous);
+      return;
+    } catch (error) {
+      lastError = error;
+
+      if (attempt < RETRY_ATTEMPTS) {
+        await wait(RETRY_DELAY_MS * attempt);
+      }
+    }
+  }
+
+  throw lastError;
+}
+
 export const notificationTriggerService = {
   async trigger(
     event: ProviderEvent,
@@ -57,7 +93,8 @@ export const notificationTriggerService = {
 
           for (const provider of providers) {
             try {
-              await provider.send(
+              await sendWithRetry(
+                provider,
                 recipient,
                 event,
                 previous
@@ -81,7 +118,7 @@ export const notificationTriggerService = {
               );
             } catch (error) {
               console.error(
-                `[Notification] ${provider.name} failed for ${recipient.email}:`,
+                `[Notification] ${provider.name} failed for ${recipient.email} after ${RETRY_ATTEMPTS} attempts:`,
                 error
               );
             }
