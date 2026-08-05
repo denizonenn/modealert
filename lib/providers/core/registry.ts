@@ -5,6 +5,7 @@ import { communityDragonProvider } from "@/lib/providers/communitydragon/provide
 import { valorantProvider } from "@/lib/providers/valorant/provider";
 import { destinyProvider } from "@/lib/providers/destiny/provider";
 import { tftProvider } from "@/lib/providers/tft/provider";
+import { fortniteProvider } from "@/lib/providers/fortnite/provider";
 
 const providers: EventProvider[] = [
   riotProvider,
@@ -12,6 +13,7 @@ const providers: EventProvider[] = [
   valorantProvider,
   destinyProvider,
   tftProvider,
+  fortniteProvider,
 ];
 
 export function getProviders(): EventProvider[] {

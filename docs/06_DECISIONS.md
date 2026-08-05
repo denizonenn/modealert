@@ -904,3 +904,112 @@ preview widget'ında olduğu gibi).
   satır-başı boşluk trim kuralı yüzünden boşluğu yutuyordu
   ("Destiny 2— current" gibi görünüyordu) — `{" "}` ile açıkça
   düzeltildi.
+
+---
+
+# ADR-011: Altıncı Oyun Provider'ı — Fortnite (fortnite-api.com), Kapsam Bilinçli Olarak Item Shop'la Sınırlandı
+
+Status: Accepted
+
+Date: 2026-08-05
+
+## Bağlam
+
+Deniz üç yeni oyun istedi: Fortnite, Apex Legends, Overwatch 2. Kod
+yazılmadan önce bir subagent ile üçü de araştırıldı. Sonuç: Fortnite
+için `fortnite-api.com` var — key gerektirmiyor, uzun süredir ayakta,
+iyi dökümente. Ama LTM (limited-time mode) verisi güvenilir değil:
+`/v1/playlists` 744 kayıt dönüyor (oyunun bugüne kadar var olan TÜM
+playlist'leri, sadece şu an aktif olanlar değil) ve `isLimitedTimeMode`
+alanı gerçek zamanlı hiçbir kayıtta `true` dönmüyor — yani "şu an aktif
+LTM" sinyali olarak kullanılamaz, kanıtlanmadan varsayılmadı, gerçekten
+istek atılıp kontrol edildi. Buna karşılık `/v2/shop` (item shop)
+gerçek, güncel, doğrulanmış veri: her gün yenilenen `entries` listesi,
+her item'ın kendi `inDate`/`outDate`'i var.
+
+## Karar
+
+1. **Fortnite provider'ı eklendi** (`lib/providers/fortnite/`), aynı
+   5-dosya şablonu (client/types/constants/event-mapper/service/provider).
+   Key gerekmiyor, `enabled: true` sabit (Valorant'taki keyless desenle
+   aynı).
+2. **Kapsam bilinçli olarak Item Shop'la sınırlı.** Tek event:
+   `fortnite-item-shop`, başlık `Item Shop (N items)`, status hep
+   `LIVE` — LoL'daki champion rotation ile birebir aynı desen (sabit id,
+   içerik günlük değişiyor, "her zaman canlı ama içeriği değişen"
+   event). LTM tracking'e GİRİŞİLMEDİ çünkü kaynak veri bunu
+   desteklemiyor — sahte/güvenilmez bir "aktif LTM" listesi göstermek
+   yerine dürüstçe tek, doğrulanmış sinyalle başlandı.
+3. **`Game.supportedEvents` artık gerçek sayı.** Bu provider eklenirken
+   fark edildi: `supportedEvents` hâlâ seed.ts'teki elle yazılmış
+   sayıydı (ADR-007'de `activeUsers` için düzeltilen aynı sınıf hata,
+   `supportedEvents` o zaman atlanmıştı). `lib/repositories/event.repository.ts`'e
+   `getEventCountsByGame()` eklendi (`getTrackedUserCountsByGame()` ile
+   aynı desen, `prisma.event.groupBy`), `game.service.ts` artık her
+   oyun için gerçek event sayısını dönüyor.
+
+## Gerekçe
+
+ADR-006/ADR-009'daki "dökümente edilmiş kaynak, veri iddiasından önce
+gerçekten doğrulanmış" disiplini. `isLimitedTimeMode` alanının var
+olması yeterli değildi — gerçek istekle kontrol edilip güvenilmez
+çıktı, bu yüzden kapsam dışı bırakıldı. Bu, oturun boyunca tekrarlanan
+"sahte veri yerine dürüst, sınırlı ama gerçek veri" ilkesinin (ADR-007,
+ADR-010) doğrudan uygulanması.
+
+## Sonuçlar
+
+- Uçtan uca doğrulandı: `/api/providers/health` → `fortnite`
+  `healthy: true`, cron sync → 1 gerçek event kaydedildi, `/games/fortnite`
+  "Item Shop (268 items)" — LIVE olarak gösteriyor, `/games`'te artık
+  "Tracking coming soon" değil gerçek kart.
+  `supportedEvents` düzeltmesi sonrası tüm oyunlarda sayılar gerçek
+  (örn. Destiny 2: 13, LoL: 23, TFT: 1, Valorant: 3, Fortnite: 1) —
+  seed.ts'teki eski elle yazılmış sayılar artık hiçbir yerde
+  gösterilmiyor.
+- `GAME_IDS.FORTNITE = "fortnite"` eklendi, `fortnite` Game satırı
+  zaten seed.ts'te placeholder olarak vardı (id/slug/logo/color aynen
+  kullanıldı), prod DB'de zaten mevcuttu.
+- Apex Legends ve Overwatch 2 bu ADR'a dahil değil — bkz. ADR-012
+  (Overwatch 2 reddedildi) ve backlog (Apex, Deniz'in
+  apexlegendsapi.com'da Discord ile key alması bekleniyor).
+
+---
+
+# ADR-012: Overwatch 2 Reddedildi — Resmi/Güvenilir Bir API Yok
+
+Status: Rejected
+
+Date: 2026-08-05
+
+## Bağlam
+
+Deniz'in istediği üç yeni oyundan biri Overwatch 2'ydi. Araştırma
+(subagent ile): Blizzard'ın OW2 event/sezon takvimi için hiçbir resmi
+public API'si yok — eski topluluk API'leri yıllar önce kapatıldı.
+Bilinen güvenilir/aktif bakımı yapılan bir topluluk JSON kaynağı da
+yok. Gerçekçi tek alternatifler: (1) sezon tarihlerini elle/statik
+girip periyodik güncellemek, ya da (2) Blizzard'ın haber/patch notu
+RSS'ini scrape etmek.
+
+## Karar
+
+Overwatch 2 provider'ı **eklenmedi**. Deniz'e iki seçenek sunuldu
+(reddet vs. statik takvim dene), Deniz reddi seçti.
+
+## Gerekçe
+
+Bu durum ADR-006'daki Call of Duty red kararıyla birebir aynı profil:
+resmi API yok, dökümente edilmemiş/kırılgan bir workaround'a bağımlı
+kalmak gerekiyor. Statik takvim seçeneği de reddedildi çünkü projenin
+"sahte veri yok" ilkesine (ADR-007, ADR-010, ADR-011) aykırı — elle
+girilen tarihler bayatlar ve gerçek zamanlı değildir, ki bu tam olarak
+bu oturun boyunca tekrar tekrar düzeltilen hata sınıfı.
+
+## Sonuçlar
+
+- Overwatch 2 backlog'da "değerlendirildi, reddedildi" olarak kayıtlı
+  — Call of Duty gibi, resmi bir API çıkmadan yeniden gündeme
+  gelmemeli.
+- Hiçbir kod değişikliği yapılmadı, hiçbir placeholder `Game` satırı
+  eklenmedi.

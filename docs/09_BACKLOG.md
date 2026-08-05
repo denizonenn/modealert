@@ -497,12 +497,18 @@ Live providers
   weekly milestones/raid rotation. See docs/06_DECISIONS.md ADR-006.)
 - TFT ✅ (2026-08-05, Riot — platform status only for now, same
   `RIOT_API_KEY`. See ADR-009.)
+- Fortnite ✅ (2026-08-05, `fortnite-api.com`, no key needed — Item
+  Shop rotation only. LTM tracking deliberately excluded: the
+  `/v1/playlists` endpoint returns every playlist the game has ever
+  had, not just currently-active ones, and `isLimitedTimeMode` never
+  came back `true` on a real request. See ADR-011.)
 
-Seeded but no provider yet
+Pending Deniz's action
 
-- Fortnite — `Game` row exists (placeholder from the original seed),
-  `crawler/*/get-events.ts` is still empty. No official Epic events
-  API investigated yet.
+- Apex Legends — `apexlegendsapi.com` is the viable source, but needs
+  a free API key obtained via Discord signup (Deniz needs to do this
+  himself). Map rotation is solid; Collection Events/LTMs are as
+  unreliable as Fortnite's, likely same "shop/rotation only" scope.
 
 Evaluated and rejected
 
@@ -514,6 +520,10 @@ Evaluated and rejected
   approval odds/timeline. Revisit if Deniz wants to apply.
 - ~~Wild Rift~~ — no known public API at all (403 on every guessed
   endpoint, no official docs). See ADR-009.
+- ~~Overwatch 2~~ — no official Blizzard API for event/season data,
+  no credible community dataset either. Static/manual calendar was
+  considered and rejected (goes stale, violates the real-data-only
+  principle). Same rejection profile as Call of Duty. See ADR-012.
 
 Done (2026-08-05)
 

@@ -109,6 +109,22 @@ export async function getEventsBySource(
   });
 }
 
+export async function getEventCountsByGame(): Promise<
+  Record<string, number>
+> {
+  const rows = await prisma.event.groupBy({
+    by: ["gameId"],
+
+    _count: {
+      _all: true,
+    },
+  });
+
+  return Object.fromEntries(
+    rows.map((row) => [row.gameId, row._count._all])
+  );
+}
+
 export async function upsertEvent(
   event: ProviderEvent,
   source: string
