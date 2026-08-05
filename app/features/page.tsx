@@ -20,7 +20,7 @@ import { SectionEyebrow } from "@/components/shared/section-eyebrow"
 export const metadata: Metadata = {
   title: "Features",
   description:
-    "See how ModeAlert detects new League of Legends, Valorant, and Destiny 2 events before they're officially announced, and emails you the moment something changes.",
+    "See how ModeAlert detects new League of Legends, Valorant, Destiny 2, and Teamfight Tactics events before they're officially announced, and emails you the moment something changes.",
 }
 
 const CORE_FEATURES = [
@@ -41,7 +41,7 @@ const CORE_FEATURES = [
   {
     title: "Multiple games, one inbox",
     description:
-      "Track League of Legends, Valorant, and Destiny 2 from a single watchlist instead of checking three different launchers and Twitter accounts.",
+      "Track League of Legends, Valorant, Destiny 2, and Teamfight Tactics from a single watchlist instead of checking multiple launchers and Twitter accounts.",
     icon: Gamepad2,
     gradient: "linear-gradient(135deg, #ec4899, #f43f5e)",
   },

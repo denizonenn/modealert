@@ -9,7 +9,7 @@ const STEPS = [
     icon: Gamepad2,
     title: "Pick your games",
     description:
-      "Select League of Legends, Valorant, Destiny 2 and more. Add new games any time.",
+      "Select League of Legends, Valorant, Destiny 2, TFT and more. Add new games any time.",
   },
   {
     icon: ListChecks,

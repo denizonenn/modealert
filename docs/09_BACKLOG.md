@@ -487,7 +487,7 @@ Recommendation engine
 
 # P2 — Multi Game Support
 
-Status: 🟢 4 real providers (2026-08-05)
+Status: 🟢 5 real providers (2026-08-05)
 
 Live providers
 
@@ -495,6 +495,8 @@ Live providers
 - Valorant ✅ (2026-08-04, Riot)
 - Destiny 2 ✅ (2026-08-05, Bungie API — platform status + active
   weekly milestones/raid rotation. See docs/06_DECISIONS.md ADR-006.)
+- TFT ✅ (2026-08-05, Riot — platform status only for now, same
+  `RIOT_API_KEY`. See ADR-009.)
 
 Seeded but no provider yet
 
@@ -507,12 +509,19 @@ Evaluated and rejected
 - ~~Call of Duty~~ — no official Activision API; unofficial routes
   need a real account login (not an API key) and don't even expose
   event/playlist data, only player stats. See ADR-006.
+- ~~LoR~~ — Riot API returns 403 with the current dev key; needs a
+  separate product application on the Riot Developer Portal, unclear
+  approval odds/timeline. Revisit if Deniz wants to apply.
+- ~~Wild Rift~~ — no known public API at all (403 on every guessed
+  endpoint, no official docs). See ADR-009.
 
-Potential (Riot titles, same API family as LoL/Valorant)
+Future — richer data per existing game (not just more games)
 
-- TFT
-- LoR
-- Wild Rift
+- TFT: only platform status right now — no live-verified secondary
+  signal exists yet (e.g. "current Set") the way LoL has champion
+  rotation or Destiny has milestones.
+- Valorant: could expand beyond platform status + active acts.
+- Destiny: Vendor rotation (Xûr) not yet mapped.
 
 ---
 
@@ -640,7 +649,12 @@ Current
 
 - **Riot dev API key 24 saatte bir expire oluyor** — gerçek "low
   maintenance" için production key başvurusu gerekiyor. Şu an manuel
-  güncelleniyor.
+  güncelleniyor. 2026-08-05'te bir kez daha expire oldu (LoL/Valorant
+  canlıda "unhealthy" görünüyordu — `/status` sayfası doğru şekilde
+  yakaladı), Deniz yeniledi. Bu artık üçüncü/dördüncü kez oluyor — bu
+  gerçekten bir "her gün elle yapılan iş" haline geldi, production key
+  başvurusu (Riot Developer Portal → Apply for a Production Key)
+  bundan sonraki en yüksek öncelikli manuel iş olmalı.
 
 - ~~Auth yok. Her şey `"demo"` adında tek, hardcoded bir kullanıcı
   üzerinden çalışıyor~~ — **çözüldü (2026-08-05)**, bkz.
@@ -661,6 +675,12 @@ Current
 ---
 
 # Bugs
+
+- ~~No branded 404/error pages — Next.js defaults were used~~ —
+  **fixed (2026-08-05).** `app/not-found.tsx` and `app/error.tsx`
+  added, matching site design. Also deleted
+  `components/notifications/notification-settings.tsx` — an empty
+  (0-line) stub, superseded by `/dashboard/settings`.
 
 - ~~Vercel build cache could serve a stale Prisma Client after a schema
   migration~~ — **fixed (2026-08-05).** `package.json` had no

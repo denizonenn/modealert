@@ -48,15 +48,21 @@ biliyor. Buna göre:
 - **Veritabanı:** Neon Postgres (Vercel Storage Marketplace üzerinden).
   Artık SQLite değil — `DATABASE_URL` (pooled) + `DATABASE_URL_UNPOOLED`
   (migration'lar için) kullanılıyor.
-- **Aktif provider'lar (4, hepsi gerçek veriyle doğrulandı):** Riot API
+- **Aktif provider'lar (5, hepsi gerçek veriyle doğrulandı):** Riot API
   (platform status + champion rotation), CommunityDragon (event-hub,
   live+pbe patchline), Valorant (platform status + act/episode),
   **Destiny 2** (Bungie API — platform status + haftalık aktif
-  milestone'lar/raid rotasyonu, 2026-08-05). LCU sadece kişiselleştirme
-  için — event keşfi için KULLANILMAZ (bkz. docs/06_DECISIONS.md
-  ADR-001). Call of Duty değerlendirildi ve **reddedildi** — Activision'ın
-  resmi bir API'si yok, gayri-resmi yollar hesap girişi gerektiriyor ve
-  zaten event verisi sağlamıyor (bkz. ADR-006).
+  milestone'lar/raid rotasyonu, 2026-08-05), **TFT** (Riot API —
+  platform status, 2026-08-05, aynı `RIOT_API_KEY`'i kullanıyor).
+  LCU sadece kişiselleştirme için — event keşfi için KULLANILMAZ
+  (bkz. docs/06_DECISIONS.md ADR-001). Call of Duty değerlendirildi ve
+  **reddedildi** — Activision'ın resmi bir API'si yok, gayri-resmi
+  yollar hesap girişi gerektiriyor ve zaten event verisi sağlamıyor
+  (bkz. ADR-006). LoR ve Wild Rift de denendi, Riot API 403 döndü
+  (ayrı ürün erişimi gerekiyor / hiç public API yok) — bkz. ADR-009.
+- **`RIOT_API_KEY` dev key, 24 saatte bir expire oluyor** — 2026-08-05'te
+  bir kez daha expire oldu, Deniz yeniledi. Production key başvurusu
+  hâlâ yapılmadı (bkz. docs/09_BACKLOG.md).
 - **Cron:** `/api/cron/sync` günde 1 kez (Vercel Hobby plan limiti —
   Pro'ya geçilirse saatliğe çekilebilir).
 - **Bildirimler:** Email (Resend) canlı, per-recipient gönderim,

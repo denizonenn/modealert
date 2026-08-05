@@ -65,6 +65,17 @@ async function main() {
         activeUsers: "40K",
         featured: false,
       },
+      {
+        id: "tft",
+        name: "Teamfight Tactics",
+        slug: "teamfight-tactics",
+        logo: "♟️",
+        color: "#a855f7",
+        shortName: "TFT",
+        supportedEvents: 1,
+        activeUsers: "60K",
+        featured: false,
+      },
     ],
   });
 

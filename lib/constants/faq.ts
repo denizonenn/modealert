@@ -7,7 +7,7 @@ export const FAQS = [
   {
     question: "Which games are supported?",
     answer:
-      "League of Legends, Valorant, and Destiny 2 today, with more games (Fortnite included) added as new tracking sources come online.",
+      "League of Legends, Valorant, Destiny 2, and Teamfight Tactics today, with more games (Fortnite included) added as new tracking sources come online.",
   },
   {
     question: "Is ModeAlert free?",

@@ -4,6 +4,8 @@ export const GAME_IDS = {
   VALORANT: "valorant",
 
   DESTINY_2: "destiny",
+
+  TFT: "tft",
 } as const;
 
 // Games seeded in the DB with a real, working provider syncing events.

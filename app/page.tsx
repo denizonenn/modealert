@@ -22,7 +22,7 @@ const jsonLd = [
     name: "ModeAlert",
     url: SITE_URL,
     description:
-      "ModeAlert tracks limited-time game events, modes, and battle passes across League of Legends, Valorant, and Destiny 2, and emails you the moment something changes.",
+      "ModeAlert tracks limited-time game events, modes, and battle passes across League of Legends, Valorant, Destiny 2, and Teamfight Tactics, and emails you the moment something changes.",
   },
   {
     "@context": "https://schema.org",

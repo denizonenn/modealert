@@ -770,3 +770,75 @@ onayıyla eklendi.
   yönlendirdiği.
 - Navbar'daki kullanıcı adı/email'i artık `/dashboard/settings`'e
   link veriyor (masaüstü ve mobil drawer'da).
+
+---
+
+# ADR-009: Beşinci Oyun Provider'ı — TFT (Riot API), LoR/Wild Rift Denendi ve Reddedildi
+
+Status: Accepted
+
+Date: 2026-08-05
+
+## Bağlam
+
+Deniz para kazanma/monetization'ı şimdilik ertelemeyi, bunun yerine
+oyun/event sayısını ve feature'ları artırmayı istedi ("site ücretsiz
+olması normal, oyun ve event sayısını artırmamız lazım"). Aynı gün
+içinde Riot dev API key'i tekrar expire olmuştu (24 saatlik bilinen
+sınırlama) — Deniz yeni bir key verdi, bu hem mevcut Riot/Valorant
+provider'larını düzeltti hem yeni Riot ailesi oyunları test etmeyi
+mümkün kıldı.
+
+Canlı key ile üç aday test edildi (kod yazmadan önce, doğrudan curl
+ile):
+- **TFT**: `tft/status/v1/platform-data` → **200 OK**, LoL'ünkiyle
+  birebir aynı yapı ve auth (`X-Riot-Token`).
+- **LoR** (Legends of Runeterra): `lor/status/v1/platform-data` →
+  **403 Forbidden** — mevcut dev key ile erişim yok, ayrı bir ürün
+  başvurusu gerekiyor.
+- **Wild Rift**: denenen endpoint → **403 Forbidden** — bilinen
+  herhangi bir public API'si yok.
+
+## Karar
+
+1. **TFT provider'ı eklendi** (`lib/providers/tft/`), Valorant/Destiny
+   şablonuyla birebir aynı yapıda. Şu an sadece platform status
+   (LoL/Valorant'taki gibi) — TFT'nin "set rotasyonu" gibi zengin bir
+   ikinci veri kaynağı yok, canlı API'de doğrulanabilen bir şey
+   bulunmadı. `RIOT_API_KEY`'i tekrar kullanıyor, yeni bir env var
+   gerekmedi.
+2. **LoR ve Wild Rift eklenmedi.** LoR için Deniz'in Riot Developer
+   Portal'da ayrı bir ürün başvurusu yapması gerekiyor (onay süresi
+   belirsiz) — talep gelirse yeniden değerlendirilir. Wild Rift için
+   bilinen bir public API yolu yok, backlog'da "muhtemelen imkansız"
+   olarak işaretlendi.
+3. **Bu arada iki küçük "foolproof" eklentisi yapıldı** (aynı oturumda,
+   ilişkili): markalı `app/not-found.tsx` ve `app/error.tsx` (önceden
+   Next.js'in varsayılan, markasız hata sayfaları kullanılıyordu) ve
+   `components/notifications/notification-settings.tsx` silindi (boş,
+   0 satırlık bir stub — `/dashboard/settings` onun yerini çoktan
+   almıştı, dururken kafa karıştırıcıydı).
+4. **Pazarlama metni tekrar güncellendi** — bu oturumda daha önce
+   "Fortnite" yerine "Destiny 2" yazan tüm yerler düzeltilmişti (3
+   gerçek oyun); şimdi TFT eklenince aynı yerler tekrar güncellendi
+   (FAQ, hero, `/features`, `/games`, `/live`, ana sayfa meta/JSON-LD,
+   OG image) — 4 gerçek oyunu doğru sayıyor.
+
+## Gerekçe
+
+Article II ve "doğrulamadan yazma" — TFT eklenmeden önce gerçekten
+çalıştığı canlı key ile doğrulandı, LoR/Wild Rift için de "olmuyor"
+varsayılmadı, gerçekten denenip 403 alındı. Bu, ADR-006'daki Call of
+Duty araştırmasıyla aynı disiplin.
+
+## Sonuçlar
+
+- Uçtan uca doğrulandı: `/api/providers/health` → `tft: healthy`,
+  gerçek cron sync → gerçek "Platform Status" event'i, `/games` ve
+  `/live` sayfalarında TFT kartı/satırı doğru render oluyor
+  (`♟️` emoji fallback, `game-icon.tsx`'teki boyutlama düzeltmesi
+  sayesinde düzgün görünüyor — react-icons/si'de TFT logosu yok).
+- `GAMES_WITH_PROVIDER.size` artık 4 — ana sayfadaki stats bar
+  ("Games tracked") otomatik olarak güncellendi, elle dokunulmadı.
+- Riot dev key'in 24 saatte bir expire olma sorunu hâlâ çözülmedi —
+  production key başvurusu backlog'da kalmaya devam ediyor.
