@@ -498,11 +498,15 @@ Current
   bu kullanıcıya bağlı). Gerçek çok-kullanıcılı davranış için Phase 7
   gerekiyor — bkz. docs/09_BACKLOG.md "P2 — User Accounts".
 
-- **`components/notifications/*` (notification-center, notification-item,
-  notification-settings) ve `hooks/use-notifications.ts` yazılmış ama
-  hiçbir sayfaya bağlanmamış** — dashboard/onboarding'de bulduğumuz
-  "yazılmış ama bağlanmamış" örüntüsünün bir tekrarı daha. Navbar'daki
-  zil ikonu şu an sadece dekoratif, tıklanamıyor.
+- ~~`components/notifications/*` ve `hooks/use-notifications.ts` yazılmış
+  ama hiçbir sayfaya bağlanmamış~~ — **navbar zil ikonu artık gerçek**
+  (2026-08-05). `components/layout/notification-bell.tsx` eklendi,
+  `components/ui/popover.tsx` (`@base-ui/react/popover` wrapper) üzerine
+  kuruldu; navbar'a bağlandı. `use-notifications.ts` içine `markRead` /
+  `markAllRead` eklendi (mevcut `PATCH /api/notifications` endpoint'ini
+  kullanıyor), `notification-center`/`notification-item`/`empty-state`
+  kompakt dropdown görünümüne göre yeniden stillendirildi. Kalan parça:
+  `notification-settings.tsx` hâlâ hiçbir sayfaya bağlı değil.
 
 ---
 

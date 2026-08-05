@@ -11,6 +11,7 @@ import {
   DrawerContent,
   DrawerTrigger,
 } from "@/components/ui/drawer";
+import { NotificationBell } from "@/components/layout/notification-bell";
 
 const NAV_LINKS = [
   { href: "#features", label: "Features" },
@@ -42,12 +43,15 @@ export function Navbar() {
         </nav>
 
         <div className="ml-auto hidden items-center gap-3 md:flex">
+          <NotificationBell />
           <Button variant="ghost" className="text-white hover:bg-white/10">
             Sign in
           </Button>
-          <Button className="bg-white text-black hover:bg-zinc-200">
-            Get Started
-          </Button>
+          <Link href="/onboarding">
+            <Button className="bg-white text-black hover:bg-zinc-200">
+              Get Started
+            </Button>
+          </Link>
         </div>
 
         <Drawer

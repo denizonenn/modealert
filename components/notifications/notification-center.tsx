@@ -2,6 +2,7 @@
 
 import NotificationItem from "./notification-item";
 import EmptyState from "./empty-state";
+import { Skeleton } from "@/components/shared/skeleton";
 
 import { useNotifications } from "@/hooks/use-notifications";
 
@@ -10,43 +11,47 @@ export default function NotificationCenter() {
     notifications,
     unreadCount,
     isLoading,
+    markRead,
+    markAllRead,
   } = useNotifications();
 
-  if (isLoading) {
-    return (
-      <div className="p-8 text-center text-zinc-400">
-        Loading notifications...
-      </div>
-    );
-  }
-
   return (
-    <section className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">
-          Notifications
-        </h2>
+    <section className="flex max-h-[28rem] flex-col">
+      <div className="flex items-center justify-between px-1 pb-3">
+        <h2 className="font-semibold">Notifications</h2>
 
-        <span className="rounded-full bg-blue-600 px-3 py-1 text-sm">
-          {unreadCount} unread
-        </span>
+        {unreadCount > 0 && (
+          <button
+            type="button"
+            onClick={() => markAllRead()}
+            className="text-xs text-zinc-400 hover:text-white"
+          >
+            Mark all read
+          </button>
+        )}
       </div>
 
-      {notifications.length === 0 ? (
-        <EmptyState />
-      ) : (
-        <div className="space-y-4">
-          {notifications.map((notification) => (
+      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto px-1 pb-1">
+        {isLoading ? (
+          <>
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+          </>
+        ) : notifications.length === 0 ? (
+          <EmptyState />
+        ) : (
+          notifications.map((notification) => (
             <NotificationItem
               key={notification.id}
               title={notification.title}
               message={notification.message}
               read={notification.read}
               createdAt={notification.createdAt}
+              onMarkRead={() => markRead(notification.id)}
             />
-          ))}
-        </div>
-      )}
+          ))
+        )}
+      </div>
     </section>
   );
 }

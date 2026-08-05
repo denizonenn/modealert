@@ -1,54 +1,102 @@
-import useSWR from "swr";
+import useSWR from "swr"
 
 interface Notification {
-  id: string;
+  id: string
 
-  userId: string;
+  userId: string
 
-  eventId: string;
+  eventId: string
 
-  title: string;
+  title: string
 
-  message: string;
+  message: string
 
-  channel: string;
+  channel: string
 
-  read: boolean;
+  read: boolean
 
-  createdAt: string;
+  createdAt: string
 }
 
 const fetcher = async (
   url: string
 ): Promise<Notification[]> => {
-  const response = await fetch(url);
+  const response = await fetch(url)
 
   if (!response.ok) {
-    throw new Error("Failed to fetch notifications");
+    throw new Error("Failed to fetch notifications")
   }
 
-  return response.json();
-};
+  return response.json()
+}
 
-export function useNotifications(
-  userId = "demo"
-) {
-  const {
-    data,
-    error,
-    isLoading,
-    mutate,
-  } = useSWR<Notification[]>(
-    `/api/notifications?userId=${userId}`,
-    fetcher
-  );
+export function useNotifications(userId = "demo") {
+  const { data, error, isLoading, mutate } = useSWR<
+    Notification[]
+  >(`/api/notifications?userId=${userId}`, fetcher)
+
+  const notifications = data ?? []
+  const unreadCount = notifications.filter(
+    (n) => !n.read
+  ).length
+
+  async function markRead(id: string) {
+    await mutate(
+      async () => {
+        await fetch("/api/notifications", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ id }),
+        })
+
+        return fetcher(
+          `/api/notifications?userId=${userId}`
+        )
+      },
+      {
+        optimisticData: notifications.map((n) =>
+          n.id === id ? { ...n, read: true } : n
+        ),
+        rollbackOnError: true,
+        revalidate: false,
+      }
+    )
+  }
+
+  async function markAllRead() {
+    await mutate(
+      async () => {
+        await fetch("/api/notifications", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userId }),
+        })
+
+        return fetcher(
+          `/api/notifications?userId=${userId}`
+        )
+      },
+      {
+        optimisticData: notifications.map((n) => ({
+          ...n,
+          read: true,
+        })),
+        rollbackOnError: true,
+        revalidate: false,
+      }
+    )
+  }
 
   return {
-    notifications: data ?? [],
-    unreadCount:
-      data?.filter((n) => !n.read).length ?? 0,
+    notifications,
+    unreadCount,
     error,
     isLoading,
-    mutate,
-  };
+    markRead,
+    markAllRead,
+  }
 }
