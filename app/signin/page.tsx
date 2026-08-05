@@ -15,7 +15,7 @@ function SignInForm() {
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard"
 
-  const [mode, setMode] = useState<"magic-link" | "password">("magic-link")
+  const [mode, setMode] = useState<"magic-link" | "password">("password")
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
