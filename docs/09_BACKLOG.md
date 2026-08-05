@@ -475,6 +475,12 @@ Future
   buttons for providers that are actually configured (see
   docs/06_DECISIONS.md ADR-005 update).
 
+- Email+password sign-up added (`/signup`, 2026-08-05) — fourth auth
+  method alongside Google/Discord/magic-link. No "forgot password"
+  flow yet — a locked-out or password-less user can always fall back
+  to Google or the email magic link to get in. Revisit if this becomes
+  a real support burden.
+
 ---
 
 # P2 — Monetization

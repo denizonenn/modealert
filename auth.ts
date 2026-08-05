@@ -2,10 +2,15 @@ import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Discord from "next-auth/providers/discord";
 import Resend from "next-auth/providers/resend";
+import Credentials from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 
 import { prisma } from "@/lib/db/prisma";
 import { env } from "@/lib/config/env";
+
+const LOCKOUT_THRESHOLD = 5;
+const LOCKOUT_DURATION_MS = 15 * 60 * 1000;
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -13,7 +18,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
 
   session: {
-    strategy: "database",
+    strategy: "jwt",
   },
 
   pages: {
@@ -48,12 +53,87 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           }),
         ]
       : []),
+
+    Credentials({
+      credentials: {
+        email: {},
+        password: {},
+      },
+      async authorize(credentials) {
+        const email =
+          typeof credentials?.email === "string"
+            ? credentials.email.toLowerCase().trim()
+            : undefined;
+
+        const password =
+          typeof credentials?.password === "string"
+            ? credentials.password
+            : undefined;
+
+        if (!email || !password) {
+          return null;
+        }
+
+        const user = await prisma.user.findUnique({
+          where: { email },
+        });
+
+        if (!user?.password) {
+          return null;
+        }
+
+        if (user.lockedUntil && user.lockedUntil > new Date()) {
+          return null;
+        }
+
+        const valid = await bcrypt.compare(password, user.password);
+
+        if (!valid) {
+          const attempts = user.failedLoginAttempts + 1;
+
+          await prisma.user.update({
+            where: { id: user.id },
+            data: {
+              failedLoginAttempts: attempts,
+              lockedUntil:
+                attempts >= LOCKOUT_THRESHOLD
+                  ? new Date(Date.now() + LOCKOUT_DURATION_MS)
+                  : null,
+            },
+          });
+
+          return null;
+        }
+
+        if (user.failedLoginAttempts > 0) {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { failedLoginAttempts: 0, lockedUntil: null },
+          });
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.image,
+        };
+      },
+    }),
   ],
 
   callbacks: {
-    session({ session, user }) {
-      if (session.user) {
-        session.user.id = user.id;
+    jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+      }
+
+      return token;
+    },
+
+    session({ session, token }) {
+      if (session.user && token.id) {
+        session.user.id = token.id as string;
       }
 
       return session;

@@ -547,3 +547,25 @@ zorunlu kıldığı bir yan etki.
 - Sıradaki doğal adım Phase 8 (Premium/monetization) — artık gerçek
   kullanıcı kimliği olduğu için ödeme sağlayıcısı entegrasyonu önündeki
   mimari engel kalmadı.
+
+- **Güncelleme (2026-08-05, aynı gün): Email+şifre ile kayıt eklendi
+  (`/signup`).** Google/Discord/magic-link'e ek dördüncü giriş yöntemi.
+  Bunu desteklemek için `session.strategy` `"database"`'den
+  `"jwt"`'ye çevrildi — Credentials provider, Auth.js'te database
+  session stratejisiyle güvenilir çalışmıyor (adapter session
+  oluşturma akışı credentials için tasarlanmamış). Bu geçiş
+  `session`/`jwt` callback'lerini de değiştirdi (`user.id` yerine
+  `token.id`) ama Google ve magic-link akışlarını bozmadı — ikisi de
+  yeniden test edildi ve çalışıyor.
+
+  `User` modeline `password` (bcrypt hash, 12 rounds), `failedLoginAttempts`,
+  `lockedUntil` eklendi (migration `20260805132904_add_user_password`).
+  5 yanlış denemeden sonra hesap 15 dakika kilitleniyor — parola
+  eklemek yeni bir brute-force yüzeyi açtığı için asgari ama gerçek bir
+  koruma. `/api/auth/register` aynı email'le ikinci kaydı 409 ile
+  reddediyor — aksi halde biri, zaten Google ile oluşturulmuş bir
+  hesabın email'ini bilip ona şifre "ekleyerek" hesabı ele geçirebilirdi.
+
+  Tarayıcıda uçtan uca doğrulandı: kayıt → otomatik giriş → dashboard,
+  çıkış → şifreyle tekrar giriş → dashboard, yanlış şifre → red,
+  5 yanlış deneme → kilit, aynı email'le ikinci kayıt → red.

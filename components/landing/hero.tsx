@@ -14,7 +14,7 @@ export function Hero() {
 
       <div className="relative mx-auto flex max-w-7xl flex-col items-center px-6 py-24 text-center md:py-32">
         <Badge className="mb-6 border border-white/10 bg-white/10 text-white hover:bg-white/15">
-          <Zap className="mr-2 h-3 w-3" /> Hourly mode detection
+          <Zap className="mr-2 h-3 w-3" /> Daily mode detection
         </Badge>
         <ModeRotator />
 
