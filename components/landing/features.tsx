@@ -1,9 +1,10 @@
 "use client"
 
+import Link from "next/link"
 import { motion } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { SectionEyebrow } from "@/components/shared/section-eyebrow"
-import { Bell, Clock3, Gamepad2, Shield } from "lucide-react"
+import { Bell, Clock3, Gamepad2, Shield, ArrowRight } from "lucide-react"
 
 const features = [
   {
@@ -13,8 +14,8 @@ const features = [
     gradient: "linear-gradient(135deg, #a855f7, #d946ef)",
   },
   {
-    title: "Hourly detection",
-    description: "Our cron system checks for mode changes every hour automatically.",
+    title: "Daily detection",
+    description: "Our cron system checks for mode changes automatically, once a day.",
     icon: Clock3,
     gradient: "linear-gradient(135deg, #3b82f6, #06b6d4)",
   },
@@ -81,6 +82,14 @@ export function Features() {
           )
         })}
       </div>
+
+      <Link
+        href="/features"
+        className="mt-8 inline-flex items-center gap-1.5 text-sm font-medium text-zinc-400 hover:text-white"
+      >
+        See all features
+        <ArrowRight className="h-4 w-4" />
+      </Link>
     </section>
   )
 }

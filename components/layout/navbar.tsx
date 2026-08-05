@@ -15,9 +15,9 @@ import {
 import { NotificationBell } from "@/components/layout/notification-bell";
 
 const NAV_LINKS = [
-  { href: "#features", label: "Features" },
-  { href: "#games", label: "Games" },
-  { href: "#faq", label: "FAQ" },
+  { href: "/features", label: "Features" },
+  { href: "/games", label: "Games" },
+  { href: "/#faq", label: "FAQ" },
   { href: "/live", label: "Live" },
   { href: "/dashboard", label: "Dashboard" },
 ];
@@ -39,9 +39,9 @@ export function Navbar() {
 
         <nav className="ml-10 hidden items-center gap-6 text-sm text-zinc-400 md:flex">
           {NAV_LINKS.map((link) => (
-            <a key={link.href} href={link.href} className="hover:text-white">
+            <Link key={link.href} href={link.href} className="hover:text-white">
               {link.label}
-            </a>
+            </Link>
           ))}
         </nav>
 
@@ -108,7 +108,7 @@ export function Navbar() {
                   <DrawerClose
                     key={link.href}
                     render={
-                      <a
+                      <Link
                         href={link.href}
                         className="text-zinc-300 hover:text-white"
                       />

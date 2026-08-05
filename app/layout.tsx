@@ -17,9 +17,43 @@ const spaceGrotesk = Space_Grotesk({
   display: "swap",
 })
 
+const SITE_URL = "https://modealert.vercel.app"
+
+const DEFAULT_DESCRIPTION =
+  "ModeAlert tracks limited-time game events, modes, and battle passes across League of Legends, Valorant, and Fortnite — and emails you the moment something changes. No client, no extension, free during early access."
+
 export const metadata: Metadata = {
-  title: "ModeAlert",
-  description: "Track limited-time events across every game."
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "ModeAlert — Never Miss a Limited-Time Game Event",
+    template: "%s | ModeAlert",
+  },
+  description: DEFAULT_DESCRIPTION,
+  keywords: [
+    "game event tracker",
+    "League of Legends event tracker",
+    "Valorant event tracker",
+    "Fortnite event tracker",
+    "game mode notifications",
+    "limited-time game mode alert",
+  ],
+  authors: [{ name: "Deniz Önen" }],
+  openGraph: {
+    type: "website",
+    url: SITE_URL,
+    siteName: "ModeAlert",
+    title: "ModeAlert — Never Miss a Limited-Time Game Event",
+    description: DEFAULT_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ModeAlert — Never Miss a Limited-Time Game Event",
+    description: DEFAULT_DESCRIPTION,
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 }
 
 export default function RootLayout({

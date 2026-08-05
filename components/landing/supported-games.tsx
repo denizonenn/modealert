@@ -1,5 +1,8 @@
 "use client";
 
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+
 import GameCard from "@/components/cards/game-card";
 import { Skeleton } from "@/components/shared/skeleton";
 import { SectionEyebrow } from "@/components/shared/section-eyebrow";
@@ -59,6 +62,16 @@ export function SupportedGames() {
             ))}
           </div>
         )}
+
+        <div className="mt-10 text-center">
+          <Link
+            href="/games"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-zinc-400 hover:text-white"
+          >
+            See all games
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
       </div>
     </section>
   );

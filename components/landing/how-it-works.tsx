@@ -21,7 +21,7 @@ const STEPS = [
     icon: Bell,
     title: "Get notified instantly",
     description:
-      "We check every hour. The moment something changes, you get an email — no manual checking, ever.",
+      "We check once a day. The moment something changes, you get an email — no manual checking, ever.",
   },
 ]
 

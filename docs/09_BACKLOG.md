@@ -270,6 +270,48 @@ Done (2026-08-05)
 
 ---
 
+# P1 — SEO & Discoverability
+
+Status: 🟢 (2026-08-05)
+
+Completed
+
+- Per-page metadata (title template, description, OpenGraph, Twitter
+  card) for every route via `app/layout.tsx` + per-segment `layout.tsx`
+  files (needed because most pages are `"use client"` and can't export
+  `metadata` directly).
+- `/features` and `/games` are now real indexable pages instead of
+  `#features`/`#games` anchors on the homepage — those broke entirely
+  when clicked from any other page (`href="#features"` on `/dashboard`
+  just appends the hash to the current URL). Navbar now links to the
+  real routes; `/#faq` fixed the same way for the FAQ anchor, which
+  stays on the homepage.
+- `app/robots.ts` + `app/sitemap.ts` — public marketing pages allowed,
+  `/dashboard`, `/onboarding`, `/signin`, `/api` disallowed and
+  `noindex`'d (they're user-specific or utility pages, not content).
+- `app/opengraph-image.tsx` — dynamic OG image (`next/og`) so links
+  shared in Discord/Twitter/Slack get a real preview card instead of
+  nothing.
+- JSON-LD structured data on the homepage: `Organization`,
+  `SoftwareApplication`, and `FAQPage` (the last one can earn rich
+  FAQ snippets directly in Google search results).
+- Navbar nav links were plain `<a>` tags (full page reload on every
+  click); switched to `next/link` for client-side navigation.
+- Fixed a pre-existing accuracy bug found while rewriting this copy:
+  landing page copy claimed "hourly" detection in three places
+  (Features card, How It Works, FAQ) — sync actually runs once a day
+  (Vercel Hobby cron limit, see docs/06_DECISIONS.md ADR-002). Copy
+  now says "daily". Shipping a false claim into machine-readable
+  FAQPage structured data would have made it worse, not just cosmetic.
+
+Future
+
+- Per-game landing pages (`/games/league-of-legends`, etc.) if organic
+  search volume ever justifies the extra maintenance surface.
+- Real custom favicon / app icon (currently the default Next.js one).
+
+---
+
 # P1 — Watchlists
 
 Status: 🟢
@@ -545,7 +587,23 @@ Current
 
 # Bugs
 
-None yet
+- ~~Vercel build cache could serve a stale Prisma Client after a schema
+  migration~~ — **fixed (2026-08-05).** `package.json` had no
+  `postinstall` script, so when Vercel restored a cached `node_modules`
+  and npm saw `@prisma/client` as already satisfied, it skipped
+  `prisma generate` — the deployed client predated the Account/Session/
+  VerificationToken models from the auth migration, so every sign-in
+  (Google and email both) crashed with `Cannot read properties of
+  undefined (reading 'create')` on `createVerificationToken`. Added
+  `"postinstall": "prisma generate"` (root-level scripts always run,
+  cache or not) and force-redeployed without cache. See
+  docs/06_DECISIONS.md ADR-005.
+
+- ~~`/signin` always showed Google + Discord buttons regardless of
+  whether those providers were configured~~ — fixed same day, see
+  ADR-005 update.
+
+No open bugs.
 
 ---
 
