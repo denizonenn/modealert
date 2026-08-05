@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, Suspense } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
-import { signIn } from "next-auth/react"
+import { signIn, getProviders } from "next-auth/react"
 import { SiGoogle, SiDiscord } from "react-icons/si"
 import { Mail } from "lucide-react"
 
@@ -15,6 +15,19 @@ function SignInForm() {
 
   const [email, setEmail] = useState("")
   const [sending, setSending] = useState(false)
+
+  const [availableProviders, setAvailableProviders] = useState<
+    string[] | null
+  >(null)
+
+  useEffect(() => {
+    getProviders().then((providers) =>
+      setAvailableProviders(providers ? Object.keys(providers) : [])
+    )
+  }, [])
+
+  const hasGoogle = availableProviders?.includes("google") ?? false
+  const hasDiscord = availableProviders?.includes("discord") ?? false
 
   async function handleEmailSignIn(e: React.FormEvent) {
     e.preventDefault()
@@ -42,35 +55,48 @@ function SignInForm() {
         </p>
       </div>
 
-      <div className="mt-10 flex flex-col gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full justify-center gap-2 border-white/10 bg-white/5 text-white hover:bg-white/10"
-          onClick={() => signIn("google", { callbackUrl })}
-        >
-          <SiGoogle className="h-4 w-4" />
-          Continue with Google
-        </Button>
+      {(hasGoogle || hasDiscord) && (
+        <>
+          <div className="mt-10 flex flex-col gap-3">
+            {hasGoogle && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full justify-center gap-2 border-white/10 bg-white/5 text-white hover:bg-white/10"
+                onClick={() => signIn("google", { callbackUrl })}
+              >
+                <SiGoogle className="h-4 w-4" />
+                Continue with Google
+              </Button>
+            )}
 
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full justify-center gap-2 border-white/10 bg-white/5 text-white hover:bg-white/10"
-          onClick={() => signIn("discord", { callbackUrl })}
-        >
-          <SiDiscord className="h-4 w-4" />
-          Continue with Discord
-        </Button>
-      </div>
+            {hasDiscord && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full justify-center gap-2 border-white/10 bg-white/5 text-white hover:bg-white/10"
+                onClick={() => signIn("discord", { callbackUrl })}
+              >
+                <SiDiscord className="h-4 w-4" />
+                Continue with Discord
+              </Button>
+            )}
+          </div>
 
-      <div className="my-6 flex items-center gap-3 text-xs text-zinc-500">
-        <div className="h-px flex-1 bg-white/10" />
-        or
-        <div className="h-px flex-1 bg-white/10" />
-      </div>
+          <div className="my-6 flex items-center gap-3 text-xs text-zinc-500">
+            <div className="h-px flex-1 bg-white/10" />
+            or
+            <div className="h-px flex-1 bg-white/10" />
+          </div>
+        </>
+      )}
 
-      <form onSubmit={handleEmailSignIn} className="flex flex-col gap-3">
+      <form
+        onSubmit={handleEmailSignIn}
+        className={`flex flex-col gap-3 ${
+          hasGoogle || hasDiscord ? "" : "mt-10"
+        }`}
+      >
         <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3">
           <Mail className="h-4 w-4 shrink-0 text-zinc-500" />
 
