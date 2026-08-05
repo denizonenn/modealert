@@ -3,6 +3,7 @@
 import { useOnboardingStore } from "@/stores/onboarding-store";
 import { useGames } from "@/hooks/use-games";
 import { Skeleton } from "@/components/shared/skeleton";
+import { GAMES_WITH_PROVIDER } from "@/lib/constants/games";
 import SelectableGameCard from "../cards/selectable-game-card";
 
 export default function GameSelector() {
@@ -27,9 +28,13 @@ export default function GameSelector() {
     );
   }
 
+  const trackableGames = games.filter((game) =>
+    GAMES_WITH_PROVIDER.has(game.id)
+  );
+
   return (
     <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-      {games.map((game) => (
+      {trackableGames.map((game) => (
         <SelectableGameCard
           key={game.id}
           game={game}

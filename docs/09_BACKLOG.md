@@ -290,6 +290,17 @@ Done (2026-08-05)
   prop, so the same bug can't silently recur for the next game added
   without a mapped icon.
 
+- Follow-up caught while fixing the above: `/games` still showed
+  Fortnite with fabricated stats ("150K players tracking", "6
+  supported events") even after the copy elsewhere was corrected to
+  say "3 real games" — self-contradictory. Added
+  `GAMES_WITH_PROVIDER` (`lib/constants/games.ts`, derived from
+  `GAME_IDS`) as the single source of truth for "has a real provider."
+  `GameCard` now shows "Tracking coming soon" instead of fake numbers
+  for games without one; onboarding's `GameSelector` filters them out
+  entirely so users can't pick a game, reach the event-selection step,
+  and hit an empty list with no path forward.
+
 ---
 
 # P1 — SEO & Discoverability

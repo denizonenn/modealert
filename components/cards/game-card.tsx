@@ -4,6 +4,7 @@ import { motion } from "framer-motion"
 
 import { Game } from "@/types/game"
 import { GameIcon } from "@/components/shared/game-icon"
+import { GAMES_WITH_PROVIDER } from "@/lib/constants/games"
 
 interface Props {
   game: Game
@@ -14,6 +15,8 @@ export default function GameCard({
   game,
   index = 0,
 }: Props) {
+  const isLive = GAMES_WITH_PROVIDER.has(game.id)
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -21,7 +24,9 @@ export default function GameCard({
       viewport={{ once: true }}
       transition={{ duration: 0.4, delay: index * 0.08 }}
       whileHover={{ y: -4 }}
-      className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 transition-colors hover:border-white/20"
+      className={`group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 transition-colors hover:border-white/20 ${
+        isLive ? "" : "opacity-60"
+      }`}
     >
       <div
         className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full opacity-20 blur-3xl transition-opacity group-hover:opacity-30"
@@ -42,20 +47,28 @@ export default function GameCard({
           </h3>
 
           <p className="text-sm text-zinc-400">
-            {game.supportedEvents} supported events
+            {isLive
+              ? `${game.supportedEvents} supported events`
+              : "Tracking coming soon"}
           </p>
         </div>
       </div>
 
       <div className="relative mt-6 flex items-center justify-between border-t border-white/10 pt-4">
-        <div>
-          <div className="text-xl font-bold">
-            {game.activeUsers}
+        {isLive ? (
+          <div>
+            <div className="text-xl font-bold">
+              {game.activeUsers}
+            </div>
+            <div className="text-xs text-zinc-500">
+              players tracking
+            </div>
           </div>
+        ) : (
           <div className="text-xs text-zinc-500">
-            players tracking
+            No live provider yet
           </div>
-        </div>
+        )}
 
         <div
           className="rounded-full px-3 py-1 text-xs font-semibold"
