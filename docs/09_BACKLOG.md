@@ -254,11 +254,13 @@ Completed (2026-08-04)
   rendering in browser-default serif — see docs/06_DECISIONS.md),
   gradient accent system, skeleton loading states
 
-Remaining
-
-- Notification history view
-
 Done (2026-08-05)
+
+- ~~Notification history view~~ — `/dashboard/notifications` added
+  (All/Unread filter, mark read/mark all read, reuses the existing
+  `NotificationItem`/`EmptyState` components). Linked via a "See all
+  notifications" footer in the navbar bell dropdown
+  (`notification-center.tsx`).
 
 - ~~Sync health / provider status page~~ — public `/status` page added
   (`hooks/use-provider-health.ts`, 60s auto-refresh), linked from the

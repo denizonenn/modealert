@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import NotificationItem from "./notification-item";
 import EmptyState from "./empty-state";
 import { Skeleton } from "@/components/shared/skeleton";
@@ -52,6 +54,15 @@ export default function NotificationCenter() {
           ))
         )}
       </div>
+
+      {notifications.length > 0 && (
+        <Link
+          href="/dashboard/notifications"
+          className="mt-2 shrink-0 rounded-lg px-1 py-2 text-center text-xs text-zinc-400 hover:bg-white/5 hover:text-white"
+        >
+          See all notifications
+        </Link>
+      )}
     </section>
   );
 }

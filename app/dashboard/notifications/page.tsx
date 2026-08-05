@@ -1,0 +1,136 @@
+"use client"
+
+import { useState } from "react"
+import Link from "next/link"
+import { ArrowLeft } from "lucide-react"
+
+import { Navbar } from "@/components/layout/navbar"
+import { Footer } from "@/components/layout/footer"
+import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/shared/skeleton"
+
+import NotificationItem from "@/components/notifications/notification-item"
+import EmptyState from "@/components/notifications/empty-state"
+
+import { useNotifications } from "@/hooks/use-notifications"
+import { useRequireAuth } from "@/hooks/use-require-auth"
+
+type Filter = "all" | "unread"
+
+export default function NotificationHistoryPage() {
+  const authStatus = useRequireAuth()
+
+  const {
+    notifications,
+    unreadCount,
+    isLoading,
+    markRead,
+    markAllRead,
+  } = useNotifications()
+
+  const [filter, setFilter] = useState<Filter>("all")
+
+  const visible =
+    filter === "unread"
+      ? notifications.filter((n) => !n.read)
+      : notifications
+
+  if (authStatus !== "authenticated") {
+    return (
+      <>
+        <Navbar />
+      </>
+    )
+  }
+
+  return (
+    <>
+      <Navbar />
+
+      <main className="mx-auto min-h-screen max-w-3xl px-6 py-16">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-1 text-sm text-zinc-400 hover:text-white"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to dashboard
+        </Link>
+
+        <div className="mt-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Notification history
+            </h1>
+
+            <p className="mt-2 text-sm text-zinc-400">
+              Every event change we&apos;ve sent you, in one place.
+            </p>
+          </div>
+
+          {unreadCount > 0 && (
+            <Button
+              variant="outline"
+              className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+              onClick={() => markAllRead()}
+            >
+              Mark all read
+            </Button>
+          )}
+        </div>
+
+        <div className="mt-8 flex gap-2">
+          <Button
+            size="sm"
+            variant="ghost"
+            className={
+              filter === "all"
+                ? "bg-white text-black hover:bg-zinc-200"
+                : "text-zinc-400 hover:bg-white/10 hover:text-white"
+            }
+            onClick={() => setFilter("all")}
+          >
+            All ({notifications.length})
+          </Button>
+
+          <Button
+            size="sm"
+            variant="ghost"
+            className={
+              filter === "unread"
+                ? "bg-white text-black hover:bg-zinc-200"
+                : "text-zinc-400 hover:bg-white/10 hover:text-white"
+            }
+            onClick={() => setFilter("unread")}
+          >
+            Unread ({unreadCount})
+          </Button>
+        </div>
+
+        <div className="mt-6 space-y-2">
+          {isLoading ? (
+            <>
+              <Skeleton className="h-20 w-full" />
+              <Skeleton className="h-20 w-full" />
+              <Skeleton className="h-20 w-full" />
+            </>
+          ) : visible.length === 0 ? (
+            <EmptyState />
+          ) : (
+            visible.map((notification) => (
+              <NotificationItem
+                key={notification.id}
+                title={notification.title}
+                message={notification.message}
+                read={notification.read}
+                createdAt={notification.createdAt}
+                onMarkRead={() => markRead(notification.id)}
+              />
+            ))
+          )}
+        </div>
+      </main>
+
+      <Footer />
+    </>
+  )
+}
