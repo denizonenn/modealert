@@ -50,9 +50,12 @@ export function Navbar() {
 
           {isAuthed ? (
             <>
-              <span className="text-sm text-zinc-400">
+              <Link
+                href="/dashboard/settings"
+                className="text-sm text-zinc-400 hover:text-white"
+              >
                 {session.user?.name ?? session.user?.email}
-              </span>
+              </Link>
               <Button
                 variant="ghost"
                 className="text-white hover:bg-white/10"
@@ -121,13 +124,25 @@ export function Navbar() {
 
               <div className="mt-auto flex flex-col gap-3">
                 {isAuthed ? (
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-center border border-white/10 text-white hover:bg-white/10"
-                    onClick={() => signOut({ callbackUrl: "/" })}
-                  >
-                    Sign out
-                  </Button>
+                  <>
+                    <DrawerClose
+                      render={
+                        <Link
+                          href="/dashboard/settings"
+                          className="flex h-9 w-full items-center justify-center rounded-lg border border-white/10 text-sm font-medium text-white hover:bg-white/10"
+                        />
+                      }
+                    >
+                      Settings
+                    </DrawerClose>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-center border border-white/10 text-white hover:bg-white/10"
+                      onClick={() => signOut({ callbackUrl: "/" })}
+                    >
+                      Sign out
+                    </Button>
+                  </>
                 ) : (
                   <>
                     <DrawerClose

@@ -723,3 +723,50 @@ olmayan gönderenleri cezalandırır).
 - `SITE_URL` artık `lib/constants/site.ts`'te tek bir yerden geliyor
   (önceden `app/layout.tsx`, `app/robots.ts`, `app/sitemap.ts`'te ayrı
   ayrı tanımlıydı) — email linkleri de aynı sabiti kullanıyor.
+
+---
+
+# ADR-008: Hesap Ayarları Sayfası (`/dashboard/settings`)
+
+Status: Accepted
+
+Date: 2026-08-05
+
+## Bağlam
+
+Auth (Phase 7) tamamlandıktan sonra ortaya çıkan bir boşluk: giriş
+yapmış bir kullanıcının hesabıyla ilgili hiçbir şeyi yönetebileceği
+bir yer yoktu — email'ini göremiyor, Google/magic-link ile girenler
+şifre ekleyemiyor, bildirim tercihini (yeni eklenen `emailOptOut`)
+sadece email'deki unsubscribe linkinden değiştirebiliyordu, hesabını
+silemiyordu. "Foolproof + mükemmel ürün" hedefi doğrultusunda Deniz'in
+onayıyla eklendi.
+
+## Karar
+
+1. `/dashboard/settings` — `useRequireAuth` ile korunan, `/dashboard`
+   altındaki diğer sayfalarla aynı desende bir sayfa.
+2. Üç yeni API route: `GET/DELETE /api/account` (hesap bilgisi + silme),
+   `PATCH /api/account/password` (şifre belirle/değiştir — mevcut
+   şifre varsa doğrulanıyor, yoksa direkt set ediliyor), `PATCH
+   /api/account/notifications` (`emailOptOut` toggle — unsubscribe
+   linkiyle aynı alanı kullanıyor, iki mekanizma tutarlı).
+3. **Hesap silme, şemadaki eksik bir cascade'i ortaya çıkardı.**
+   `Account`/`Session`'da `onDelete: Cascade` vardı ama
+   `Watchlist.user`/`Notification.user`'da yoktu — bir kullanıcıyı
+   watchlist'i varken silmeye çalışmak foreign key hatasıyla
+   patlardı. İkisine de `onDelete: Cascade` eklendi (migration
+   `20260805152517_cascade_delete_user_data`).
+4. E-posta hâlâ değiştirilemiyor (bilinçli — OAuth kimliğiyle bağlı,
+   değişimi doğru yapmak ayrı bir doğrulama akışı gerektirir, şimdilik
+   kapsam dışı).
+
+## Sonuçlar
+
+- Tarayıcıda uçtan uca doğrulandı: yanlış mevcut şifreyle red, doğru
+  şifreyle güncelleme, bildirim toggle'ının DB'ye yansıması, hesap
+  silmenin gerçek bir watchlist kaydını da (cascade ile) temizlediği
+  ve silme sonrası doğru şekilde sign-out olup ana sayfaya
+  yönlendirdiği.
+- Navbar'daki kullanıcı adı/email'i artık `/dashboard/settings`'e
+  link veriyor (masaüstü ve mobil drawer'da).

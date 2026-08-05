@@ -319,7 +319,10 @@ Favorites — done (watchlists are now per-real-user)
 
 Watchlists — done
 
-Notification settings — not done (component exists, not wired to a page)
+Notification settings — done (2026-08-05, `/dashboard/settings` —
+  email on/off toggle, plus password management and account deletion.
+  The old standalone `notification-settings.tsx` component is still
+  unused/unwired, superseded by this page.)
 
 History — not done
 

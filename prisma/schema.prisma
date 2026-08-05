@@ -126,7 +126,7 @@ model Watchlist {
   userId    String
   eventId   String
 
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   event     Event    @relation(fields: [eventId], references: [id])
 
   @@unique([userId, eventId])
@@ -147,6 +147,6 @@ model Notification {
 
   createdAt  DateTime @default(now())
 
-  user       User     @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   event      Event    @relation(fields: [eventId], references: [id])
 }

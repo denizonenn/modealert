@@ -314,6 +314,16 @@ Done (2026-08-05)
   Games teaser trimmed to only real-provider games (Fortnite still
   shown on the full `/games` page).
 
+- ~~No account settings page — signed-in users couldn't manage
+  anything~~ — **done (2026-08-05).** `/dashboard/settings`: set/change
+  password (works for OAuth-only accounts too), toggle email
+  notifications (same `emailOptOut` flag the unsubscribe link uses),
+  delete account. Deleting required adding `onDelete: Cascade` to
+  `Watchlist.user`/`Notification.user` (only `Account`/`Session` had
+  it before) — without it, deleting a user with any watchlist activity
+  would have failed on a foreign-key constraint. Verified end-to-end
+  including the cascade actually removing a real watchlist row.
+
 ---
 
 # P1 — SEO & Discoverability
