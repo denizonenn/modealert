@@ -71,9 +71,11 @@ Completed:
 
 ✔ Automated daily sync (Vercel Cron, Hobby plan limit)
 
+✔ Real auth — Auth.js v5, Google/Discord/email, database sessions
+  (2026-08-05, see docs/06_DECISIONS.md ADR-005)
+
 In Progress / Not Started:
 
-- Auth (everything runs on a single hardcoded "demo" user — Phase 7)
 - Discord/Telegram notifications (deliberately deferred)
 - More game providers (Steam, Epic, Blizzard — crawler/ stubs exist
   but are empty)
@@ -291,6 +293,8 @@ Adding games requires only a new provider.
 
 # Phase 7 — User Accounts
 
+Status: ✅ Done (2026-08-05)
+
 Goal
 
 Real SaaS.
@@ -299,27 +303,28 @@ Authentication
 
 OAuth
 
-Google
+Google ✅
 
-Discord
+Discord ✅
 
-GitHub
+Email magic link ✅ (not originally planned, added instead of GitHub —
+  reuses the existing Resend integration, no password/reset flow)
 
 Features
 
-Favorites
+Favorites — done (watchlists are now per-real-user)
 
-Watchlists
+Watchlists — done
 
-Notification settings
+Notification settings — not done (component exists, not wired to a page)
 
-History
+History — not done
 
-Subscriptions
+Subscriptions — not done (Phase 8)
 
 Exit Criteria
 
-Users own personalized data.
+Users own personalized data. ✅
 
 ---
 

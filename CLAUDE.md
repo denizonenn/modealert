@@ -38,7 +38,7 @@ biliyor. Buna göre:
   health(), name, priority. Bağımsız ve değiştirilebilir olmalı.
 - Prisma sadece repository katmanı içinden kullanılır.
 
-## Şu Anki Durum (2026-08-04 itibarıyla)
+## Şu Anki Durum (2026-08-05 itibarıyla)
 
 - Asıl geliştirme `feature/landing-page-v2` branch'inde yapılıyor.
   `main` branch'i hâlâ sadece create-next-app iskeleti.
@@ -64,9 +64,15 @@ biliyor. Buna göre:
   (gerçek watchlist ekle/çıkar), `/live` (CommunityDragon canlı kontrol),
   `/onboarding` (3 adım: Games → Events → Finish, gerçek watchlist
   kaydı oluşturur).
-- **Auth yok.** Her şey hardcoded `"demo"` kullanıcısı üzerinden çalışıyor
-  — Phase 7'ye kadar böyle kalacak, bilinçli bir sınır (bkz.
-  docs/06_DECISIONS.md).
+- **Auth var (2026-08-05).** Auth.js v5 (`@auth/prisma-adapter`, database
+  session) — Google, Discord, email magic link (Resend). Google/Discord
+  sadece ilgili env var'lar doluysa aktif olur; şu an sadece email
+  magic link canlı çünkü Deniz henüz Google Cloud Console'da OAuth
+  Client + Discord Developer Portal'da OAuth App açıp
+  `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET`/`AUTH_DISCORD_ID`/
+  `AUTH_DISCORD_SECRET`'i (hem local `.env` hem Vercel) girmedi.
+  `AUTH_SECRET` local'de zaten var, Vercel'e de eklenmesi gerekiyor.
+  Detay: docs/06_DECISIONS.md ADR-005.
 - Detaylı karar geçmişi için **docs/06_DECISIONS.md** her zaman en
   güncel ve en güvenilir kaynak — yeni bir oturuma başlarken önce
   orayı oku.

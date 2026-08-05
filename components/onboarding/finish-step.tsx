@@ -9,8 +9,6 @@ import { useEvents } from "@/hooks/use-events"
 
 import { Button } from "@/components/ui/button"
 
-const DEMO_USER_ID = "demo"
-
 export default function FinishStep() {
   const router = useRouter()
 
@@ -37,7 +35,6 @@ export default function FinishStep() {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              userId: DEMO_USER_ID,
               eventId,
             }),
           })

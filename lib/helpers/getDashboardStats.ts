@@ -1,7 +1,7 @@
 import { watchlistService } from "@/lib/services/watchlist.service";
 
 export async function getDashboardStats(
-  userId = "demo"
+  userId: string
 ) {
   const watchlists = await watchlistService.getByUser(
     userId

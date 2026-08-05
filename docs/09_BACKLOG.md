@@ -29,8 +29,10 @@ Status:
 🟢 Live in production (2026-08-04) — https://modealert.vercel.app
 (feature/landing-page-v2 branch, auto-deploys on push)
 
-Next milestone: real auth (Phase 7) so watchlists/notifications are
-per-real-user instead of the shared "demo" account.
+Next milestone: real auth (Phase 7) — ✅ landed (2026-08-05), see
+"P2 — User Accounts" and docs/06_DECISIONS.md ADR-005. Following
+milestone: Phase 8 (Premium/monetization), now unblocked since real
+per-user identity exists.
 
 ---
 
@@ -389,17 +391,29 @@ Future Riot titles
 
 # P2 — User Accounts
 
+Status: 🟢 (2026-08-05)
+
+Completed
+
+- Authentication (Auth.js v5 + Prisma adapter, database sessions) —
+  Google, Discord, email magic link (Resend). See
+  docs/06_DECISIONS.md ADR-005.
+- Saved watchlists / notifications / dashboard stats now scoped to
+  the real signed-in user instead of the shared "demo" account.
+- Closed an IDOR: `/api/notifications`, `/api/watchlists`,
+  `/api/dashboard` used to trust a client-supplied `userId`; they now
+  derive it from the server-side session and 401 without one.
+
 Future
 
-Authentication
-
-Profiles
-
-Saved watchlists
-
-Preferences
-
-Notification settings
+- Profiles (avatar/display name editing beyond what OAuth provides)
+- Preferences
+- Notification settings (component exists — `notification-settings.tsx`
+  — still not wired to a page, see Technical Debt below)
+- Deniz still needs to create the Google OAuth Client + Discord OAuth
+  App and set `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET`/`AUTH_DISCORD_ID`/
+  `AUTH_DISCORD_SECRET` locally and on Vercel — until then only the
+  email magic-link provider is active.
 
 ---
 
@@ -493,10 +507,11 @@ Current
   maintenance" için production key başvurusu gerekiyor. Şu an manuel
   güncelleniyor.
 
-- **Auth yok.** Her şey `"demo"` adında tek, hardcoded bir kullanıcı
-  üzerinden çalışıyor (watchlist, notification, dashboard stats hepsi
-  bu kullanıcıya bağlı). Gerçek çok-kullanıcılı davranış için Phase 7
-  gerekiyor — bkz. docs/09_BACKLOG.md "P2 — User Accounts".
+- ~~Auth yok. Her şey `"demo"` adında tek, hardcoded bir kullanıcı
+  üzerinden çalışıyor~~ — **çözüldü (2026-08-05)**, bkz.
+  docs/06_DECISIONS.md ADR-005 ve "P2 — User Accounts". Google/Discord
+  login'in gerçekten çalışması için Deniz'in OAuth app'leri açıp env
+  var'ları girmesi bekleniyor; email magic link zaten aktif.
 
 - ~~`components/notifications/*` ve `hooks/use-notifications.ts` yazılmış
   ama hiçbir sayfaya bağlanmamış~~ — **navbar zil ikonu artık gerçek**

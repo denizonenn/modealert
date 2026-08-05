@@ -9,8 +9,10 @@ import WatchingList from "@/components/dashboard/watching-list";
 import { Skeleton } from "@/components/shared/skeleton";
 
 import { useDashboard } from "@/hooks/use-dashboard";
+import { useRequireAuth } from "@/hooks/use-require-auth";
 
 export default function DashboardPage() {
+  const authStatus = useRequireAuth();
   const { stats, isLoading } = useDashboard();
 
   return (
@@ -18,7 +20,7 @@ export default function DashboardPage() {
       <Navbar />
 
       <main className="mx-auto min-h-screen max-w-7xl px-6 py-16">
-        {isLoading || !stats ? (
+        {authStatus !== "authenticated" || isLoading || !stats ? (
           <div className="space-y-8">
             <div>
               <Skeleton className="h-4 w-28" />

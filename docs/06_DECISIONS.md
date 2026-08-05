@@ -431,3 +431,108 @@ kullanıyor.
   (dashboard, onboarding, notifications) — yeni bir component
   klasörüyle karşılaşınca önce "gerçekten bir route'tan import
   ediliyor mu" diye kontrol etmek, doğrudan güvenmemek gerekiyor.
+
+---
+
+# ADR-005: Gerçek Auth — Auth.js (NextAuth v5) + Google/Discord/Email
+
+Status: Accepted
+
+Date: 2026-08-05
+
+## Bağlam
+
+Roadmap'te bir sonraki milestone olarak işaretli (bkz.
+`docs/05_ROADMAP.md` Phase 7, `docs/09_BACKLOG.md` "Next milestone"):
+her şey hardcoded `"demo"` kullanıcısı üzerinden çalışıyordu — watchlist,
+notification, dashboard stats hepsi tek bir paylaşılan hesaba bağlıydı.
+Bu hem gerçek çok-kullanıcılı bir SaaS olmanın hem de Phase 8
+(Premium/monetization — ödeme almadan önce gerçek hesap gerekir) önünde
+tek engeldi.
+
+Auth çözümü seçilirken üç seçenek değerlendirildi: Auth.js (self-hosted,
+ücretsiz), Clerk (yönetilen servis, MAU limitine göre ücretli), Supabase
+Auth (ayrı bir Postgres/servis bağımlılığı gerektirir — zaten Neon
+kullanılıyor). Auth.js seçildi çünkü:
+
+- Ücretsiz, vendor lock-in yok — "passive income + low maintenance"
+  hedefiyle en uyumlusu (büyüdükçe maliyet çıkarmıyor).
+- Mevcut Prisma/Neon altyapısını doğrudan kullanıyor
+  (`@auth/prisma-adapter`), ayrı bir servis eklemiyor.
+- `next-auth@5.0.0-beta.32`, Next.js 16 ile resmi olarak uyumlu
+  (`peerDependencies: "next": "^16.0.0"` — npm'de doğrulandı).
+
+Login yöntemleri: Google (en düşük sürtünme), Discord (ModeAlert'in
+hedef kitlesi gaming — ama Deniz'in notuyla tutarlı olarak sadece login
+için, bildirim kanalı olarak DEĞİL, bkz. ADR-003), ve email magic link
+(Resend üzerinden — zaten `RESEND_API_KEY` mevcuttu, parola/reset akışı
+gerektirmeyen en düşük bakımlı üçüncü seçenek).
+
+## Karar
+
+1. `prisma/schema.prisma`'ya Auth.js'in standart adapter şeması eklendi:
+   `Account`, `Session`, `VerificationToken` modelleri + `User`'a
+   `emailVerified`/`image` alanları (migration:
+   `20260805111829_add_auth_models`, sadece ekleme — mevcut tabloları
+   bozmuyor).
+2. Kök `auth.ts`: `PrismaAdapter` + database session stratejisi.
+   Providers (Google/Discord) sadece ilgili env var'lar (`AUTH_GOOGLE_ID`
+   vb.) doluysa listeye giriyor — email provider'daki
+   "key yoksa sessizce devre dışı kal" kuralıyla aynı desen (ADR-003).
+   Bu sayede kod, Deniz henüz Google/Discord OAuth app'i açmadan da
+   çalışıyor — sadece email magic link aktif olarak başlıyor.
+3. `app/api/auth/[...nextauth]/route.ts` route handler, `/signin` sayfası
+   (Google/Discord butonları + email formu) ve `/signin/check-email`
+   (magic link "check your inbox" ekranı) eklendi.
+4. **Güvenlik düzeltmesi (auth'un doğal sonucu):** `/api/notifications`,
+   `/api/watchlists`, `/api/dashboard` önceden client'ın gönderdiği
+   `userId` query/body parametresine güveniyordu — herhangi biri başka
+   bir kullanıcının `userId`'sini tahmin edip bildirimlerini/watchlist'ini
+   okuyabilir/değiştirebilirdi (IDOR). Üçü de artık `auth()` ile sunucu
+   tarafında session'dan `userId` alıyor, session yoksa 401 dönüyor.
+   `notification.repository.ts`'teki `markNotificationRead`/
+   `deleteNotification` de `userId` ile scope'landı (`updateMany`/
+   `deleteMany` where'i) — bir notification ID'sini bilmek artık başkasının
+   bildirimini işaretlemeye/silmeye yetmiyor.
+5. `hooks/use-notifications.ts`, `hooks/use-watchlist.ts`,
+   `hooks/use-dashboard.ts` artık `userId` parametresi almıyor — session
+   yoksa SWR key `null` olup hiç fetch atmıyor. Yeni `hooks/use-require-auth.ts`,
+   `/dashboard` ve `/onboarding` sayfalarını client tarafında
+   `/signin?callbackUrl=...`'e yönlendiriyor (asıl güvenlik sınırı zaten
+   API katmanında — bu sadece UX).
+6. Onboarding finish adımı artık `DEMO_USER_ID` sabitini değil, gerçek
+   `session.user.id`'yi (API üzerinden, örtük) kullanıyor.
+
+## Gerekçe
+
+Article I ("ModeAlert is a business, not a coding exercise") ve
+roadmap'in "passive income first" ilkesi doğrudan gerçek kullanıcı
+hesaplarını gerektiriyor — paylaşılan `"demo"` kullanıcısıyla ne gerçek
+bir watchlist deneyimi ne de ödeme alınabilir. Auth eklemek aynı zamanda
+önceden fark edilmemiş bir IDOR açığını (userId'nin client'tan güvenle
+kabul edilmesi) kapattı — bu, "foolproof" hedefiyle örtüşen, auth'un
+zorunlu kıldığı bir yan etki.
+
+## Sonuçlar
+
+- `tsc --noEmit` ve `eslint` temiz; dev server ayağa kalkıyor;
+  `/api/dashboard`, `/api/notifications`, `/api/watchlists` session'sız
+  istekte doğru şekilde 401 dönüyor; `/api/auth/providers` sadece
+  `resend`'i listeliyor (Google/Discord env var'ları henüz boş).
+- **Deniz'in yapması gereken (kod tarafı bitti, dışarıda hesap açma
+  gerekiyor):** Google Cloud Console'da bir OAuth 2.0 Client ID
+  (Authorized redirect URI: `https://modealert.vercel.app/api/auth/callback/google`
+  ve local test için `http://localhost:3000/api/auth/callback/google`)
+  ve Discord Developer Portal'da bir OAuth App (aynı desende
+  `.../api/auth/callback/discord`) açıp `AUTH_GOOGLE_ID`/
+  `AUTH_GOOGLE_SECRET`/`AUTH_DISCORD_ID`/`AUTH_DISCORD_SECRET`'i hem
+  local `.env`'e hem Vercel'in Environment Variables ayarına eklemesi
+  gerekiyor. `AUTH_SECRET` local `.env`'e zaten eklendi — aynı değer
+  Vercel'e de eklenmeli (prod'da farklı/rastgele bir değer de olabilir,
+  önemli olan set edilmiş olması).
+- Eski `"demo"` kullanıcısı DB'de kalmaya devam ediyor (artık hiçbir
+  route ona yazmıyor) — `prisma/seed/seed.ts` hâlâ onu oluşturuyor,
+  sadece local seed/test amaçlı, prod trafiğinde kullanılmıyor.
+- Sıradaki doğal adım Phase 8 (Premium/monetization) — artık gerçek
+  kullanıcı kimliği olduğu için ödeme sağlayıcısı entegrasyonu önündeki
+  mimari engel kalmadı.

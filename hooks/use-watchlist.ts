@@ -1,4 +1,5 @@
 import useSWR, { mutate as globalMutate } from "swr"
+import { useSession } from "next-auth/react"
 
 interface WatchlistEntry {
   id: string
@@ -18,10 +19,13 @@ const fetcher = async (
   return response.json()
 }
 
-export function useWatchlist(userId = "demo") {
+export function useWatchlist() {
+  const { status } = useSession()
+  const isAuthed = status === "authenticated"
+
   const { data, error, isLoading, mutate } = useSWR<
     WatchlistEntry[]
-  >(`/api/watchlists?userId=${userId}`, fetcher)
+  >(isAuthed ? "/api/watchlists" : null, fetcher)
 
   const entries = data ?? []
   const watchlistedIds = new Set(
@@ -35,7 +39,7 @@ export function useWatchlist(userId = "demo") {
     const optimistic = add
       ? [
           ...entries,
-          { id: eventId, userId, eventId },
+          { id: eventId, userId: "", eventId },
         ]
       : entries.filter(
           (entry) => entry.eventId !== eventId
@@ -48,12 +52,10 @@ export function useWatchlist(userId = "demo") {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ userId, eventId }),
+          body: JSON.stringify({ eventId }),
         })
 
-        return fetcher(
-          `/api/watchlists?userId=${userId}`
-        )
+        return fetcher("/api/watchlists")
       },
       {
         optimisticData: optimistic,

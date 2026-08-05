@@ -1,4 +1,5 @@
 import useSWR from "swr"
+import { useSession } from "next-auth/react"
 
 interface Notification {
   id: string
@@ -30,10 +31,13 @@ const fetcher = async (
   return response.json()
 }
 
-export function useNotifications(userId = "demo") {
+export function useNotifications() {
+  const { status } = useSession()
+  const isAuthed = status === "authenticated"
+
   const { data, error, isLoading, mutate } = useSWR<
     Notification[]
-  >(`/api/notifications?userId=${userId}`, fetcher)
+  >(isAuthed ? "/api/notifications" : null, fetcher)
 
   const notifications = data ?? []
   const unreadCount = notifications.filter(
@@ -51,9 +55,7 @@ export function useNotifications(userId = "demo") {
           body: JSON.stringify({ id }),
         })
 
-        return fetcher(
-          `/api/notifications?userId=${userId}`
-        )
+        return fetcher("/api/notifications")
       },
       {
         optimisticData: notifications.map((n) =>
@@ -73,12 +75,10 @@ export function useNotifications(userId = "demo") {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ userId }),
+          body: JSON.stringify({}),
         })
 
-        return fetcher(
-          `/api/notifications?userId=${userId}`
-        )
+        return fetcher("/api/notifications")
       },
       {
         optimisticData: notifications.map((n) => ({

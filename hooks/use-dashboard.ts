@@ -1,4 +1,5 @@
 import useSWR from "swr";
+import { useSession } from "next-auth/react";
 
 interface DashboardStats {
   watched: number;
@@ -19,13 +20,15 @@ const fetcher = async (
 };
 
 export function useDashboard() {
+  const { status } = useSession();
+
   const {
     data,
     error,
     isLoading,
     mutate,
   } = useSWR<DashboardStats>(
-    "/api/dashboard",
+    status === "authenticated" ? "/api/dashboard" : null,
     fetcher
   );
 

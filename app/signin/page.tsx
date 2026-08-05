@@ -1,0 +1,114 @@
+"use client"
+
+import { useState, Suspense } from "react"
+import { useSearchParams } from "next/navigation"
+import { signIn } from "next-auth/react"
+import { SiGoogle, SiDiscord } from "react-icons/si"
+import { Mail } from "lucide-react"
+
+import { Navbar } from "@/components/layout/navbar"
+import { Button } from "@/components/ui/button"
+
+function SignInForm() {
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard"
+
+  const [email, setEmail] = useState("")
+  const [sending, setSending] = useState(false)
+
+  async function handleEmailSignIn(e: React.FormEvent) {
+    e.preventDefault()
+
+    if (!email) return
+
+    setSending(true)
+
+    await signIn("resend", { email, callbackUrl })
+
+    setSending(false)
+  }
+
+  return (
+    <div className="mx-auto max-w-sm px-6 py-24">
+      <div className="text-center">
+        <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">
+          Welcome back
+        </p>
+
+        <h1 className="mt-3 text-3xl font-bold tracking-tight">Sign in</h1>
+
+        <p className="mt-2 text-sm text-zinc-400">
+          Track every event that matters. No spam, ever.
+        </p>
+      </div>
+
+      <div className="mt-10 flex flex-col gap-3">
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full justify-center gap-2 border-white/10 bg-white/5 text-white hover:bg-white/10"
+          onClick={() => signIn("google", { callbackUrl })}
+        >
+          <SiGoogle className="h-4 w-4" />
+          Continue with Google
+        </Button>
+
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full justify-center gap-2 border-white/10 bg-white/5 text-white hover:bg-white/10"
+          onClick={() => signIn("discord", { callbackUrl })}
+        >
+          <SiDiscord className="h-4 w-4" />
+          Continue with Discord
+        </Button>
+      </div>
+
+      <div className="my-6 flex items-center gap-3 text-xs text-zinc-500">
+        <div className="h-px flex-1 bg-white/10" />
+        or
+        <div className="h-px flex-1 bg-white/10" />
+      </div>
+
+      <form onSubmit={handleEmailSignIn} className="flex flex-col gap-3">
+        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3">
+          <Mail className="h-4 w-4 shrink-0 text-zinc-500" />
+
+          <input
+            type="email"
+            required
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="h-10 w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"
+          />
+        </div>
+
+        <Button
+          type="submit"
+          disabled={sending}
+          className="w-full justify-center bg-white text-black hover:bg-zinc-200"
+        >
+          {sending ? "Sending link..." : "Continue with email"}
+        </Button>
+      </form>
+
+      <p className="mt-8 text-center text-xs text-zinc-600">
+        By continuing you agree to receive event notifications you signed up
+        for. Unsubscribe anytime.
+      </p>
+    </div>
+  )
+}
+
+export default function SignInPage() {
+  return (
+    <main className="min-h-screen bg-black text-white">
+      <Navbar />
+
+      <Suspense fallback={null}>
+        <SignInForm />
+      </Suspense>
+    </main>
+  )
+}

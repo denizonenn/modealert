@@ -3,42 +3,41 @@ import {
   NextResponse,
 } from "next/server";
 
+import { auth } from "@/auth";
 import { notificationService } from "@/lib/services/notification.service";
 
-export async function GET(request: NextRequest) {
-  const userId =
-    request.nextUrl.searchParams.get("userId") ??
-    "demo";
+export async function GET() {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
+  }
 
   const notifications =
-    await notificationService.getByUser(userId);
+    await notificationService.getByUser(session.user.id);
 
   return NextResponse.json(notifications);
 }
 
-export async function POST(request: NextRequest) {
-  const body = await request.json();
-
-  const notification =
-    await notificationService.create(body);
-
-  return NextResponse.json(notification);
-}
-
 export async function PATCH(request: NextRequest) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
+  }
+
   const body = await request.json();
 
   if (body.id) {
-    await notificationService.markRead(body.id);
-
-    return NextResponse.json({
-      success: true,
-    });
-  }
-
-  if (body.userId) {
-    await notificationService.markAllRead(
-      body.userId
+    await notificationService.markRead(
+      body.id,
+      session.user.id
     );
 
     return NextResponse.json({
@@ -46,22 +45,31 @@ export async function PATCH(request: NextRequest) {
     });
   }
 
-  return NextResponse.json(
-    {
-      error: "Missing id or userId",
-    },
-    {
-      status: 400,
-    }
-  );
+  await notificationService.markAllRead(session.user.id);
+
+  return NextResponse.json({
+    success: true,
+  });
 }
 
 export async function DELETE(
   request: NextRequest
 ) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
+  }
+
   const body = await request.json();
 
-  await notificationService.delete(body.id);
+  await notificationService.delete(
+    body.id,
+    session.user.id
+  );
 
   return NextResponse.json({
     success: true,

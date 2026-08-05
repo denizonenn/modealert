@@ -30,15 +30,15 @@ export const notificationService = {
     return createNotification(data);
   },
 
-  async markRead(id: string) {
-    return markNotificationRead(id);
+  async markRead(id: string, userId: string) {
+    return markNotificationRead(id, userId);
   },
 
   async markAllRead(userId: string) {
     return markAllNotificationsRead(userId);
   },
 
-  async delete(id: string) {
-    return deleteNotification(id);
+  async delete(id: string, userId: string) {
+    return deleteNotification(id, userId);
   },
 };

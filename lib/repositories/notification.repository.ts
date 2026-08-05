@@ -29,11 +29,13 @@ export async function createNotification(data: {
 }
 
 export async function markNotificationRead(
-  id: string
+  id: string,
+  userId: string
 ) {
-  return prisma.notification.update({
+  return prisma.notification.updateMany({
     where: {
       id,
+      userId,
     },
     data: {
       read: true,
@@ -56,11 +58,13 @@ export async function markAllNotificationsRead(
 }
 
 export async function deleteNotification(
-  id: string
+  id: string,
+  userId: string
 ) {
-  return prisma.notification.delete({
+  return prisma.notification.deleteMany({
     where: {
       id,
+      userId,
     },
   });
 }

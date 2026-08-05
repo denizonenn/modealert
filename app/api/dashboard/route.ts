@@ -1,18 +1,21 @@
 import {
-  NextRequest,
   NextResponse,
 } from "next/server";
 
+import { auth } from "@/auth";
 import { getDashboardStats } from "@/lib/helpers/getDashboardStats";
 
-export async function GET(
-  request: NextRequest
-) {
-  const userId =
-    request.nextUrl.searchParams.get("userId") ??
-    "demo";
+export async function GET() {
+  const session = await auth();
 
-  const stats = await getDashboardStats(userId);
+  if (!session?.user?.id) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
+  }
+
+  const stats = await getDashboardStats(session.user.id);
 
   return NextResponse.json(stats);
 }

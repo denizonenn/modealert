@@ -11,6 +11,7 @@ import FinishStep from "@/components/onboarding/finish-step"
 import { Button } from "@/components/ui/button"
 
 import { useOnboardingStore } from "@/stores/onboarding-store"
+import { useRequireAuth } from "@/hooks/use-require-auth"
 
 const STEP_TITLES: Record<number, string> = {
   1: "Which games do you play?",
@@ -19,6 +20,8 @@ const STEP_TITLES: Record<number, string> = {
 }
 
 export default function OnboardingPage() {
+  const authStatus = useRequireAuth()
+
   const {
     step,
     selectedGames,
@@ -33,6 +36,14 @@ export default function OnboardingPage() {
       : step === 2
       ? selectedEvents.length > 0
       : true
+
+  if (authStatus !== "authenticated") {
+    return (
+      <main className="min-h-screen bg-black text-white">
+        <Navbar />
+      </main>
+    )
+  }
 
   return (
     <main className="min-h-screen bg-black text-white">

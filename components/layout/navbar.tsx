@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSession, signOut } from "next-auth/react";
 import { Bell, Menu } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,8 @@ const NAV_LINKS = [
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
+  const { data: session, status } = useSession();
+  const isAuthed = status === "authenticated";
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-black/70 backdrop-blur-xl">
@@ -43,15 +46,35 @@ export function Navbar() {
         </nav>
 
         <div className="ml-auto hidden items-center gap-3 md:flex">
-          <NotificationBell />
-          <Button variant="ghost" className="text-white hover:bg-white/10">
-            Sign in
-          </Button>
-          <Link href="/onboarding">
-            <Button className="bg-white text-black hover:bg-zinc-200">
-              Get Started
-            </Button>
-          </Link>
+          {isAuthed && <NotificationBell />}
+
+          {isAuthed ? (
+            <>
+              <span className="text-sm text-zinc-400">
+                {session.user?.name ?? session.user?.email}
+              </span>
+              <Button
+                variant="ghost"
+                className="text-white hover:bg-white/10"
+                onClick={() => signOut({ callbackUrl: "/" })}
+              >
+                Sign out
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link href="/signin">
+                <Button variant="ghost" className="text-white hover:bg-white/10">
+                  Sign in
+                </Button>
+              </Link>
+              <Link href="/onboarding">
+                <Button className="bg-white text-black hover:bg-zinc-200">
+                  Get Started
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
 
         <Drawer
@@ -97,15 +120,38 @@ export function Navbar() {
               </nav>
 
               <div className="mt-auto flex flex-col gap-3">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-center border border-white/10 text-white hover:bg-white/10"
-                >
-                  Sign in
-                </Button>
-                <Button className="w-full justify-center bg-white text-black hover:bg-zinc-200">
-                  Get Started
-                </Button>
+                {isAuthed ? (
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-center border border-white/10 text-white hover:bg-white/10"
+                    onClick={() => signOut({ callbackUrl: "/" })}
+                  >
+                    Sign out
+                  </Button>
+                ) : (
+                  <>
+                    <DrawerClose
+                      render={
+                        <Link
+                          href="/signin"
+                          className="flex h-9 w-full items-center justify-center rounded-lg border border-white/10 text-sm font-medium text-white hover:bg-white/10"
+                        />
+                      }
+                    >
+                      Sign in
+                    </DrawerClose>
+                    <DrawerClose
+                      render={
+                        <Link
+                          href="/onboarding"
+                          className="flex h-9 w-full items-center justify-center rounded-lg bg-white text-sm font-medium text-black hover:bg-zinc-200"
+                        />
+                      }
+                    >
+                      Get Started
+                    </DrawerClose>
+                  </>
+                )}
               </div>
             </div>
           </DrawerContent>

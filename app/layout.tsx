@@ -2,6 +2,8 @@ import "./globals.css"
 import type { Metadata } from "next"
 import { Inter, Space_Grotesk } from "next/font/google"
 
+import { SessionProvider } from "@/components/providers/session-provider"
+
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -28,7 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
       <body className="bg-black text-white antialiased">
-        {children}
+        <SessionProvider>{children}</SessionProvider>
       </body>
     </html>
   )

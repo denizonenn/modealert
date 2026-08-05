@@ -3,18 +3,22 @@ import {
   NextResponse,
 } from "next/server";
 
+import { auth } from "@/auth";
 import { watchlistService } from "@/lib/services/watchlist.service";
 
-export async function GET(
-  request: NextRequest
-) {
-  const userId =
-    request.nextUrl.searchParams.get("userId") ??
-    "demo";
+export async function GET() {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
+  }
 
   const watchlists =
     await watchlistService.getByUser(
-      userId
+      session.user.id
     );
 
   return NextResponse.json(
@@ -25,12 +29,21 @@ export async function GET(
 export async function POST(
   request: NextRequest
 ) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
+  }
+
   const body =
     await request.json();
 
   const watchlist =
     await watchlistService.create(
-      body.userId,
+      session.user.id,
       body.eventId
     );
 
@@ -45,11 +58,20 @@ export async function POST(
 export async function DELETE(
   request: NextRequest
 ) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
+  }
+
   const body =
     await request.json();
 
   await watchlistService.delete(
-    body.userId,
+    session.user.id,
     body.eventId
   );
 
