@@ -1501,3 +1501,81 @@ senaryosu için var: additive-only, non-interactive, reset yapmaz.
   burada kalırsa yeterince görünür olmaz.
 - `Event.slug` migration'ı (`20260806104809_add_event_slug`) yukarıdaki
   güvenli yöntemle başarıyla uygulandı, veri kaybı olmadı.
+
+---
+
+# ADR-020: LoL Event-Hub Gürültüsü Filtrelendi — ADR-017'nin Gözden Kaçırdığı Mayhem Girdileri
+
+Status: Accepted
+
+Date: 2026-08-06
+
+## Bağlam
+
+Deniz'in geri bildirimi: LoL event listesinde "dummy" çok fazla şey
+var, gerçekten oynanan event'lere bakılmalı; ayrıca diğer oyunların
+(LoL/Valorant/Fortnite/Destiny dışındakilerin) icon'ları "çalışmıyordu."
+
+Gerçek event-hub verisi (`raw.communitydragon.org/latest/.../event-hub.json`,
+2026-08-06'da 21 girdi) incelendiğinde iki gerçek sorun bulundu:
+
+1. **"Classic Player Level" ve "Classic Voting Power"** — `endDate`
+   `2099-12-30T00:00:00Z`. Bu gerçek bir event değil, Classic modun
+   kalıcı bir hesap özelliği (seviye/oy gücü takibi) — event-hub'a
+   yanlışlıkla karışmış, sonsuza kadar LIVE görünüyordu.
+2. **"Mayhem Progression Track" / "Mayhem Set 2"** (`kSeasonPass`) —
+   **ADR-017'nin "URF/Arena/ARAM Mayhem gibi rotasyonlu modlar bu
+   feed'de HİÇ yok" tespiti eksikti** — bu ikisi feed'de gerçekten
+   var, sadece jenerik "Season pass" açıklamasıyla gizlenmiş
+   (başlıkta "Mayhem" geçtiği için o oturumda gözden kaçmış). Ama
+   ADR-017'nin asıl sonucu hâlâ doğru: bu girdiler "Mayhem şu an
+   rotasyonda" demiyor, sadece o moda bağlı ~4 aylık battle pass
+   penceresinin açık olduğunu söylüyor — modun bugün gerçekten
+   oynanabilir olup olmadığına dair hâlâ güvenilir bir sinyal yok.
+   4 ay boyunca LIVE göstermek, "URF/Mayhem şu an açık" gibi yanlış
+   bir izlenim veriyordu.
+
+Icon tarafında gerçek bir render hatası yoktu (DOM'da doğru SVG/emoji
+vardı), ama emoji fallback'i (🌌🔥🎲🪖⚔️) bazı ortamlarda (özellikle
+Windows font substitution) düzgün render olmuyor/tanınmıyor —
+LoL/Valorant/Fortnite/Destiny'nin gerçek marka SVG'leri varken
+diğerlerinin sadece emoji olması zaten tutarsızdı.
+
+## Karar
+
+1. **`lib/providers/communitydragon/normalizer.ts`** — `isTrackableEntry()`
+   filtresi eklendi, üç export'ta da (`normalizeEventHub`,
+   `mapPbeCandidates`, `toDisplayEvents`) uygulanıyor:
+   - `endDate` yılı ≥2090 olan girdiler atlanıyor (kalıcı özellik,
+     event değil).
+   - Başlığında "Mayhem"/"URF"/"Arena" geçen girdiler atlanıyor
+     (isimle eşleşen sabit liste — bu dosyanın zaten kullandığı
+     `EVENT_HUB_TYPE_LABELS` gibi açık/hardcoded stil).
+   - Var olan "source artık raporlamıyorsa event'i ENDED yap"
+     pipeline'ı (ADR-002) sayesinde ekstra kod gerekmeden, bir sonraki
+     sync'te bu 4 event otomatik ENDED oldu — gerçek istekle
+     doğrulandı (`saved: 21` → `saved: 17`, 4 event DB'de ENDED).
+2. **`components/shared/game-brand-icons.tsx`** — TFT/Warframe/PoE/
+   Helldivers 2/Foxhole için react-icons/gi'den tematik SVG ikonlar
+   eklendi (resmi marka SVG'si yok, ama emoji fallback'inden daha
+   güvenilir): `GiChessKnight`, `GiRobotHelmet`, `GiHoodedFigure`,
+   `GiSpartanHelmet`, `GiTrenchSpade`. Artık 9 oyunun 9'u da gerçek
+   SVG ikonla render oluyor, emoji fallback'e düşen yok.
+
+## Gerekçe
+
+Sahte/yanıltıcı veri göstermektense dürüstçe filtrelemek — ADR-012/
+ADR-017 ile aynı ilke. "Mayhem" gibi rotasyonlu modların gerçek
+"şu an oynanabilir mi" durumu hâlâ bilinmiyor (ADR-017'nin sonucu
+değişmedi), ama en azından artık yanlışlıkla LIVE göstermiyoruz.
+
+## Sonuçlar
+
+- `lib/providers/communitydragon/normalizer.test.ts`'e sentinel-tarih
+  ve rotasyonlu-mod-adı testleri eklendi (9/9 test geçiyor).
+- Gerçek sync ile doğrulandı: LoL LIVE event sayısı 21→17'ye düştü,
+  4 event (Classic Player Level, Classic Voting Power, Mayhem
+  Progression Track, Mayhem Set 2) DB'de ENDED durumuna geçti.
+- Champion Rotation kasıtlı olarak dokunulmadı — Deniz "önemli değil"
+  dedi ama bu gerçek, kullanılan veri (dashboard/`/live`'da referans
+  alınıyor); kaldırmak ayrı bir ürün kararı, bu ADR'ın kapsamı değil.

@@ -53,6 +53,50 @@ function computeStatus(
   return "LIVE";
 }
 
+// Riot's event-hub uses far-future end dates (e.g. 2099) for permanent
+// account features (Classic mode's persistent player-level/voting-power
+// trackers) that got swept into the feed alongside real events. They'd
+// otherwise show as permanently LIVE — not a real time-boxed event.
+const PERMANENT_FEATURE_SENTINEL_YEAR = 2090;
+
+// Rotating featured modes (ARAM Mayhem, URF, Arena) publish a
+// season-long progression-track entry here, but that only means the
+// track is available — not that the mode is actually in rotation
+// today. There's no reliable "is it in rotation right now" signal
+// (see docs/06_DECISIONS.md ADR-017), so showing this as LIVE would
+// misleadingly imply the mode is currently playable. Named exclusion
+// list rather than a heuristic, matching this file's existing
+// eventHubType lookup style.
+const ROTATING_MODE_TITLE_MATCHES = ["Mayhem", "URF", "Arena"];
+
+function isTrackableEntry(
+  entry: CommunityDragonEventHubEntry
+): boolean {
+  const { event } = entry;
+
+  const endYear = new Date(
+    event.endDate
+  ).getFullYear();
+
+  if (endYear >= PERMANENT_FEATURE_SENTINEL_YEAR) {
+    return false;
+  }
+
+  const title =
+    event.localizedShortName ||
+    event.localizedName;
+
+  if (
+    ROTATING_MODE_TITLE_MATCHES.some(
+      (match) => title.includes(match)
+    )
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
 function toProviderEvent(
   entry: CommunityDragonEventHubEntry,
   now: Date
@@ -86,9 +130,11 @@ export function normalizeEventHub(
   response: CommunityDragonEventHubResponse,
   now: Date = new Date()
 ): ProviderEvent[] {
-  return response.map((entry) =>
-    toProviderEvent(entry, now)
-  );
+  return response
+    .filter(isTrackableEntry)
+    .map((entry) =>
+      toProviderEvent(entry, now)
+    );
 }
 
 // Content that appears on the PBE patchline but not (yet) on live —
@@ -106,6 +152,7 @@ export function mapPbeCandidates(
   );
 
   return pbeResponse
+    .filter(isTrackableEntry)
     .filter((entry) => !liveIds.has(entry.event.eventId))
     .map((entry) => {
       const event = toProviderEvent(entry, now);
@@ -124,6 +171,7 @@ export function toDisplayEvents(
   now: Date = new Date()
 ): CommunityDragonDisplayEvent[] {
   return response
+    .filter(isTrackableEntry)
     .map(({ event }) => ({
       id: event.eventId,
 

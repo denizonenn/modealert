@@ -91,6 +91,50 @@ describe("normalizeEventHub", () => {
 
     expect(event.title).toBe("Short");
   });
+
+  it("drops entries with a permanent/sentinel end date (not a real time-boxed event)", () => {
+    const events = normalizeEventHub(
+      [
+        entry(
+          "permanent",
+          "2026-01-01T00:00:00.000Z",
+          "2099-12-30T00:00:00.000Z",
+          { localizedShortName: "Classic Player Level" }
+        ),
+        entry(
+          "real",
+          "2026-08-01T00:00:00.000Z",
+          "2026-08-10T00:00:00.000Z"
+        ),
+      ],
+      now
+    );
+
+    expect(events).toHaveLength(1);
+    expect(events[0].id).toBe("communitydragon-event-real");
+  });
+
+  it("drops rotating-mode season-pass wrappers (Mayhem/URF/Arena) — no reliable in-rotation signal exists", () => {
+    const events = normalizeEventHub(
+      [
+        entry(
+          "mayhem",
+          "2026-06-10T00:00:00.000Z",
+          "2026-10-06T00:00:00.000Z",
+          { localizedShortName: "Mayhem Set 2" }
+        ),
+        entry(
+          "real",
+          "2026-08-01T00:00:00.000Z",
+          "2026-08-10T00:00:00.000Z"
+        ),
+      ],
+      now
+    );
+
+    expect(events).toHaveLength(1);
+    expect(events[0].id).toBe("communitydragon-event-real");
+  });
 });
 
 describe("mapPbeCandidates", () => {

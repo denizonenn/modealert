@@ -152,12 +152,19 @@ Remaining
 
 - ~~rotating modes~~ — **araştırıldı, çözülemedi (2026-08-06).** URF/
   Arena/ARAM Mayhem gibi rotasyonlu "featured game mode"lar
-  `event-hub.json`'da (ne live ne pbe) hiç yok; `queues.json` tüm
-  420 kuyruğu (URF dahil) tarihsiz/aktiflik bilgisi olmadan
-  döndürüyor — OpenDota'nın "her zaman her şeyi döner, aktif filtre
-  yok" sorunuyla aynı sınıf. Keyless, güvenilir bir "şu an rotasyonda
-  olan mod" kaynağı bulunamadı. Bkz. ADR-017. Riot/CommunityDragon
-  ileride böyle bir endpoint sunarsa yeniden değerlendirilmeli.
+  `queues.json`'da tüm 420 kuyruğu (URF dahil) tarihsiz/aktiflik
+  bilgisi olmadan döndürüyor — OpenDota'nın "her zaman her şeyi döner,
+  aktif filtre yok" sorunuyla aynı sınıf. Keyless, güvenilir bir "şu an
+  rotasyonda olan mod" kaynağı bulunamadı. Bkz. ADR-017. **Düzeltme
+  (2026-08-06, ADR-020):** ADR-017 "event-hub.json'da hiç yok" demişti
+  ama bu yanlıştı — Mayhem'in ~4 aylık battle-pass penceresi orada
+  gerçekten var, sadece jenerik "Season pass" etiketi altında
+  gizlenmişti ve LIVE gösteriliyordu (yanıltıcı — "mod açık" değil
+  "pass penceresi açık" anlamına geliyor). Artık normalizer'da
+  filtreleniyor, event kaydı otomatik ENDED oluyor. Asıl sonuç
+  değişmedi: "şu an rotasyonda mı" sorusuna hâlâ cevap yok. Riot/
+  CommunityDragon ileride böyle bir endpoint sunarsa yeniden
+  değerlendirilmeli.
 - arena metadata (cherry-lobby.json henüz kullanılmıyor)
 - event-passes.json entegrasyonu
 
@@ -880,6 +887,16 @@ Current
   effect without `min-w-0` on the flex ancestors — classic Tailwind
   flexbox gotcha. Added `min-w-0`/`shrink-0` where needed in
   `components/landing/dashboard-preview.tsx`.
+
+- ~~LoL event list cluttered with non-events (permanent "Classic
+  Player Level"/"Classic Voting Power" features with a 2099 sentinel
+  end date, misleadingly-LIVE Mayhem season-pass windows) and
+  TFT/Warframe/PoE/Helldivers 2/Foxhole icons falling back to emoji
+  that doesn't render reliably in every environment~~ — **fixed
+  (2026-08-06), see ADR-020.** Reported by Deniz. CommunityDragon
+  normalizer now filters sentinel-dated and rotating-mode-named
+  entries; the 5 games without an official brand SVG got real
+  react-icons/gi themed icons instead of emoji.
 
 No open bugs.
 
