@@ -764,7 +764,13 @@ Current
   yakaladı), Deniz yeniledi. Bu artık üçüncü/dördüncü kez oluyor — bu
   gerçekten bir "her gün elle yapılan iş" haline geldi, production key
   başvurusu (Riot Developer Portal → Apply for a Production Key)
-  bundan sonraki en yüksek öncelikli manuel iş olmalı.
+  bundan sonraki en yüksek öncelikli manuel iş olmalı. **Ön koşul
+  giderildi (2026-08-06):** Riot'un başvuru süreci, ürünün gerçek bir
+  Terms of Service ve Privacy Policy sayfası olan, kendi domain'inde
+  barındırılan çalışan bir uygulama/prototip olmasını şart koşuyor
+  (ayrıca doğrulama için ~10 iş günü sürüyor) — `/privacy` ve `/terms`
+  artık canlıda, footer'dan bağlı. Başvuru artık sadece Deniz'in
+  Riot Developer Portal'a girip formu doldurmasını bekliyor.
 
 - ~~Auth yok. Her şey `"demo"` adında tek, hardcoded bir kullanıcı
   üzerinden çalışıyor~~ — **çözüldü (2026-08-05)**, bkz.
@@ -807,6 +813,13 @@ Current
 - ~~`/signin` always showed Google + Discord buttons regardless of
   whether those providers were configured~~ — fixed same day, see
   ADR-005 update.
+
+- ~~Footer "Privacy"/"Terms" links pointed to `#` (dead links)~~ —
+  **fixed (2026-08-06).** `/privacy` and `/terms` pages added
+  (`app/privacy/page.tsx`, `app/terms/page.tsx`), footer now links to
+  them for real. Built primarily to unblock the Riot production key
+  application, which requires a real ToS/Privacy page on the app's
+  own domain.
 
 No open bugs.
 
