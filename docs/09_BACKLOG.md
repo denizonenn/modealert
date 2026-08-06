@@ -520,13 +520,18 @@ Live providers
 
 Pending Deniz's action
 
-- Apex Legends — `apexlegendsapi.com` is the viable source, needs a
-  free API key from a simple web form at `apexlegendsapi.com/auth`
-  (re-verified 2026-08-06 — no Discord signup needed, just a project
-  description + URL + terms checkbox; Deniz needs to do this himself
-  since it requires agreeing to the usage terms as the account
-  holder). Map rotation is solid; Collection Events/LTMs are as
-  unreliable as Fortnite's, likely same "shop/rotation only" scope.
+- Apex Legends — `apexlegendsapi.com` is the viable source. Deniz
+  got a key via the web form (2026-08-06), added to `.env` as
+  `APEX_API_KEY`, but a real request to `/maprotation` returns
+  `429 "You must verify your API account first by linking your
+  Discord account"` — the key is unusable until Discord is linked at
+  `portal.apexlegendsapi.com/discord-auth`. Same VPN-access blocker
+  as Discord OAuth login (ADR-005) — Discord isn't reachable from
+  Deniz's location without a VPN. Blocked on the same prerequisite;
+  revisit both together once Deniz has VPN access. Map rotation
+  endpoint itself looks solid once unblocked; Collection Events/LTMs
+  are as unreliable as Fortnite's, likely same "shop/rotation only"
+  scope.
 
 Evaluated and rejected
 
