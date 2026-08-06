@@ -1093,3 +1093,61 @@ aynı ilke.
   ikonu" düzeltmesi), 🌌 emoji kullanılıyor.
 - GW2 backlog'a "ertelendi, `/v2/events` API'si düzelirse yeniden
   değerlendir" olarak eklendi.
+
+---
+
+# ADR-014: Sekizinci Oyun Provider'ı — Path of Exile (api.pathofexile.com), Kapsam Güncel Challenge League'le Sınırlandı
+
+Status: Accepted
+
+Date: 2026-08-06
+
+## Bağlam
+
+ADR-011/013'teki aynı keyless-tarama disiplini sürdürüldü. Grinding
+Gear Games'in resmi `api.pathofexile.com` API'si tamamen public,
+key/kayıt gerektirmiyor — sadece dökümantasyonda kibarlık olarak
+açıklayıcı bir `User-Agent` isteniyor (zorunlu değil, `client.ts`'te
+uygulandı).
+
+`/leagues?type=main` endpoint'i gerçek istekle doğrulandı: 16 satır
+dönüyor — her kalıcı lig (Standard/Hardcore/SSF/Ruthless) ve o anki
+geçici challenge league'in Hardcore/SSF/Ruthless/NoParties/HardMode
+varyantları dahil. Aynı sezonun 8 varyantı aynı `startAt`/`endAt`
+tarihlerini paylaşıyor — sadece kendi `category.id`'si kendi `id`'sine
+eşit olan tek satır (softcore, ana varyant) event olarak sürüldü,
+diğerleri modifikatör olduğu için dışlandı. Gerçek istekte güncel
+challenge league `"Allflame"` olarak döndü, `startAt` geçmişte ve
+`endAt` null — yani LIVE.
+
+## Karar
+
+1. **PoE provider'ı eklendi** (`lib/providers/poe/`), aynı 5-dosya
+   şablon (client/types/constants/event-mapper/service/provider),
+   `enabled: true` sabit.
+2. **Tek event map edildi**: `poe-current-league`, güncel challenge
+   league'in başlangıç/bitiş zaman damgasına göre
+   LIVE/UPCOMING/ENDED. Ladder/race event'leri (kısa süreli, ayrı
+   uç noktalar gerektiren) bilinçli olarak DIŞLANDI — Warframe'deki
+   alerts/invasions kararıyla aynı gerekçe: düşük sinyal, yüksek
+   gürültü.
+3. Marka ikonu yok — `react-icons/si` içinde PoE ikonu bulunmuyor,
+   `GameIcon` emoji fallback'ine düşüyor, 🔥 kullanılıyor.
+
+## Gerekçe
+
+ADR-011/013'teki disiplinin aynısı: veri iddiasından önce gerçek
+istekle doğrulama. 8 varyantı tek event'e indirgeme kararı, ham API
+yanıtını elle inceleyip `category.id === id` eşleşmesinin canonical
+softcore satırı işaretlediğini doğrulayarak alındı.
+
+## Sonuçlar
+
+- `GAME_IDS.PATH_OF_EXILE = "poe"` eklendi (`lib/constants/games.ts`),
+  provider registry'ye kaydedildi (`lib/providers/core/registry.ts`).
+- `poe` `Game` satırı `seed.ts`'e eklendi VE prod DB'ye ayrıca tek
+  satır upsert ile eklendi (ADR-006/013'teki aynı yöntem — `seed.ts`
+  DESTRUCTIVE olduğu için prod'a karşı çalıştırılmadı).
+- Uçtan uca doğrulandı: provider gerçek 1 event döndü (`Allflame
+  League`, LIVE), `eventSyncService.sync()` ile prod DB'ye gerçekten
+  yazıldı (source-scoped, `source: "poe"`).

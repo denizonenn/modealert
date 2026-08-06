@@ -87,6 +87,17 @@ async function main() {
         activeUsers: "30K",
         featured: false,
       },
+      {
+        id: "poe",
+        name: "Path of Exile",
+        slug: "path-of-exile",
+        logo: "🔥",
+        color: "#b45309",
+        shortName: "PoE",
+        supportedEvents: 1,
+        activeUsers: "25K",
+        featured: false,
+      },
     ],
   });
 

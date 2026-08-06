@@ -7,6 +7,7 @@ import { destinyProvider } from "@/lib/providers/destiny/provider";
 import { tftProvider } from "@/lib/providers/tft/provider";
 import { fortniteProvider } from "@/lib/providers/fortnite/provider";
 import { warframeProvider } from "@/lib/providers/warframe/provider";
+import { poeProvider } from "@/lib/providers/poe/provider";
 
 const providers: EventProvider[] = [
   riotProvider,
@@ -16,6 +17,7 @@ const providers: EventProvider[] = [
   tftProvider,
   fortniteProvider,
   warframeProvider,
+  poeProvider,
 ];
 
 export function getProviders(): EventProvider[] {

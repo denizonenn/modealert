@@ -1,0 +1,46 @@
+import type { ProviderEvent, ProviderEventStatus } from "../core/provider";
+
+import { GAME_IDS } from "@/lib/constants/games";
+
+import type { PoeLeaguesResponse } from "./types";
+
+// Each temporary challenge league ships as 8 variants (Hardcore/SSF/
+// Ruthless combos of the same season). The one whose id matches its
+// own category.id is the canonical softcore variant — the others are
+// just modifiers on the same event, so only that one is surfaced.
+export function mapCurrentLeague(
+  leagues: PoeLeaguesResponse
+): ProviderEvent[] {
+  const current = leagues.find(
+    (league) =>
+      league.category?.current === true &&
+      league.id === league.category.id
+  );
+
+  if (!current || !current.startAt) {
+    return [];
+  }
+
+  const now = new Date();
+  const startAt = new Date(current.startAt);
+  const endAt = current.endAt ? new Date(current.endAt) : null;
+
+  let status: ProviderEventStatus = "LIVE";
+
+  if (now < startAt) {
+    status = "UPCOMING";
+  } else if (endAt && now > endAt) {
+    status = "ENDED";
+  }
+
+  return [
+    {
+      id: "poe-current-league",
+      gameId: GAME_IDS.PATH_OF_EXILE,
+      title: `${current.id} League`,
+      status,
+      trackedUsers: 0,
+      checkedAt: now,
+    },
+  ];
+}

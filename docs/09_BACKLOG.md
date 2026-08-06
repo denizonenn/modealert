@@ -487,7 +487,7 @@ Recommendation engine
 
 # P2 — Multi Game Support
 
-Status: 🟢 6 real providers (2026-08-06)
+Status: 🟢 7 real providers (2026-08-06)
 
 Live providers
 
@@ -507,6 +507,9 @@ Live providers
   Sortie, weekly Archon Hunt. All 4 verified against real data with
   real activation/expiry timestamps. Alerts/invasions deliberately
   excluded (too high-frequency, low signal). See ADR-013.)
+- Path of Exile ✅ (2026-08-06, `api.pathofexile.com`, no key needed —
+  current challenge league only (`Allflame` verified live). See
+  ADR-014.)
 
 Pending Deniz's action
 
