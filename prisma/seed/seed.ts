@@ -109,6 +109,17 @@ async function main() {
         activeUsers: "40K",
         featured: false,
       },
+      {
+        id: "foxhole",
+        name: "Foxhole",
+        slug: "foxhole",
+        logo: "⚔️",
+        color: "#78716c",
+        shortName: "FH",
+        supportedEvents: 1,
+        activeUsers: "15K",
+        featured: false,
+      },
     ],
   });
 

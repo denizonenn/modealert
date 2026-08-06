@@ -9,6 +9,7 @@ import { fortniteProvider } from "@/lib/providers/fortnite/provider";
 import { warframeProvider } from "@/lib/providers/warframe/provider";
 import { poeProvider } from "@/lib/providers/poe/provider";
 import { helldivers2Provider } from "@/lib/providers/helldivers2/provider";
+import { foxholeProvider } from "@/lib/providers/foxhole/provider";
 
 const providers: EventProvider[] = [
   riotProvider,
@@ -20,6 +21,7 @@ const providers: EventProvider[] = [
   warframeProvider,
   poeProvider,
   helldivers2Provider,
+  foxholeProvider,
 ];
 
 export function getProviders(): EventProvider[] {

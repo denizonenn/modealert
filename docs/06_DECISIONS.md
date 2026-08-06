@@ -1215,3 +1215,51 @@ bilinçli olarak dışlama.
   ORDER, bir STRATEGIC THREAT, ikisi de LIVE),
   `eventSyncService.sync()` ile prod DB'ye gerçekten yazıldı
   (source-scoped, `source: "helldivers2"`).
+
+---
+
+# ADR-016: Onuncu Oyun Provider'ı — Foxhole (war-service-live.foxholeservices.com), Tek Bir "Güncel Savaş" Event'i
+
+Status: Accepted
+
+Date: 2026-08-06
+
+## Bağlam
+
+Foxhole'un geliştiricisi Clapfoot, oyunun sürekli devam eden "World
+Conquest" savaş durumunu resmi, key gerektirmeyen bir REST API
+üzerinden yayınlıyor (`war-service-live.foxholeservices.com`) —
+Warframe/Helldivers 2'nin aksine bu topluluk aynası değil, doğrudan
+geliştiricinin kendi servisi. `/api/worldconquest/war` gerçek istekle
+doğrulandı: `warNumber`, `winner`, `conquestStartTime`/
+`conquestEndTime`/`resistanceStartTime` (epoch ms), `scheduledConquestEndTime`
+alanlarıyla net bir tekil savaş durumu dönüyor (o an "War #137",
+`winner: "NONE"`, `conquestEndTime: null` — yani LIVE).
+
+## Karar
+
+1. **Foxhole provider'ı eklendi** (`lib/providers/foxhole/`), aynı
+   5-dosya şablon, `enabled: true` sabit.
+2. **Tek event map edildi**: `foxhole-current-war`, `winner` ve
+   `conquestEndTime`/`resistanceStartTime` alanlarına göre
+   LIVE/TRACKING/ENDED (PoE'nin "current league" desenine çok yakın —
+   epoch-ms zaman damgaları JS `Date`'e çevrildi).
+3. Marka ikonu yok, ⚔️ emoji kullanılıyor.
+
+## Gerekçe
+
+ADR-011/013/014/015'teki disiplinin aynısı: veri iddiasından önce
+gerçek istekle doğrulama. Bu sefer topluluk aynası bile değil,
+doğrudan geliştiricinin kendi resmi endpoint'i — en güvenilir
+kaynak sınıfı.
+
+## Sonuçlar
+
+- `GAME_IDS.FOXHOLE = "foxhole"` eklendi (`lib/constants/games.ts`),
+  provider registry'ye kaydedildi (`lib/providers/core/registry.ts`).
+- `foxhole` `Game` satırı `seed.ts`'e eklendi VE prod DB'ye ayrıca
+  tek satır upsert ile eklendi (ADR-006/013/014/015'teki aynı yöntem
+  — `seed.ts` DESTRUCTIVE olduğu için prod'a karşı çalıştırılmadı).
+- Uçtan uca doğrulandı: provider gerçek 1 event döndü (`War #137`,
+  LIVE), `eventSyncService.sync()` ile prod DB'ye gerçekten yazıldı
+  (source-scoped, `source: "foxhole"`).

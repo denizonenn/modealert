@@ -487,7 +487,7 @@ Recommendation engine
 
 # P2 — Multi Game Support
 
-Status: 🟢 8 real providers (2026-08-06)
+Status: 🟢 9 real providers (2026-08-06)
 
 Live providers
 
@@ -514,6 +514,9 @@ Live providers
   mirror of Arrowhead's backend, no key needed — active Major
   Orders/Personal Orders only (2 verified live). Per-planet campaigns
   deliberately excluded, too high-frequency/low-signal. See ADR-015.)
+- Foxhole ✅ (2026-08-06, `war-service-live.foxholeservices.com`,
+  official developer (Clapfoot) API, no key needed — single ongoing
+  World Conquest war state (`War #137` verified live). See ADR-016.)
 
 Pending Deniz's action
 
