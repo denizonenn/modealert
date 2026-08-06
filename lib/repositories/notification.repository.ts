@@ -13,6 +13,25 @@ export async function getNotificationsByUser(
   });
 }
 
+export async function getNotificationStats() {
+  const thirtyDaysAgo = new Date(
+    Date.now() - 30 * 24 * 60 * 60 * 1000
+  );
+
+  const [total, last30Days] = await Promise.all([
+    prisma.notification.count(),
+    prisma.notification.count({
+      where: {
+        createdAt: {
+          gte: thirtyDaysAgo,
+        },
+      },
+    }),
+  ]);
+
+  return { total, last30Days };
+}
+
 export async function createNotification(data: {
   userId: string;
   eventId: string;

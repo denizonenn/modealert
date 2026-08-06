@@ -58,10 +58,14 @@ export async function getHistoryByEvent(
 export async function getAllHistory() {
   return prisma.eventHistory.findMany({
     include: {
-      event: true,
+      event: {
+        include: {
+          game: true,
+        },
+      },
     },
     orderBy: {
-      startedAt: "desc",
+      startedAt: "asc",
     },
   });
 }

@@ -427,19 +427,47 @@ Need
 
 # P1 — Statistics
 
-Need
+Status: 🟡 (2026-08-06)
 
-Most common events
+Completed
 
-Average duration
+- Public `/statistics` page (`lib/services/global-statistics.service.ts`),
+  linked from the footer. Everything on it is computed from real rows,
+  nothing fabricated:
+  - **Most common events** — ranked by real `EventHistory` occurrence
+    count.
+  - **Average duration** — overall + per-game, computed only from
+    occurrences that have actually completed (`endedAt` set).
+  - **Prediction accuracy** — retrospective score: for every completed
+    occurrence after an event's first, predicts its duration the same
+    way `eventPredictionService` does live (average of prior
+    occurrences) and compares to what actually happened.
+  - Since history tracking only started 2026-08-04, average duration
+    and prediction accuracy currently show "not enough data yet" —
+    same honest empty-state pattern as `/games/[slug]` — because zero
+    `EventHistory` rows have a real `endedAt` yet. Will fill in as
+    events complete naturally via daily sync. Not backfillable: there's
+    no fake substitute for "it actually finished."
 
-Prediction accuracy
+Need (not buildable without new instrumentation — flagged, not skipped)
 
-Provider uptime
-
-Notification success
-
-False positives
+- **Provider uptime** — `/status` only ever checks current live health,
+  nothing is persisted over time. Would need a health-check history
+  table + a place to write to it on every check (cron sync and/or the
+  `/status` page's polling). Real schema change, so it goes through
+  the ADR-019 safe-migration process, not a quick add.
+- **Notification success (rate)** — `Notification` rows are only
+  created on send *success*; failures are `console.error`'d in
+  `notification-trigger.service.ts` and never persisted (see existing
+  Retry Policy note above), so there's no real denominator to compute
+  a rate from. `/statistics` shows total successful sends instead,
+  labeled honestly as a count, not a rate. Getting the real number
+  needs a persisted failure record — likely the same "failed
+  notification" schema work already flagged under Notification Engine.
+- **False positives** — no concept for this exists in the app yet (no
+  user-facing "this was wrong" feedback mechanism). Needs a product
+  decision on what a false positive even means here (bad prediction?
+  notification for an event that wasn't real?) before it's buildable.
 
 ---
 
