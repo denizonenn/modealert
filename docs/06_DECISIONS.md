@@ -1151,3 +1151,67 @@ softcore satırı işaretlediğini doğrulayarak alındı.
 - Uçtan uca doğrulandı: provider gerçek 1 event döndü (`Allflame
   League`, LIVE), `eventSyncService.sync()` ile prod DB'ye gerçekten
   yazıldı (source-scoped, `source: "poe"`).
+
+---
+
+# ADR-015: Dokuzuncu Oyun Provider'ı — Helldivers 2 (api.helldivers2.dev), Sadece Major Order'lar
+
+Status: Accepted
+
+Date: 2026-08-06
+
+## Bağlam
+
+Aynı keyless-tarama disiplini sürdürüldü. Arrowhead'in Helldivers 2
+için resmi bir public API'si yok, ama `api.helldivers2.dev` —
+topluluğun oyunun kendi backend'ini (aynı Warframe worldstate.us
+deseni) ayna gibi sardığı, key gerektirmeyen, yaygın kullanılan bir
+proje — mevcut. Sadece kimlik amaçlı `X-Super-Client`/`X-Super-Contact`
+header'ları istiyor (ileride `X-Super-Client` zorunlu olacak,
+User-Agent kibarlığının HTTP header eşdeğeri — key değil).
+
+`/api/v1/assignments` (Major Order/Personal Order) gerçek istekle
+doğrulandı: şu anda 2 aktif emir dönüyor, ikisi de net bir
+`expiration` zaman damgasıyla (`title`/`briefing` alanlarıyla
+birlikte). `/api/v1/campaigns` de denendi ama gezegen bazında onlarca
+satır dönüyor, sürekli değişen düşük sinyal/gürültü oranlı veri —
+Warframe'deki alerts/invasions ve GW2'nin event feed'i kararlarıyla
+aynı sınıf, kapsam dışı bırakıldı.
+
+## Karar
+
+1. **Helldivers 2 provider'ı eklendi** (`lib/providers/helldivers2/`),
+   aynı 5-dosya şablon (client/types/constants/event-mapper/service/
+   provider), `enabled: true` sabit.
+2. **Aktif Major Order'ların tamamı map edildi** (genelde 1-2 tane),
+   her biri `helldivers2-assignment-{id}` id'siyle, LIVE durumda.
+   Başlangıç zaman damgası yok — sadece `expiration` — bu yüzden
+   response'ta görünen her assignment tanım gereği LIVE; süresi
+   dolunca bir sonraki response'ta düşer ve `eventSyncService`'in
+   stale-event temizliği onu otomatik ENDED yapar (Warframe Sortie/
+   Archon Hunt'takiyle aynı desen).
+3. `title` alanı `${label}: ${briefing}` olarak birleştirildi,
+   `briefing` 100 karakterde kesiliyor (bazı Major Order metinleri
+   uzun paragraflar).
+4. Marka ikonu yok — `react-icons/si` içinde Helldivers ikonu
+   bulunmuyor, `GameIcon` emoji fallback'ine düşüyor, 🪖 kullanılıyor.
+
+## Gerekçe
+
+ADR-011/013/014'teki disiplinin aynısı: veri iddiasından önce gerçek
+istekle doğrulama, gürültülü/çok-taneli uç noktaları (campaigns)
+bilinçli olarak dışlama.
+
+## Sonuçlar
+
+- `GAME_IDS.HELLDIVERS_2 = "helldivers2"` eklendi
+  (`lib/constants/games.ts`), provider registry'ye kaydedildi
+  (`lib/providers/core/registry.ts`).
+- `helldivers2` `Game` satırı `seed.ts`'e eklendi VE prod DB'ye
+  ayrıca tek satır upsert ile eklendi (ADR-006/013/014'teki aynı
+  yöntem — `seed.ts` DESTRUCTIVE olduğu için prod'a karşı
+  çalıştırılmadı).
+- Uçtan uca doğrulandı: provider gerçek 2 event döndü (bir MAJOR
+  ORDER, bir STRATEGIC THREAT, ikisi de LIVE),
+  `eventSyncService.sync()` ile prod DB'ye gerçekten yazıldı
+  (source-scoped, `source: "helldivers2"`).

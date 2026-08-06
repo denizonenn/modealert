@@ -487,7 +487,7 @@ Recommendation engine
 
 # P2 — Multi Game Support
 
-Status: 🟢 7 real providers (2026-08-06)
+Status: 🟢 8 real providers (2026-08-06)
 
 Live providers
 
@@ -510,6 +510,10 @@ Live providers
 - Path of Exile ✅ (2026-08-06, `api.pathofexile.com`, no key needed —
   current challenge league only (`Allflame` verified live). See
   ADR-014.)
+- Helldivers 2 ✅ (2026-08-06, `api.helldivers2.dev`, community-run
+  mirror of Arrowhead's backend, no key needed — active Major
+  Orders/Personal Orders only (2 verified live). Per-planet campaigns
+  deliberately excluded, too high-frequency/low-signal. See ADR-015.)
 
 Pending Deniz's action
 

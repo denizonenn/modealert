@@ -12,11 +12,14 @@ export const GAME_IDS = {
   WARFRAME: "warframe",
 
   PATH_OF_EXILE: "poe",
+
+  HELLDIVERS_2: "helldivers2",
 } as const;
 
 // Games seeded in the DB with a real, working provider syncing events.
 // Anything else is a placeholder Game row with no live data behind it
-// yet — see docs/06_DECISIONS.md ADR-006/ADR-011/ADR-013/ADR-014.
+// yet — see docs/06_DECISIONS.md ADR-006/ADR-011/ADR-013/ADR-014/
+// ADR-015.
 export const GAMES_WITH_PROVIDER: Set<string> = new Set(
   Object.values(GAME_IDS)
 );

@@ -98,6 +98,17 @@ async function main() {
         activeUsers: "25K",
         featured: false,
       },
+      {
+        id: "helldivers2",
+        name: "Helldivers 2",
+        slug: "helldivers-2",
+        logo: "🪖",
+        color: "#eab308",
+        shortName: "HD2",
+        supportedEvents: 1,
+        activeUsers: "40K",
+        featured: false,
+      },
     ],
   });
 
