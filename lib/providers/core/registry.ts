@@ -30,12 +30,6 @@ export function getProviders(): EventProvider[] {
   return providers;
 }
 
-export function registerProvider(
-  provider: EventProvider
-) {
-  providers.push(provider);
-}
-
 export function getProviderName(
   id: string
 ): string {

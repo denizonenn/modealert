@@ -876,6 +876,24 @@ Current
 
 - Logging improvements
 
+- ~~Dead "written but not connected" code~~ — **cleaned up
+  (2026-08-06).** A sweep for more instances of the pattern that kept
+  showing up this session (retry/http client, `getAllHistory`) found
+  a fresh batch, all confirmed zero-callers before removal:
+  `lib/providers/core/executor.ts` and `base-provider.service.ts`
+  (superseded — `provider-sync.service.ts` already does the same job,
+  now with retry/health-check on top), `registerProvider()` in
+  `registry.ts` (providers are hardcoded, never dynamically
+  registered), `lib/helpers/getGame.ts`/`getFeaturedEvents.ts` (unused
+  wrappers — the latter also bypassed the repository layer, a real
+  architecture-rule violation even if it had been wired in),
+  `lib/services/index.ts` (stale/incomplete barrel, nothing imported
+  from it), `lib/utils/parallel.ts` (unused). Also deleted
+  `lib/events.ts` — unused, and its content was hardcoded fake event
+  data ("URF", "Night Market", `live: false`) of exactly the kind
+  ADR-007 already had to fix elsewhere; better gone than one accidental
+  import away from resurrecting that bug.
+
 - ~~Repo kökünde dokümante edilmemiş, eski bir frontend katmanı var~~ —
   **dashboard ve onboarding kısımları çözüldü** (2026-08-04). Kalan tek
   parça: `crawler/*/get-events.ts` (blizzard/epic/riot/steam/twitch)
