@@ -2,10 +2,14 @@ import type { MetadataRoute } from "next"
 
 import { SITE_URL } from "@/lib/constants/site"
 import { gameService } from "@/lib/services/game.service"
+import { eventQueryService } from "@/lib/services/event-query.service"
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date()
-  const games = await gameService.getAllGames()
+  const [games, events] = await Promise.all([
+    gameService.getAllGames(),
+    eventQueryService.getAll(),
+  ])
 
   return [
     {
@@ -32,6 +36,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily" as const,
       priority: 0.6,
     })),
+    ...events
+      .filter((event) => event.slug)
+      .map((event) => ({
+        url: `${SITE_URL}/events/${event.slug}`,
+        lastModified: now,
+        changeFrequency: "daily" as const,
+        priority: 0.4,
+      })),
     {
       url: `${SITE_URL}/live`,
       lastModified: now,

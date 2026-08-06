@@ -130,7 +130,18 @@ export default async function GameDetailPage({ params }: Props) {
                   className="rounded-2xl border border-white/10 bg-white/5 p-5"
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <h3 className="font-semibold">{event.title}</h3>
+                    <h3 className="font-semibold">
+                      {event.slug ? (
+                        <Link
+                          href={`/events/${event.slug}`}
+                          className="hover:text-zinc-300"
+                        >
+                          {event.title}
+                        </Link>
+                      ) : (
+                        event.title
+                      )}
+                    </h3>
                     <EventStatusBadge
                       status={event.status as EventStatus}
                     />

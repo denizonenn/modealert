@@ -1,6 +1,7 @@
 import {
   getEvents,
   getEventById,
+  getEventBySlug,
   getEventsByGame,
 } from "@/lib/repositories/event.repository";
 
@@ -13,6 +14,12 @@ export const eventQueryService = {
     id: string
   ) {
     return getEventById(id);
+  },
+
+  async getBySlug(
+    slug: string
+  ) {
+    return getEventBySlug(slug);
   },
 
   async getByGame(

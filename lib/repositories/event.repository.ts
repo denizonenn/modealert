@@ -80,6 +80,20 @@ export async function getEventById(
   });
 }
 
+export async function getEventBySlug(
+  slug: string
+): Promise<EventWithGame | null> {
+  return prisma.event.findUnique({
+    where: {
+      slug,
+    },
+
+    include: {
+      game: true,
+    },
+  });
+}
+
 export async function getEventsByGame(
   gameId: string
 ): Promise<EventWithGame[]> {

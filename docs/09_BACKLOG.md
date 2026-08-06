@@ -403,21 +403,25 @@ Future
 
 # P1 — Event History
 
+Status: 🟡 (2026-08-06)
+
+Completed
+
+- Per-event detail page (`/events/[slug]`) — built directly on the
+  `Event.slug` work from the same day. Shows the full `EventHistory`
+  timeline for a single event (every LIVE/TRACKING occurrence with
+  start time, end time or "ongoing", and computed duration, most
+  recent first), plus provider (resolved from `event.source` via a
+  new `getProviderName()` lookup on the provider registry),
+  first-tracked/times-seen/average-duration stats, and the existing
+  prediction/confidence from `eventPredictionService`. Linked from
+  event titles on `/games/[slug]`, included in `app/sitemap.ts`.
+
 Need
 
-Timeline
-
-Changes
-
-Start time
-
-End time
-
-Duration
-
-Provider
-
-Confidence
+- Changes — a log of title/description/status edits over time, not
+  just LIVE/TRACKING start-end spans. `EventHistory` doesn't currently
+  capture field-level diffs, only status periods.
 
 ---
 

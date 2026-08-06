@@ -35,3 +35,13 @@ export function registerProvider(
 ) {
   providers.push(provider);
 }
+
+export function getProviderName(
+  id: string
+): string {
+  return (
+    providers.find(
+      (provider) => provider.id === id
+    )?.name ?? id
+  );
+}
