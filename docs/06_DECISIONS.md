@@ -1013,3 +1013,83 @@ bu oturun boyunca tekrar tekrar düzeltilen hata sınıfı.
   gelmemeli.
 - Hiçbir kod değişikliği yapılmadı, hiçbir placeholder `Game` satırı
   eklenmedi.
+
+---
+
+# ADR-013: Yedinci Oyun Provider'ı — Warframe (warframestat.us), Key Gerektirmeyen Kaynaklar İçin Genel Tarama
+
+Status: Accepted
+
+Date: 2026-08-06
+
+## Bağlam
+
+Deniz'in isteği somut ve genişletilebilir bir kural olarak geldi: key
+almak için kayıt gerektirmeyen HER oyundan veri çek (Fortnite'ta
+olduğu gibi). ADR-011'den beri değerlendirilmemiş, keyless adaylar
+tarandı:
+
+- **Warframe** — `api.warframestat.us`, Digital Extremes'in kendi
+  worldstate feed'inin topluluk tarafından işletilen aynası, tamamen
+  public, hiçbir key/kayıt yok. Gerçek istekle doğrulandı
+  (`/pc` endpoint'i): `voidTrader` (Baro Ki'Teer, 2 haftada bir 48
+  saatlik ziyaret — `activation`/`expiry` net), `nightwave`
+  (aktif/intermission sezon durumu), `sortie` (günlük rotasyon,
+  `boss`/`expired`), `archonHunt` (haftalık rotasyon) — hepsi net
+  başlangıç/bitiş zaman damgalı, gerçek zamanlı, dökümente.
+- **Guild Wars 2** (`api.guildwars2.com/v2`) değerlendirildi ve
+  ERTELENDİ — `/v2/worldbosses` ve `/v2/build` key gerektirmeden
+  çalışıyor, ama asıl ihtiyaç duyulan `/v2/events` endpoint'i gerçek
+  istekte `503 {"text":"API not active"}` döndü (ArenaNet'in bilinen,
+  uzun süredir çözülmemiş bir sorunu — worldboss/meta-event zamanlayıcı
+  API'si aylardır kırık). Statik bir rotasyon tablosuna düşmek
+  ADR-012'deki "sahte/bayat veri yok" ilkesini ihlal eder. `/v2/build`
+  tek başına bir "event" değil, sadece oyun versiyon numarası —
+  ModeAlert'in kapsamına girmiyor. API tekrar çalışır hale gelirse
+  yeniden değerlendirilebilir.
+- Apex Legends (key gerekiyor, ADR-011/backlog'da zaten "Deniz'in
+  aksiyonu bekleniyor" olarak kayıtlı) ve Call of Duty/Overwatch
+  2/LoR/Wild Rift (ADR-006/ADR-009/ADR-012'de reddedildi) bu taramaya
+  dahil değil — hiçbiri keyless değil ya da zaten kapalı karar.
+
+## Karar
+
+1. **Warframe provider'ı eklendi** (`lib/providers/warframe/`), aynı
+   5-dosya şablon (client/types/constants/event-mapper/service/provider),
+   `enabled: true` sabit (Fortnite/Valorant'taki keyless desenle aynı).
+2. **4 gerçek event map edildi**, hepsi net zaman damgalı:
+   `warframe-void-trader` (LIVE/UPCOMING, `activation`/`expiry`
+   aralığına göre), `warframe-nightwave` (LIVE/TRACKING, `active`
+   flag'ine göre), `warframe-sortie` ve `warframe-archon-hunt`
+   (LIVE, `expired` alanı `true` gelirse dışlanıyor). Alerts/invasions
+   bilinçli olarak DIŞLANDI — çok sık değişen, düşük sinyal/gürültü
+   oranlı veri, "3-4 net event" deseninin (Destiny milestone'ları,
+   Fortnite item shop) dışına taşırdı.
+3. Platform olarak `pc` sabitlendi (console/mobile cross-save'de birkaç
+   saat geriden geliyor — `constants.ts`'te not edildi).
+
+## Gerekçe
+
+ADR-011'deki disiplinin aynısı: veri iddiasından önce gerçek istekle
+doğrulama (`voidTrader`/`nightwave`/`sortie`/`archonHunt` hepsi canlı
+veriyle kontrol edildi, alan isimleri ve null/false durumları elle
+incelendi). GW2'nin bozuk `/v2/events` endpoint'i üzerine statik veri
+koymak yerine dürüstçe ertelenmesi, ADR-012'nin Overwatch 2 kararıyla
+aynı ilke.
+
+## Sonuçlar
+
+- `GAME_IDS.WARFRAME = "warframe"` eklendi (`lib/constants/games.ts`),
+  provider registry'ye kaydedildi (`lib/providers/core/registry.ts`).
+- `warframe` `Game` satırı `seed.ts`'e eklendi VE prod DB'ye ayrıca
+  tek satır upsert ile eklendi (ADR-006'daki aynı yöntem — `seed.ts`
+  DESTRUCTIVE olduğu için prod'a karşı çalıştırılmadı).
+- Uçtan uca doğrulandı: provider gerçek 4 event döndü (Void Trader
+  UPCOMING, Nightwave TRACKING, Sortie/Archon Hunt LIVE), bu 4 event
+  `eventSyncService.sync()` ile prod DB'ye gerçekten yazıldı
+  (`event-sync.service.ts` üzerinden, source-scoped).
+- Marka ikonu yok — `react-icons/si` içinde `SiWarframe` bulunmuyor,
+  `GameIcon` zaten emoji fallback'ine sahip (bkz. backlog "Destiny
+  ikonu" düzeltmesi), 🌌 emoji kullanılıyor.
+- GW2 backlog'a "ertelendi, `/v2/events` API'si düzelirse yeniden
+  değerlendir" olarak eklendi.

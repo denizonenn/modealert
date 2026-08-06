@@ -48,12 +48,16 @@ biliyor. Buna göre:
 - **Veritabanı:** Neon Postgres (Vercel Storage Marketplace üzerinden).
   Artık SQLite değil — `DATABASE_URL` (pooled) + `DATABASE_URL_UNPOOLED`
   (migration'lar için) kullanılıyor.
-- **Aktif provider'lar (5, hepsi gerçek veriyle doğrulandı):** Riot API
+- **Aktif provider'lar (7, hepsi gerçek veriyle doğrulandı):** Riot API
   (platform status + champion rotation), CommunityDragon (event-hub,
   live+pbe patchline), Valorant (platform status + act/episode),
   **Destiny 2** (Bungie API — platform status + haftalık aktif
   milestone'lar/raid rotasyonu, 2026-08-05), **TFT** (Riot API —
-  platform status, 2026-08-05, aynı `RIOT_API_KEY`'i kullanıyor).
+  platform status, 2026-08-05, aynı `RIOT_API_KEY`'i kullanıyor),
+  **Fortnite** (`fortnite-api.com`, key gerektirmiyor — Item Shop
+  rotasyonu, 2026-08-05, bkz. ADR-011), **Warframe**
+  (`api.warframestat.us`, key gerektirmiyor — Void Trader, Nightwave,
+  Sortie, Archon Hunt, 2026-08-06, bkz. ADR-013).
   LCU sadece kişiselleştirme için — event keşfi için KULLANILMAZ
   (bkz. docs/06_DECISIONS.md ADR-001). Call of Duty değerlendirildi ve
   **reddedildi** — Activision'ın resmi bir API'si yok, gayri-resmi

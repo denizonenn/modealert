@@ -6,6 +6,7 @@ import { valorantProvider } from "@/lib/providers/valorant/provider";
 import { destinyProvider } from "@/lib/providers/destiny/provider";
 import { tftProvider } from "@/lib/providers/tft/provider";
 import { fortniteProvider } from "@/lib/providers/fortnite/provider";
+import { warframeProvider } from "@/lib/providers/warframe/provider";
 
 const providers: EventProvider[] = [
   riotProvider,
@@ -14,6 +15,7 @@ const providers: EventProvider[] = [
   destinyProvider,
   tftProvider,
   fortniteProvider,
+  warframeProvider,
 ];
 
 export function getProviders(): EventProvider[] {

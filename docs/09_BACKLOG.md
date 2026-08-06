@@ -487,7 +487,7 @@ Recommendation engine
 
 # P2 — Multi Game Support
 
-Status: 🟢 5 real providers (2026-08-05)
+Status: 🟢 6 real providers (2026-08-06)
 
 Live providers
 
@@ -502,6 +502,11 @@ Live providers
   `/v1/playlists` endpoint returns every playlist the game has ever
   had, not just currently-active ones, and `isLimitedTimeMode` never
   came back `true` on a real request. See ADR-011.)
+- Warframe ✅ (2026-08-06, `api.warframestat.us`, no key needed —
+  Void Trader (Baro Ki'Teer) arrival, Nightwave season status, daily
+  Sortie, weekly Archon Hunt. All 4 verified against real data with
+  real activation/expiry timestamps. Alerts/invasions deliberately
+  excluded (too high-frequency, low signal). See ADR-013.)
 
 Pending Deniz's action
 
@@ -524,6 +529,23 @@ Evaluated and rejected
   no credible community dataset either. Static/manual calendar was
   considered and rejected (goes stale, violates the real-data-only
   principle). Same rejection profile as Call of Duty. See ADR-012.
+
+Evaluated and deferred (keyless, but data source currently broken)
+
+- Guild Wars 2 (`api.guildwars2.com/v2`) — `/v2/worldbosses` and
+  `/v2/build` work with no key, but the endpoint that actually matters
+  (`/v2/events`, real-time meta-event/world-boss timers) returned
+  `503 "API not active"` on a real request — a known, long-standing
+  ArenaNet bug, not a fluke. Falling back to a static rotation table
+  would violate the no-fake-data principle (ADR-012). Revisit if
+  ArenaNet ever fixes it. See ADR-013.
+
+Future no-key candidates worth a look (unverified)
+
+- OpenDota (Dota 2, `api.opendota.com`, no key) — free tier exists,
+  but it's a stats/match API, not really an "event" source in the
+  sense ModeAlert tracks (game modes, rotations, limited-time
+  content). Would need its own scoping exercise like Fortnite's.
 
 Done (2026-08-05)
 

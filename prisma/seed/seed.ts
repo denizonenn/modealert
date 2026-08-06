@@ -76,6 +76,17 @@ async function main() {
         activeUsers: "60K",
         featured: false,
       },
+      {
+        id: "warframe",
+        name: "Warframe",
+        slug: "warframe",
+        logo: "🌌",
+        color: "#38bdf8",
+        shortName: "WF",
+        supportedEvents: 4,
+        activeUsers: "30K",
+        featured: false,
+      },
     ],
   });
 
