@@ -895,10 +895,18 @@ Current
   import away from resurrecting that bug.
 
 - ~~Repo kökünde dokümante edilmemiş, eski bir frontend katmanı var~~ —
-  **dashboard ve onboarding kısımları çözüldü** (2026-08-04). Kalan tek
-  parça: `crawler/*/get-events.ts` (blizzard/epic/riot/steam/twitch)
-  hâlâ tamamen boş, kullanılabilir değil — yeni bir oyun eklenirken
-  sıfırdan yazılacak (Valorant'ta yapıldığı gibi).
+  **tamamen temizlendi (2026-08-06).** `crawler/*/get-events.ts`
+  (blizzard/epic/riot/steam/twitch) hâlâ boştu diye not düşülmüştü ama
+  tam sayım yapılmamıştı — 2026-08-06'daki ölü kod taramasında toplam
+  **15 tane 0 byte'lık, sıfır referanslı dosya** bulundu: yukarıdaki 5
+  crawler dosyası + `components/marketing/*` (cta/dashboard-preview/
+  faq/features/hero/supported-games — gerçek karşılıkları
+  `components/landing/*`'te), `components/shared/Container.tsx`+
+  `PageHeader.tsx`, `components/watchlist/watchlist.tsx` (gerçeği
+  `components/dashboard/watching-list.tsx`), `onboarding/components/
+  ChooseGameCard.tsx`, `constants/navigation.ts`. Hepsi silindi —
+  yeni bir oyun eklenirken artık sıfırdan yazılacak (Valorant'ta
+  yapıldığı gibi), eski iskeletten devralınacak bir şey yok.
 
 - **Riot dev API key 24 saatte bir expire oluyor** — gerçek "low
   maintenance" için production key başvurusu gerekiyor. Şu an manuel
