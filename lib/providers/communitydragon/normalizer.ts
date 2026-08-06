@@ -66,6 +66,33 @@ export function normalizeEventHub(
   );
 }
 
+// Content that appears on the PBE patchline but not (yet) on live —
+// the earliest practical signal ModeAlert has for an upcoming event,
+// per docs/06_DECISIONS.md ADR-001. Marked as a preview rather than a
+// confirmed event because PBE content sometimes gets pulled before it
+// ever ships live.
+export function mapPbeCandidates(
+  pbeResponse: CommunityDragonEventHubResponse,
+  liveResponse: CommunityDragonEventHubResponse,
+  now: Date = new Date()
+): ProviderEvent[] {
+  const liveIds = new Set(
+    liveResponse.map((entry) => entry.event.eventId)
+  );
+
+  return pbeResponse
+    .filter((entry) => !liveIds.has(entry.event.eventId))
+    .map((entry) => {
+      const event = toProviderEvent(entry, now);
+
+      return {
+        ...event,
+        id: `communitydragon-pbe-${entry.event.eventId}`,
+        title: `${event.title} (PBE Preview)`,
+      };
+    });
+}
+
 export function toDisplayEvents(
   response: CommunityDragonEventHubResponse,
   now: Date = new Date()

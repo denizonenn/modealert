@@ -141,10 +141,23 @@ Completed
 - event hub (gerçek `EventProvider` olarak bağlandı, DB'ye senkronize
   oluyor — bkz. docs/06_DECISIONS.md ADR-001/ADR-002)
 - PBE patchline desteği (`/live` sayfasında live vs pbe karşılaştırması)
+- **PBE aday event senkronizasyonu** — **tamamlandı (2026-08-06).**
+  ADR-001'in planlayıp hiç uygulamadığı parça: PBE'de olup live'da
+  olmayan event-hub girdileri artık ayrı bir provider'la
+  (`communitydragon-pbe`) gerçekten DB'ye senkronize oluyor, `(PBE
+  Preview)` etiketiyle — onboarding/dashboard'da normal bir event
+  gibi track edilebiliyor. Bkz. ADR-017.
 
 Remaining
 
-- rotating modes
+- ~~rotating modes~~ — **araştırıldı, çözülemedi (2026-08-06).** URF/
+  Arena/ARAM Mayhem gibi rotasyonlu "featured game mode"lar
+  `event-hub.json`'da (ne live ne pbe) hiç yok; `queues.json` tüm
+  420 kuyruğu (URF dahil) tarihsiz/aktiflik bilgisi olmadan
+  döndürüyor — OpenDota'nın "her zaman her şeyi döner, aktif filtre
+  yok" sorunuyla aynı sınıf. Keyless, güvenilir bir "şu an rotasyonda
+  olan mod" kaynağı bulunamadı. Bkz. ADR-017. Riot/CommunityDragon
+  ileride böyle bir endpoint sunarsa yeniden değerlendirilmeli.
 - arena metadata (cherry-lobby.json henüz kullanılmıyor)
 - event-passes.json entegrasyonu
 
@@ -824,6 +837,14 @@ Current
   them for real. Built primarily to unblock the Riot production key
   application, which requires a real ToS/Privacy page on the app's
   own domain.
+
+- ~~Landing page's dashboard mockup (`DashboardPreview`) overflowed
+  and overlapped adjacent cards when a real event title was long
+  (e.g. Helldivers 2's Major Order briefings)~~ — **fixed
+  (2026-08-06).** The `truncate` class was already there but had no
+  effect without `min-w-0` on the flex ancestors — classic Tailwind
+  flexbox gotcha. Added `min-w-0`/`shrink-0` where needed in
+  `components/landing/dashboard-preview.tsx`.
 
 No open bugs.
 

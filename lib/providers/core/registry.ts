@@ -2,6 +2,7 @@ import type { EventProvider } from "./provider";
 
 import { riotProvider } from "@/lib/providers/riot/provider";
 import { communityDragonProvider } from "@/lib/providers/communitydragon/provider";
+import { communityDragonPbeProvider } from "@/lib/providers/communitydragon/pbe-provider";
 import { valorantProvider } from "@/lib/providers/valorant/provider";
 import { destinyProvider } from "@/lib/providers/destiny/provider";
 import { tftProvider } from "@/lib/providers/tft/provider";
@@ -14,6 +15,7 @@ import { foxholeProvider } from "@/lib/providers/foxhole/provider";
 const providers: EventProvider[] = [
   riotProvider,
   communityDragonProvider,
+  communityDragonPbeProvider,
   valorantProvider,
   destinyProvider,
   tftProvider,

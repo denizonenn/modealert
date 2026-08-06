@@ -71,12 +71,12 @@ export function DashboardPreview({ events, monitoredCount }: Props) {
                   whileHover={{ scale: 1.02 }}
                   className="rounded-2xl border border-white/10 bg-black/40 p-5"
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-4">
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex min-w-0 items-center gap-4">
 
                       <div
-                        className="flex h-11 w-11 items-center justify-center rounded-xl border"
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border"
                         style={{
                           backgroundColor: `${event.color}1a`,
                           borderColor: `${event.color}40`,
@@ -89,8 +89,8 @@ export function DashboardPreview({ events, monitoredCount }: Props) {
                         )}
                       </div>
 
-                      <div>
-                        <p className="text-sm text-zinc-500">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm text-zinc-500">
                           {event.game}
                         </p>
 

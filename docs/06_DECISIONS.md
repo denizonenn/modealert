@@ -1263,3 +1263,82 @@ kaynak sınıfı.
 - Uçtan uca doğrulandı: provider gerçek 1 event döndü (`War #137`,
   LIVE), `eventSyncService.sync()` ile prod DB'ye gerçekten yazıldı
   (source-scoped, `source: "foxhole"`).
+
+---
+
+# ADR-017: PBE Aday Event Senkronizasyonu Tamamlandı — ve URF'ün Neden Hâlâ Yakalanamadığı
+
+Status: Accepted
+
+Date: 2026-08-06
+
+## Bağlam
+
+ADR-001, en erken sinyal kaynağı olarak CommunityDragon'ın `pbe`
+patchline'ını belirlemiş ve şunu planlamıştı: PBE'de görülüp live'da
+henüz olmayan bir event-hub girdisi "aday event" olarak
+işaretlenecek. Ama ADR-001'in "Sonuçlar" bölümü bunu "ayrı bir
+implementasyon görevi" olarak bıraktı — ve o görev hiç yapılmadı.
+Gerçek kodda `communityDragonService.getEvents()` (yani
+`eventSyncService.sync()`'e giden, DB'ye yazılan, dolayısıyla
+onboarding/dashboard'da seçilebilir hale gelen tek yol) hep `live`
+patchline'ına sabit kalmıştı. `pbe` patchline'ı sadece
+`getCurrentStatus()` üzerinden `/live` sayfasının salt-görüntüleme
+`pbeCandidates` listesine gidiyordu — hiçbir zaman bir `Event`
+satırına dönüşmüyordu, dolayısıyla asla track edilebilir olmuyordu.
+
+Deniz'in somut örneği URF'tü — ama gerçek isteklerle doğrulandı ki
+**URF'ün buradan yakalanması zaten mümkün değil**, PBE/live farkı
+düzeltilse bile:
+
+- `event-hub.json` (hem `live` hem `pbe`) şu an sadece Season
+  Pass/Battle Pass/Activity Center/Hall of Legends içeriğini
+  kapsıyor (2026-08-06'da gerçek istekle: 21 girdi, hepsi bu
+  tiplerden, ikisi arasında hiçbir fark yok). URF/Arena/ARAM Mayhem
+  gibi rotasyonlu "featured game mode"lar bu feed'de HİÇ yok.
+- `queues.json` (hem live hem pbe aynı) URF/ARURF dahil TÜM kuyruk
+  tanımlarını (420 tane) döndürüyor — ama "şu an aktif mi" bilgisi
+  yok, tıpkı reddedilen OpenDota/eski Fortnite playlists sorunuyla
+  aynı sınıf (bkz. docs/09_BACKLOG.md). `isLimitedTimeQueue` alanı
+  bile URF girdilerinde `false` geliyor, güvenilmez.
+- LCU zaten ADR-001'de event keşfi için reddedilmişti.
+- Riot'un "şu an rotasyonda olan featured mode" bilgisini public,
+  keyless bir endpoint üzerinden sunduğu bilinen bir kaynak yok
+  (WebSearch ile arandı, sonuç çıkmadı).
+
+## Karar
+
+1. **PBE aday event senkronizasyonu tamamlandı** —
+   `communityDragonService.getPbeCandidateEvents()` eklendi
+   (`normalizer.ts` → `mapPbeCandidates`), `pbe` ve `live`
+   patchline'larını karşılaştırıp sadece PBE'de olanları döndürüyor.
+2. **Ayrı bir provider olarak kaydedildi**: `communitydragon-pbe`
+   (`lib/providers/communitydragon/pbe-provider.ts`) — aynı `lol`
+   `gameId`'sine yazıyor ama farklı bir `source` ile, böylece
+   confirmed-live event'lerle asla karışmıyor/üzerine yazmıyor.
+   Event ID'leri `communitydragon-pbe-{eventId}`, başlık `(PBE
+   Preview)` son ekiyle işaretleniyor.
+3. **URF benzeri rotasyonlu mod tespiti kapsam dışı bırakıldı** —
+   çözülebilir bir veri kaynağı yok. Bu ADR-012/013'teki "sahte veri
+   koymaktansa dürüstçe ertelemek" ilkesiyle aynı.
+
+## Gerekçe
+
+Event-hub tabanlı PBE senkronizasyonu, ADR-001'in planladığı gerçek
+bir iyileştirme (Season Pass/Battle Pass içeriği artık live'a
+düşmeden görülebilecek) — o yüzden tamamlandı. Ama URF'ü
+"çözülmüş" gibi göstermek yanlış olurdu; kullanıcıya yanlış bir
+güvence vermek yerine, hangi veri kaynağının bunu neden
+karşılamadığı burada net şekilde kayıt altına alındı.
+
+## Sonuçlar
+
+- Uçtan uca doğrulandı: gerçek istekle `communitydragonPbeProvider.getEvents()`
+  çağrıldı, `eventSyncService.sync()` ile senkronize edildi — şu an
+  PBE ile live birebir aynı olduğu için 0 aday event döndü (beklenen
+  davranış, hata değil).
+- `lib/providers/communitydragon/normalizer.test.ts`'e `mapPbeCandidates`
+  testleri eklendi.
+- Eğer ileride Riot/CommunityDragon rotasyonlu mod verisi için
+  keyless bir kaynak sunarsa, bu ADR'a yeni bir provider olarak
+  eklenmeli — bkz. docs/09_BACKLOG.md.

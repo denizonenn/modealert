@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { normalizeEventHub, toDisplayEvents } from "./normalizer";
+import {
+  mapPbeCandidates,
+  normalizeEventHub,
+  toDisplayEvents,
+} from "./normalizer";
 
 import type { CommunityDragonEventHubResponse } from "./types";
 
@@ -86,6 +90,40 @@ describe("normalizeEventHub", () => {
     );
 
     expect(event.title).toBe("Short");
+  });
+});
+
+describe("mapPbeCandidates", () => {
+  it("only surfaces PBE entries not present on live", () => {
+    const live = [
+      entry("shared", "2026-08-01T00:00:00.000Z", "2026-08-10T00:00:00.000Z"),
+    ];
+    const pbe = [
+      entry("shared", "2026-08-01T00:00:00.000Z", "2026-08-10T00:00:00.000Z"),
+      entry(
+        "new-on-pbe",
+        "2026-09-01T00:00:00.000Z",
+        "2026-09-10T00:00:00.000Z",
+        { localizedShortName: "Mystery Mode" }
+      ),
+    ];
+
+    const events = mapPbeCandidates(pbe, live, now);
+
+    expect(events).toHaveLength(1);
+    expect(events[0].id).toBe("communitydragon-pbe-new-on-pbe");
+    expect(events[0].title).toBe("Mystery Mode (PBE Preview)");
+    expect(events[0].status).toBe("UPCOMING");
+  });
+
+  it("returns nothing when PBE and live are identical", () => {
+    const shared = [
+      entry("1", "2026-08-01T00:00:00.000Z", "2026-08-10T00:00:00.000Z"),
+    ];
+
+    const events = mapPbeCandidates(shared, shared, now);
+
+    expect(events).toHaveLength(0);
   });
 });
 

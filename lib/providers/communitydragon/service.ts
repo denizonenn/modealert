@@ -8,6 +8,7 @@ import {
 
 import {
   normalizeEventHub,
+  mapPbeCandidates,
   toDisplayEvents,
 } from "./normalizer";
 
@@ -39,6 +40,21 @@ export const communityDragonService = {
 
     return normalizeEventHub(
       eventHub
+    );
+  },
+
+  async getPbeCandidateEvents(): Promise<
+    ProviderEvent[]
+  > {
+    const [live, pbe] =
+      await Promise.all([
+        fetchEventHub("live"),
+        fetchEventHub("pbe"),
+      ]);
+
+    return mapPbeCandidates(
+      pbe,
+      live
     );
   },
 
