@@ -1,6 +1,11 @@
 "use client"
 
+import { useMemo, useState } from "react"
+
 import EventStatusCard from "./event-status-card"
+
+import { GameIcon } from "@/components/shared/game-icon"
+import { cn } from "@/lib/utils"
 
 import { useEvents } from "@/hooks/use-events"
 import { useWatchlist } from "@/hooks/use-watchlist"
@@ -8,6 +13,62 @@ import { Skeleton } from "@/components/shared/skeleton"
 
 import type { EventWithGame } from "@/lib/repositories/event.repository"
 import type { EventStatus } from "@/types/status"
+
+interface GameOption {
+  id: string
+  name: string
+  logo: string
+  color: string
+}
+
+function GameFilterBar({
+  games,
+  selectedGameId,
+  onSelect,
+}: {
+  games: GameOption[]
+  selectedGameId: string | null
+  onSelect: (gameId: string | null) => void
+}) {
+  return (
+    <div className="mb-8 flex flex-wrap gap-2">
+      <button
+        type="button"
+        onClick={() => onSelect(null)}
+        className={cn(
+          "rounded-full border px-4 py-1.5 text-sm font-medium transition-colors",
+          selectedGameId === null
+            ? "border-white/20 bg-white/10 text-white"
+            : "border-white/10 text-zinc-400 hover:border-white/20 hover:text-white"
+        )}
+      >
+        All Games
+      </button>
+
+      {games.map((game) => (
+        <button
+          key={game.id}
+          type="button"
+          onClick={() => onSelect(game.id)}
+          className={cn(
+            "flex items-center gap-2 rounded-full border py-1 pr-4 pl-1.5 text-sm font-medium transition-colors",
+            selectedGameId === game.id
+              ? "border-white/20 bg-white/10 text-white"
+              : "border-white/10 text-zinc-400 hover:border-white/20 hover:text-white"
+          )}
+        >
+          <GameIcon
+            gameId={game.id}
+            logo={game.logo}
+            color={game.color}
+            size="sm"
+          />
+          {game.name}
+        </button>
+      ))}
+    </div>
+  )
+}
 
 const SECTIONS: {
   status: EventStatus
@@ -118,7 +179,29 @@ export default function WatchingList() {
     toggle,
   } = useWatchlist()
 
+  const [selectedGameId, setSelectedGameId] =
+    useState<string | null>(null)
+
   const isLoading = eventsLoading || watchlistLoading
+
+  const games = useMemo(() => {
+    const byId = new Map<string, GameOption>()
+
+    for (const event of events) {
+      if (!byId.has(event.game.id)) {
+        byId.set(event.game.id, {
+          id: event.game.id,
+          name: event.game.name,
+          logo: event.game.logo,
+          color: event.game.color,
+        })
+      }
+    }
+
+    return [...byId.values()].sort((a, b) =>
+      a.name.localeCompare(b.name)
+    )
+  }, [events])
 
   if (isLoading) {
     return (
@@ -138,36 +221,58 @@ export default function WatchingList() {
     )
   }
 
-  const watchedEvents = events.filter((event) =>
+  const filteredEvents = selectedGameId
+    ? events.filter(
+        (event) => event.game.id === selectedGameId
+      )
+    : events
+
+  const watchedEvents = filteredEvents.filter((event) =>
     watchlistedIds.has(event.id)
   )
 
   return (
-    <div className="space-y-14">
-      <div>
-        <h2 className="mb-6 text-lg font-semibold">
-          Your Watchlist
-        </h2>
+    <div>
+      <GameFilterBar
+        games={games}
+        selectedGameId={selectedGameId}
+        onSelect={setSelectedGameId}
+      />
 
-        <EventSections
-          events={watchedEvents}
-          watchlistedIds={watchlistedIds}
-          onToggleWatch={toggle}
-          emptyMessage="You're not watching anything yet — add events from the list below."
-        />
-      </div>
+      <div className="space-y-14">
+        <div>
+          <h2 className="mb-6 text-lg font-semibold">
+            Your Watchlist
+          </h2>
 
-      <div>
-        <h2 className="mb-6 text-lg font-semibold">
-          All Events
-        </h2>
+          <EventSections
+            events={watchedEvents}
+            watchlistedIds={watchlistedIds}
+            onToggleWatch={toggle}
+            emptyMessage={
+              selectedGameId
+                ? "You're not watching any events for this game yet."
+                : "You're not watching anything yet — add events from the list below."
+            }
+          />
+        </div>
 
-        <EventSections
-          events={events}
-          watchlistedIds={watchlistedIds}
-          onToggleWatch={toggle}
-          emptyMessage="No events tracked yet."
-        />
+        <div>
+          <h2 className="mb-6 text-lg font-semibold">
+            All Events
+          </h2>
+
+          <EventSections
+            events={filteredEvents}
+            watchlistedIds={watchlistedIds}
+            onToggleWatch={toggle}
+            emptyMessage={
+              selectedGameId
+                ? "No events tracked yet for this game."
+                : "No events tracked yet."
+            }
+          />
+        </div>
       </div>
     </div>
   )
