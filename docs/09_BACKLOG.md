@@ -489,17 +489,36 @@ Need (not buildable without new instrumentation — flagged, not skipped)
 
 # P1 — Scheduler
 
+Status: 🟡 (2026-08-06)
+
+Completed
+
+- **Backoff** and **parallel execution**, partially — turned out
+  `lib/utils/retry.ts` (exponential-ish backoff, 3 attempts) and
+  `lib/http/client.ts` (timeout + retry, built on top of it) already
+  existed and were already wired into 9 of 10 provider clients — found
+  while looking for what to build next, another instance of the
+  "written but not connected" pattern, this time only 1/10 connected
+  wrong rather than 0/10. **CommunityDragon's client was the one
+  holdout**, still on raw `fetch()` with no retry — migrated to the
+  shared `http()` client (2026-08-06), verified against a real sync
+  (17 events, same result as before, now retry-protected). Provider
+  fetches already run in parallel via `Promise.allSettled` in
+  `provider-sync.service.ts` (existed before this session).
+  `lib/utils/retry.ts` got real test coverage for the first time
+  (3 tests, fake timers).
+
 Need
 
-Cron abstraction
-
-Adaptive polling
-
-Backoff
-
-Parallel execution
-
-Failure recovery
+- Cron abstraction (currently just a single Vercel Cron route calling
+  `syncAll()` — fine at current scale, revisit if multiple schedules
+  are ever needed)
+- Adaptive polling (blocked on Vercel Hobby plan's once-daily cron
+  limit — see CLAUDE.md "Cron" note; moot until Pro plan)
+- Failure recovery beyond per-request retry — e.g. a provider that's
+  down for a full day currently just reports unhealthy in
+  `ProviderHealthCheck`/`/status` until the next day's cron; no
+  automatic re-check or alerting exists yet.
 
 ---
 

@@ -1,3 +1,5 @@
+import { http } from "@/lib/http/client";
+
 import type {
   CommunityDragonPatchline,
 } from "./types";
@@ -7,7 +9,7 @@ import {
   COMMUNITY_DRAGON_BASE_URLS,
 } from "./constants";
 
-class CommunityDragonClient {
+export const communityDragonClient = {
   async get<T>(
     endpoint: string,
     patchline: CommunityDragonPatchline = "live"
@@ -17,26 +19,12 @@ class CommunityDragonClient {
         patchline
       ];
 
-    const response =
-      await fetch(
-        `${baseUrl}${endpoint}`,
-        {
-          signal:
-            AbortSignal.timeout(
-              COMMUNITY_DRAGON.TIMEOUT
-            ),
-        }
-      );
-
-    if (!response.ok) {
-      throw new Error(
-        `CommunityDragon request failed (${response.status}) [${patchline}] ${endpoint}`
-      );
-    }
-
-    return response.json();
-  }
-}
-
-export const communityDragonClient =
-  new CommunityDragonClient();
+    return http<T>(
+      `${baseUrl}${endpoint}`,
+      {
+        timeout:
+          COMMUNITY_DRAGON.TIMEOUT,
+      }
+    );
+  },
+};
