@@ -1419,3 +1419,85 @@ metinden geliyor — hiçbir provider için içerik uydurulmadı.
   liste de taşmıyor).
 - `npx tsc --noEmit`, `npx eslint .`, `npx vitest run` (53 test),
   `npx next build` hepsi temiz.
+
+---
+
+# ADR-019: OLAY — `prisma migrate dev` Prod DB'yi Sıfırladı; Artık Sadece `migrate deploy` Kullanılacak
+
+Status: Accepted (Incident Postmortem)
+
+Date: 2026-08-06
+
+## Ne oldu
+
+`Event.slug` alanı eklenirken `npx prisma migrate dev --name
+add_event_slug` çalıştırıldı. Komut, yeni unique index'in
+(`Event_slug_key`) teorik olarak başarısız olabileceğine dair bir
+uyarı verdi ve interaktif onay istedi. Terminal non-interactive
+olduğu için komut "Prisma Migrate has detected that the environment
+is non-interactive" hatasıyla durdu — ama **bu hatadan önce,
+arka planda veritabanını resetlemişti**. Proje tek bir paylaşılan
+Neon DB kullanıyor (local `.env` = Vercel production, ayrı bir dev
+DB yok — bkz. CLAUDE.md), yani bu reset **doğrudan canlı veritabanını
+sıfırladı**: tüm `User`/`Account`/`Session`/`Watchlist`/
+`Notification`/`Game`/`Event` satırları silindi, `/api/games` canlıda
+`[]` döndü.
+
+Kök neden: `_prisma_migrations` tablosunun o an tutarsız/eksik bir
+durumda olması + `migrate dev`'in "drift" tespit ettiğinde
+(migration history ile şema uyuşmadığında) interaktif onaydan ÖNCE
+resetleme adımını deneyebilmesi. Bu proje bağlamında `migrate dev`
+hiçbir zaman güvenli değil çünkü **local ortam = prod ortam**.
+
+## Kurtarma
+
+Deniz, Neon Console'dan **point-in-time restore** ile veritabanını
+olay öncesi bir ana (13:30) geri aldı. Restore noktası
+`add_event_description` migration'ından sonra ama description'ların
+gerçek veriyle senkronize edildiği andan önceydi — restore sonrası
+tüm provider'lar tekrar çalıştırılıp (`eventSyncService.sync`)
+description'lar yeniden dolduruldu. Kullanıcı hesapları/watchlist/
+session verisi restore ile tam olarak geri geldi (3 user, 23
+watchlist — hiçbiri kayıp değil). `slug` migration'ı, bu sefer
+aşağıdaki güvenli yöntemle sorunsuz uygulandı.
+
+## Karar — Bundan sonra ŞEMA DEĞİŞİKLİĞİ İÇİN TEK YÖNTEM
+
+**`prisma migrate dev` bu projede BİR DAHA ASLA çalıştırılmayacak.**
+Yerine:
+
+1. `schema.prisma`'yı düzenle.
+2. SQL diff'i üret (hiçbir şeye dokunmaz, sadece SQL yazdırır):
+   ```
+   npx prisma migrate diff \
+     --from-migrations prisma/migrations \
+     --to-schema-datamodel prisma/schema.prisma \
+     --shadow-database-url "$DATABASE_URL_UNPOOLED" \
+     --script
+   ```
+3. Çıktıyı elle oku — yıkıcı bir şey var mı (DROP COLUMN, DROP TABLE,
+   NOT NULL'a çeviren bir ALTER, vb.) kontrol et.
+4. `prisma/migrations/<timestamp>_<isim>/migration.sql` dosyasını
+   elle oluştur, SQL'i oraya yapıştır.
+5. `npx prisma migrate deploy` ile uygula — bu komut SADECE bekleyen
+   migration'ları sırayla uygular, asla reset/drift-resolve yapmaz,
+   interaktif onay istemez. Bu proje için tek güvenli uygulama yolu.
+6. `npx prisma generate` ile client'ı yenile (Windows'ta dev server
+   çalışıyorsa dll kilitlenip `EPERM` verebilir — önce durdur).
+
+## Gerekçe
+
+`migrate dev` "geliştirme deneyimi" için tasarlanmış ve gerektiğinde
+sessizce/yarı-sessizce resetleyebilen bir araç — ayrı bir dev
+veritabanı olduğu varsayımıyla güvenli. Bu projede öyle bir ayrım
+yok, o yüzden `migrate dev`'in HİÇBİR kullanımı güvenli kabul
+edilmemeli. `migrate deploy` ise tam olarak "production'a uygula"
+senaryosu için var: additive-only, non-interactive, reset yapmaz.
+
+## Sonuçlar
+
+- Bu ADR, gelecekteki her oturum için CLAUDE.md'nin "Kritik Mimari
+  Kurallar" bölümüne taşındı (oradan HER ZAMAN okunuyor) — sadece
+  burada kalırsa yeterince görünür olmaz.
+- `Event.slug` migration'ı (`20260806104809_add_event_slug`) yukarıdaki
+  güvenli yöntemle başarıyla uygulandı, veri kaybı olmadı.

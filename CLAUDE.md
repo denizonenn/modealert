@@ -38,6 +38,25 @@ biliyor. Buna göre:
   health(), name, priority. Bağımsız ve değiştirilebilir olmalı.
 - Prisma sadece repository katmanı içinden kullanılır.
 
+## ⚠️ ŞEMA DEĞİŞİKLİĞİ KURALI — `prisma migrate dev` YASAK
+
+Bu projede local `.env` ile Vercel production **AYNI Neon
+veritabanını** kullanıyor — ayrı bir dev DB yok. 2026-08-06'da
+`prisma migrate dev` bir unique constraint uyarısında interaktif
+onay isteyip non-interactive terminalde hata verdi, ama hata
+vermeden ÖNCE veritabanını resetledi — canlıdaki tüm kullanıcılar/
+watchlist'ler/event'ler silindi (Neon point-in-time restore ile
+kurtarıldı). Detay: docs/06_DECISIONS.md ADR-019.
+
+**Şema değişikliği gerektiğinde SADECE bu sırayla ilerle:**
+
+1. `schema.prisma`'yı düzenle.
+2. `npx prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma --shadow-database-url "$DATABASE_URL_UNPOOLED" --script` ile SQL'i üret (hiçbir şeye dokunmaz).
+3. SQL'i oku, yıkıcı bir şey olmadığından emin ol.
+4. `prisma/migrations/<timestamp>_<isim>/migration.sql` dosyasını elle oluşturup SQL'i yapıştır.
+5. `npx prisma migrate deploy` ile uygula (non-interactive, reset yapmaz — TEK güvenli yöntem).
+6. `npx prisma generate` (Windows'ta dev server açıksa önce durdur, yoksa dll kilitlenip EPERM verir).
+
 ## Şu Anki Durum (2026-08-06 itibarıyla)
 
 - Asıl geliştirme `feature/landing-page-v2` branch'inde yapılıyor.
