@@ -736,7 +736,12 @@ Current
 
 - Riot endpoint discovery
 
-- Provider test coverage
+- ~~Provider test coverage~~ — **done (2026-08-06).** `vitest` added
+  (`npm test` / `npm run test:watch`), 51 tests across all 10
+  registered providers' pure event-mapper/normalizer functions
+  (status transitions, filtering, title formatting). Client/service
+  layers (real HTTP calls) deliberately left untested — no mocking
+  framework introduced, kept to pure-function coverage for now.
 
 - Notification tests
 
