@@ -1,6 +1,9 @@
+import { createHash } from "crypto";
+
 import { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/db/prisma";
+import { slugify } from "@/lib/utils";
 
 import type {
   ProviderEvent,
@@ -125,6 +128,24 @@ export async function getEventCountsByGame(): Promise<
   );
 }
 
+function buildEventSlug(
+  event: ProviderEvent
+): string {
+  // Same game + same title can recur under different
+  // provider ids (e.g. a season pass that ends and
+  // restarts as a new event-hub entry) — the id hash
+  // suffix keeps the globally-unique slug column collision-free
+  // while staying stable across upserts of the same event.
+  const idHash = createHash("sha1")
+    .update(event.id)
+    .digest("hex")
+    .slice(0, 6);
+
+  return `${slugify(
+    `${event.gameId}-${event.title}`
+  )}-${idHash}`;
+}
+
 export async function upsertEvent(
   event: ProviderEvent,
   source: string
@@ -138,6 +159,8 @@ export async function upsertEvent(
 
     description:
       event.description ?? null,
+
+    slug: buildEventSlug(event),
 
     status: event.status,
 

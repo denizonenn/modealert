@@ -50,6 +50,15 @@ export function formatDuration(ms: number): string {
   return `${Math.max(minutes, 1)}m`
 }
 
+export function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+}
+
 export function formatCount(count: number): string {
   if (count >= 1_000_000) {
     return `${(count / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`
