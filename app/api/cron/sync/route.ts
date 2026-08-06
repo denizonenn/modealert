@@ -34,13 +34,15 @@ export async function GET(
   }
 
   try {
-    const results =
+    const { results, durationMs } =
       await providerSyncService.syncAll();
 
     return NextResponse.json({
       success: true,
 
       results,
+
+      durationMs,
     });
   } catch (error) {
     console.error(error);

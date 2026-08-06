@@ -532,16 +532,28 @@ Completed
   (see P1 Statistics → Provider uptime) records both on every sync,
   surfaced as uptime % on `/statistics` and live per-provider status on
   `/status`/`/admin`.
+- **Sync duration** — **done (2026-08-06).** `providerSyncService.syncAll()`
+  now times the whole run and returns `durationMs`; both
+  `/api/cron/sync` and `/api/admin/sync` include it, shown on
+  `/admin`'s manual sync panel ("Finished in Xs"). Verified against a
+  real sync (11 providers, 3054ms). Not persisted anywhere yet — it's
+  a per-request value, not a trend over time; revisit if that's ever
+  needed.
+- **Database health** — **done (2026-08-06).** `lib/db/health.ts`
+  (`checkDatabaseHealth()`, a timed `SELECT 1`) wired into
+  `/api/providers/health` alongside provider checks, surfaced as its
+  own row on `/status` and `/admin` (also factored into `/status`'s
+  "All systems operational" headline). Verified live (healthy, real
+  latency).
 
 Need
 
-- Sync duration (whole-sync wall-clock time, not just per-provider
-  latency — `providerSyncService.syncAll()` doesn't currently time
-  itself as a unit)
 - Notification latency (time from event-change-detected to
-  notification-sent)
-- Database health (Neon connection/query health as its own signal,
-  distinct from "did a Prisma query happen to succeed")
+  notification-sent) — lower priority than it sounds: notifications
+  fire synchronously within the same sync request in this
+  architecture (no queue/worker gap), so the number would likely
+  always be near-zero and not very informative. Revisit if a queue
+  ever gets introduced.
 
 ---
 

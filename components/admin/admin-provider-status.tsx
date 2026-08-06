@@ -21,7 +21,7 @@ function StatusIcon({ healthy }: { healthy: boolean | null }) {
 }
 
 export function AdminProviderStatus() {
-  const { providers, checkedAt, isLoading } = useProviderHealth()
+  const { providers, database, checkedAt, isLoading } = useProviderHealth()
 
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
@@ -37,6 +37,46 @@ export function AdminProviderStatus() {
       <div className="mt-4 space-y-2">
         {isLoading &&
           [1, 2, 3].map((i) => <Skeleton key={i} className="h-10 w-full" />)}
+
+        {database && (
+          <div
+            className={cn(
+              "flex items-center justify-between rounded-lg border px-3 py-2 text-sm",
+              database.healthy === false
+                ? "border-red-400/30 bg-red-500/5"
+                : "border-white/10 bg-transparent"
+            )}
+          >
+            <div className="flex items-center gap-2">
+              <StatusIcon healthy={database.healthy} />
+              <span className="text-zinc-300">Database</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {database.error && (
+                <span className="max-w-xs truncate text-xs text-red-400">
+                  {database.error}
+                </span>
+              )}
+
+              <span className="text-xs text-zinc-500">
+                {database.latencyMs}ms
+              </span>
+
+              <Badge
+                variant="outline"
+                className={cn(
+                  "text-xs",
+                  database.healthy
+                    ? "border-emerald-400/30 bg-emerald-500/15 text-emerald-400"
+                    : "border-red-400/30 bg-red-500/15 text-red-400"
+                )}
+              >
+                {database.healthy ? "OK" : "Down"}
+              </Badge>
+            </div>
+          </div>
+        )}
 
         {providers.map((provider) => (
           <div

@@ -12,6 +12,9 @@ import {
 
 export const providerSyncService = {
   async syncAll() {
+    const syncStartedAt =
+      Date.now();
+
     const providers =
       getProviders();
 
@@ -89,27 +92,36 @@ export const providerSyncService = {
         )
       );
 
-    return results.map(
-      (result, index) => {
-        if (
-          result.status ===
-          "fulfilled"
-        ) {
-          return result.value;
+    const providerResults =
+      results.map(
+        (result, index) => {
+          if (
+            result.status ===
+            "fulfilled"
+          ) {
+            return result.value;
+          }
+
+          return {
+            provider:
+              providers[index].name,
+
+            error:
+              result.reason instanceof
+              Error
+                ? result.reason
+                    .message
+                : "Unknown error",
+          };
         }
+      );
 
-        return {
-          provider:
-            providers[index].name,
+    return {
+      results: providerResults,
 
-          error:
-            result.reason instanceof
-            Error
-              ? result.reason
-                  .message
-              : "Unknown error",
-        };
-      }
-    );
+      durationMs:
+        Date.now() -
+        syncStartedAt,
+    };
   },
 };

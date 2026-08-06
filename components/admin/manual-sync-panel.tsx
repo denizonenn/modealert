@@ -17,6 +17,7 @@ interface SyncResult {
 interface SyncResponse {
   success: boolean
   results?: SyncResult[]
+  durationMs?: number
   error?: string
 }
 
@@ -66,6 +67,12 @@ export function ManualSyncPanel() {
           {!response.success && (
             <p className="text-sm text-red-400">
               {response.error ?? "Sync failed."}
+            </p>
+          )}
+
+          {response.durationMs !== undefined && (
+            <p className="text-xs text-zinc-600">
+              Finished in {(response.durationMs / 1000).toFixed(1)}s
             </p>
           )}
 

@@ -56,11 +56,14 @@ function statusBadge(healthy: boolean | null) {
 }
 
 export default function StatusPage() {
-  const { providers, checkedAt, isLoading, error } = useProviderHealth()
+  const { providers, database, checkedAt, isLoading, error } =
+    useProviderHealth()
 
-  const allHealthy = providers
-    .filter((p) => p.enabled)
-    .every((p) => p.healthy)
+  const allHealthy =
+    providers
+      .filter((p) => p.enabled)
+      .every((p) => p.healthy) &&
+    database?.healthy !== false
 
   return (
     <>
@@ -95,6 +98,39 @@ export default function StatusPage() {
             [1, 2, 3].map((i) => (
               <Skeleton key={i} className="h-20 w-full" />
             ))}
+
+          {database && (
+            <div
+              className={cn(
+                "rounded-xl border p-4",
+                database.healthy === false
+                  ? "border-red-400/30 bg-red-500/5"
+                  : "border-white/10 bg-white/5"
+              )}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <StatusIcon healthy={database.healthy} />
+
+                  <div>
+                    <p className="font-medium">Database</p>
+
+                    <p className="text-xs text-zinc-500">
+                      {database.latencyMs}ms
+                    </p>
+
+                    {database.error && (
+                      <p className="mt-1 text-xs text-red-400">
+                        {database.error}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {statusBadge(database.healthy)}
+              </div>
+            </div>
+          )}
 
           {providers.map((provider) => (
             <div

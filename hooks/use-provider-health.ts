@@ -10,9 +10,16 @@ interface ProviderHealth {
   error?: string
 }
 
+interface DatabaseHealth {
+  healthy: boolean
+  latencyMs: number
+  error?: string
+}
+
 interface ProviderHealthResponse {
   success: boolean
   providers: ProviderHealth[]
+  database?: DatabaseHealth
   checkedAt: string
 }
 
@@ -37,6 +44,7 @@ export function useProviderHealth() {
 
   return {
     providers: data?.providers ?? [],
+    database: data?.database,
     checkedAt: data?.checkedAt,
     error,
     isLoading,

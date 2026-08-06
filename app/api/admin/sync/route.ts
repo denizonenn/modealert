@@ -15,11 +15,13 @@ export async function POST() {
   }
 
   try {
-    const results = await providerSyncService.syncAll();
+    const { results, durationMs } =
+      await providerSyncService.syncAll();
 
     return NextResponse.json({
       success: true,
       results,
+      durationMs,
     });
   } catch (error) {
     console.error(error);

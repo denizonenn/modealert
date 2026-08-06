@@ -6,15 +6,24 @@ import {
   providerHealthService,
 } from "@/lib/providers/core/health.service";
 
+import {
+  checkDatabaseHealth,
+} from "@/lib/db/health";
+
 export async function GET() {
   try {
-    const providers =
-      await providerHealthService.check();
+    const [providers, database] =
+      await Promise.all([
+        providerHealthService.check(),
+        checkDatabaseHealth(),
+      ]);
 
     return NextResponse.json({
       success: true,
 
       providers,
+
+      database,
 
       checkedAt:
         new Date().toISOString(),
