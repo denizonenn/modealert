@@ -11,6 +11,8 @@ export interface ProviderEvent {
 
   title: string;
 
+  description?: string;
+
   status: ProviderEventStatus;
 
   trackedUsers: number;

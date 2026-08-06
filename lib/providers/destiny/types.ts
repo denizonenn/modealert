@@ -33,6 +33,7 @@ export interface DestinyManifestResponse {
 export interface DestinyMilestoneDefinition {
   displayProperties?: {
     name?: string;
+    description?: string;
   };
 }
 

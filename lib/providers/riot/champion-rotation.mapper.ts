@@ -19,6 +19,8 @@ export function mapChampionRotation(
 
       title: `Champion Rotation (${rotation.sr.length} Champions)`,
 
+      description: `${rotation.sr.length} champions are free to play this week, plus ${rotation.newplayer.length} additional champions for accounts under level 11.`,
+
       status: "LIVE",
 
       trackedUsers: 0,

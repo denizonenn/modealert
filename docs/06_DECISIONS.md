@@ -1342,3 +1342,80 @@ karşılamadığı burada net şekilde kayıt altına alındı.
 - Eğer ileride Riot/CommunityDragon rotasyonlu mod verisi için
   keyless bir kaynak sunarsa, bu ADR'a yeni bir provider olarak
   eklenmeli — bkz. docs/09_BACKLOG.md.
+
+---
+
+# ADR-018: Event.description Alanı — Her Event'e Gerçek Açıklama
+
+Status: Accepted
+
+Date: 2026-08-06
+
+## Bağlam
+
+Deniz'in geri bildirimi: onboarding'de bir event'i track etmeden
+önce "bu ne, bir skin mi, ne bunlar" sorusuna cevap yoktu.
+`components/cards/event-card.tsx`'teki "description" alanı aslında
+`event.game.name`'i (oyun adını) gösteriyordu — event'in KENDİSİNİ
+açıklamıyordu. Aynı geri bildirimde ikinci bir bulgu: `/`
+landing page'indeki `DashboardPreview` mockup'ı, uzun bir event
+başlığında (Helldivers 2'nin Major Order briefing'i) komşu kartların
+üzerine taşıyordu — `truncate` class'ı vardı ama flex ata elemanlarda
+`min-w-0` eksikti (klasik Tailwind/flexbox tuzağı), o yüzden hiç işe
+yaramıyordu.
+
+## Karar
+
+1. **`Event.description` (nullable `String`) eklendi** — migration
+   `20260806102457_add_event_description`. `ProviderEvent` tipine
+   opsiyonel `description?: string` eklendi, `upsertEvent`
+   repository fonksiyonu bunu persist ediyor.
+2. **10 provider'ın tamamına gerçek açıklama eklendi**, hiçbiri
+   uydurma değil — her biri kendi ham API verisinden türetildi:
+   - PoE: API zaten `description` alanı döndürüyordu, hiç
+     kullanılmıyordu — direkt bağlandı.
+   - Destiny: Bungie milestone definition'larının
+     `displayProperties.description` alanı vardı, `name` gibi
+     `types.ts`'e eklenip kullanıldı.
+   - Fortnite: shop entry'lerinin `brItems[].name` alanı vardı
+     (`types.ts`'e eklendi) — "Featuring: X, Y, Z, and N more."
+   - CommunityDragon: ham feed'de serbest metin açıklama YOK, sadece
+     `eventHubType` (4 sabit değer: kSeasonPass/
+     kActivityCenterMilestones/kHallOfLegends/kDemaciaPass) — bu
+     küçük, sabit enum'dan okunabilir bir kategori etiketine çevrildi
+     (uydurma değil, var olan bir alanın çevirisi).
+   - Riot/Valorant/TFT platform status: durum bilgisinden (
+     maintenance var/yok) türetilen bağlamsal cümle.
+   - Warframe/Foxhole: worldstate/war-state alanlarından (activation/
+     expiry, requiredVictoryTowns, winner) türetilen açıklama.
+   - Helldivers 2: `briefing` alanı artık title'a değil description'a
+     gidiyor — bu aynı zamanda taşma bug'ının kök nedenini çözüyor
+     (title kısa "MAJOR ORDER" kalıyor, tam metin description'da).
+3. **Layout bug düzeltildi**: `components/landing/dashboard-preview.tsx`'e
+   `min-w-0`/`shrink-0` eklendi.
+4. **UI'da gösterildi**: onboarding `EventCard`'ı artık gerçek
+   description gösteriyor (oyun adı ayrı, küçük bir etiket olarak
+   üstte kaldı); `/games/[slug]` sayfasında her event kartına
+   description paragrafı eklendi; kompakt dashboard listesinde
+   (`EventStatusCard`) layout'u bozmamak için `title` HTML attribute'u
+   (native tooltip) olarak eklendi.
+
+## Gerekçe
+
+"Sahte veri yok" ilkesi (ADR-012) burada da geçerli: description'lar
+ya API'de zaten var olan ama kullanılmayan bir alandan, ya da mevcut
+alanlardan (durum, sayısal değerler, enum) türetilmiş bağlamsal
+metinden geliyor — hiçbir provider için içerik uydurulmadı.
+
+## Sonuçlar
+
+- Uçtan uca doğrulandı: 10 provider'ın tamamı gerçek istekle
+  çalıştırıldı, hepsi %100 description kapsamıyla prod DB'ye
+  senkronize oldu (`Riot Games: 2/2`, `CommunityDragon: 21/21`,
+  `Valorant: 3/3`, `Destiny 2: 13/13`, `TFT: 1/1`, `Fortnite: 1/1`,
+  `Warframe: 4/4`, `PoE: 1/1`, `Helldivers 2: 2/2`, `Foxhole: 1/1`).
+- Tarayıcıda görsel olarak doğrulandı: onboarding event kartları,
+  `/games/helldivers-2` (artık taşma yok), `/dashboard` (kompakt
+  liste de taşmıyor).
+- `npx tsc --noEmit`, `npx eslint .`, `npx vitest run` (53 test),
+  `npx next build` hepsi temiz.

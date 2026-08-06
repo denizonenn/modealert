@@ -9,7 +9,7 @@ function iso(offsetMs: number): string {
 }
 
 describe("helldivers2 mapAssignments", () => {
-  it("maps an active assignment to a LIVE event", () => {
+  it("maps an active assignment to a LIVE event with the briefing as description", () => {
     const events = mapAssignments([
       {
         id: 1,
@@ -23,8 +23,9 @@ describe("helldivers2 mapAssignments", () => {
     expect(events).toHaveLength(1);
     expect(events[0].status).toBe("LIVE");
     expect(events[0].id).toBe("helldivers2-assignment-1");
-    expect(events[0].title).toBe(
-      "MAJOR ORDER: Liberate the designated planet."
+    expect(events[0].title).toBe("MAJOR ORDER");
+    expect(events[0].description).toBe(
+      "Liberate the designated planet."
     );
   });
 
@@ -42,7 +43,7 @@ describe("helldivers2 mapAssignments", () => {
     expect(events).toHaveLength(0);
   });
 
-  it("truncates long briefings to 100 characters with an ellipsis", () => {
+  it("keeps long briefings intact in the description (no truncation)", () => {
     const longBriefing = "A".repeat(150);
 
     const events = mapAssignments([
@@ -55,21 +56,23 @@ describe("helldivers2 mapAssignments", () => {
       },
     ]);
 
-    expect(events[0].title).toBe(`MAJOR ORDER: ${"A".repeat(100)}…`);
+    expect(events[0].title).toBe("MAJOR ORDER");
+    expect(events[0].description).toBe(longBriefing);
   });
 
-  it("falls back to the label alone when briefing is missing", () => {
+  it("falls back to a default title and no description when both are missing", () => {
     const events = mapAssignments([
       {
         id: 1,
-        title: "MAJOR ORDER",
+        title: null,
         briefing: null,
         description: null,
         expiration: iso(HOUR),
       },
     ]);
 
-    expect(events[0].title).toBe("MAJOR ORDER");
+    expect(events[0].title).toBe("Major Order");
+    expect(events[0].description).toBeUndefined();
   });
 
   it("maps multiple concurrent assignments independently", () => {

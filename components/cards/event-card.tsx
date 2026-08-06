@@ -5,13 +5,15 @@ import { Check } from "lucide-react";
 interface EventCardProps {
   id: string;
   name: string;
-  description: string;
+  gameName: string;
+  description?: string | null;
   selected: boolean;
   onClick: () => void;
 }
 
 export default function EventCard({
   name,
+  gameName,
   description,
   selected,
   onClick,
@@ -26,10 +28,14 @@ export default function EventCard({
           : "border-white/10 bg-white/5"
       }`}
     >
-      <h3 className="font-semibold">{name}</h3>
+      <p className="text-xs uppercase tracking-wide text-zinc-500">
+        {gameName}
+      </p>
+
+      <h3 className="mt-1 font-semibold">{name}</h3>
 
       <p className="mt-2 text-sm text-zinc-400">
-        {description}
+        {description || "No description available for this event yet."}
       </p>
 
       {selected && (

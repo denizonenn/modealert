@@ -15,6 +15,8 @@ export interface CommunityDragonEventHubEvent {
 
   localizedShortName?: string;
 
+  localizedEventSubtitle?: string;
+
   startDate: string;
 
   progressEndDate?: string;

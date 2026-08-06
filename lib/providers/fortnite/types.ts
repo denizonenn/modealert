@@ -1,9 +1,15 @@
+export interface FortniteShopItem {
+  name: string;
+}
+
 export interface FortniteShopEntry {
   offerId: string;
 
   inDate: string;
 
   outDate: string;
+
+  brItems?: FortniteShopItem[];
 }
 
 export interface FortniteShopData {

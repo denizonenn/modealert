@@ -85,6 +85,7 @@ model Event {
   source        String
 
   title         String
+  description   String?
   status        String
 
   trackedUsers  Int

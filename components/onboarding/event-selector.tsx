@@ -63,7 +63,8 @@ export default function EventSelector() {
           key={event.id}
           id={event.id}
           name={event.title}
-          description={event.game.name}
+          gameName={event.game.name}
+          description={event.description}
           selected={selectedEvents.includes(event.id)}
           onClick={() => toggleEvent(event.id)}
         />

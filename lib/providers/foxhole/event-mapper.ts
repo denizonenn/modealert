@@ -19,11 +19,19 @@ export function mapCurrentWar(war: FoxholeWarState): ProviderEvent[] {
     status = "TRACKING";
   }
 
+  const description: Record<ProviderEventStatus, string> = {
+    UPCOMING: `War #${war.warNumber} is scheduled to begin soon.`,
+    LIVE: `Ongoing Colonial vs. Warden conquest — ${war.requiredVictoryTowns} town captures needed for victory.`,
+    TRACKING: `War #${war.warNumber} has entered the resistance phase — the losing side gets one last chance to fight back.`,
+    ENDED: `War #${war.warNumber} has ended${war.winner !== "NONE" ? ` — ${war.winner} won` : ""}.`,
+  };
+
   return [
     {
       id: "foxhole-current-war",
       gameId: GAME_IDS.FOXHOLE,
       title: `War #${war.warNumber}`,
+      description: description[status],
       status,
       trackedUsers: 0,
       checkedAt: now,

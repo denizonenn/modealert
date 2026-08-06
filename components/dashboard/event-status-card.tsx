@@ -19,6 +19,7 @@ interface Props {
     color: string
   }
   event: string
+  description?: string | null
   status: EventStatus
   updatedAt: string
   index?: number
@@ -29,6 +30,7 @@ interface Props {
 export default function EventStatusCard({
   game,
   event,
+  description,
   status,
   updatedAt,
   index = 0,
@@ -74,7 +76,10 @@ export default function EventStatusCard({
             {game.name}
           </p>
 
-          <h3 className="truncate font-semibold">
+          <h3
+            className="truncate font-semibold"
+            title={description ?? undefined}
+          >
             {event}
           </h3>
         </div>

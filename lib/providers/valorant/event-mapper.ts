@@ -34,6 +34,11 @@ export function mapPlatformStatus(
 
       title: "Platform Status",
 
+      description:
+        providerStatus === "TRACKING"
+          ? `Riot has an active maintenance window on the ${status.id} shard.`
+          : `${status.id} shard is operating normally, no maintenance scheduled.`,
+
       status: providerStatus,
 
       trackedUsers: 0,
@@ -65,6 +70,8 @@ export function mapActiveActs(
       gameId: GAME_IDS.VALORANT,
 
       title: actTitle(act),
+
+      description: `${actTitle(act)} is the current competitive act — new act rank rewards and battle pass content are active.`,
 
       status: "LIVE" as const,
 

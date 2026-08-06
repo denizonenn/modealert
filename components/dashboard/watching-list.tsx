@@ -77,6 +77,7 @@ function EventSections({
                   key={event.id}
                   game={event.game}
                   event={event.title}
+                  description={event.description}
                   status={
                     event.status as EventStatus
                   }

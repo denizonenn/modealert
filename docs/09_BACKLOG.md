@@ -224,6 +224,9 @@ Completed (bkz. docs/06_DECISIONS.md ADR-002)
   artık raporlamadığı event otomatik ENDED olur)
 - Historical tracking (LIVE/TRACKING → history start, ENDED → history
   finish)
+- **Event descriptions** — **eklendi (2026-08-06).** `Event.description`
+  alanı ve tüm 10 provider'da gerçek, uydurulmamış açıklama üretimi.
+  Onboarding/`/games/[slug]`/dashboard'da gösteriliyor. Bkz. ADR-018.
 
 Remaining
 

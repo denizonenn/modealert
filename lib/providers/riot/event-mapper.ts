@@ -28,6 +28,11 @@ export function mapPlatformStatus(
 
       title: "Platform Status",
 
+      description:
+        providerStatus === "TRACKING"
+          ? `Riot has an active maintenance window on the ${status.id} server.`
+          : `${status.id} server is operating normally, no maintenance scheduled.`,
+
       status: providerStatus,
 
       trackedUsers: 0,

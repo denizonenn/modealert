@@ -136,6 +136,9 @@ export async function upsertEvent(
 
     title: event.title,
 
+    description:
+      event.description ?? null,
+
     status: event.status,
 
     trackedUsers:

@@ -11,6 +11,29 @@ import type {
 
 import { GAME_IDS } from "@/lib/constants/games";
 
+// The event-hub feed has no free-text description field — only image
+// URLs and this type code — so descriptions are built from a small,
+// fixed lookup rather than invented per event.
+const EVENT_HUB_TYPE_LABELS: Record<string, string> = {
+  kSeasonPass: "Season pass — earn track rewards through featured missions.",
+  kActivityCenterMilestones:
+    "Limited-time milestone event with special rewards.",
+  kHallOfLegends: "Hall of Legends celebration event.",
+  kDemaciaPass: "Classic-mode battle pass.",
+};
+
+function describeEvent(
+  event: CommunityDragonEventHubEntry["event"]
+): string {
+  const base =
+    EVENT_HUB_TYPE_LABELS[event.eventHubType] ??
+    "League of Legends event.";
+
+  return event.localizedEventSubtitle
+    ? `${event.localizedEventSubtitle} — ${base}`
+    : base;
+}
+
 function computeStatus(
   startDate: string,
   endDate: string,
@@ -44,6 +67,8 @@ function toProviderEvent(
     title:
       event.localizedShortName ||
       event.localizedName,
+
+    description: describeEvent(event),
 
     status: computeStatus(
       event.startDate,
@@ -89,6 +114,7 @@ export function mapPbeCandidates(
         ...event,
         id: `communitydragon-pbe-${entry.event.eventId}`,
         title: `${event.title} (PBE Preview)`,
+        description: `Spotted on Riot's PBE (test server), not live yet — may still change or be pulled before shipping. ${event.description}`,
       };
     });
 }

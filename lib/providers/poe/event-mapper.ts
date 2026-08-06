@@ -38,6 +38,7 @@ export function mapCurrentLeague(
       id: "poe-current-league",
       gameId: GAME_IDS.PATH_OF_EXILE,
       title: `${current.id} League`,
+      description: current.description || undefined,
       status,
       trackedUsers: 0,
       checkedAt: now,

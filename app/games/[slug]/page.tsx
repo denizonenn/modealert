@@ -136,6 +136,12 @@ export default async function GameDetailPage({ params }: Props) {
                     />
                   </div>
 
+                  {event.description && (
+                    <p className="mt-2 text-sm text-zinc-400">
+                      {event.description}
+                    </p>
+                  )}
+
                   <div className="mt-4 grid gap-4 text-sm sm:grid-cols-3">
                     <div>
                       <p className="text-xs uppercase tracking-wide text-zinc-600">

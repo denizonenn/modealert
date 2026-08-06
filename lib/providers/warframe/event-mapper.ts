@@ -24,11 +24,16 @@ function mapVoidTrader(
     ? `${trader.character} at ${trader.location}`
     : `${trader.character} arriving at ${trader.location}`;
 
+  const description = active
+    ? `${trader.character} is selling rare rotating wares at ${trader.location} for a limited time.`
+    : `${trader.character} is scheduled to arrive at ${trader.location} for a 48-hour visit.`;
+
   return [
     {
       id: "warframe-void-trader",
       gameId: GAME_IDS.WARFRAME,
       title,
+      description,
       status,
       trackedUsers: 0,
       checkedAt: now,
@@ -53,6 +58,9 @@ function mapNightwave(
       id: "warframe-nightwave",
       gameId: GAME_IDS.WARFRAME,
       title: `Nightwave — Season ${nightwave.season}`,
+      description: nightwave.active
+        ? `Season ${nightwave.season} of Nightwave is active — complete weekly/daily acts for Wolf Creds and rewards.`
+        : `Nightwave Season ${nightwave.season} is between seasons (intermission) — no active acts right now.`,
       status,
       trackedUsers: 0,
       checkedAt: now,
@@ -73,6 +81,7 @@ function mapSortie(
       id: "warframe-sortie",
       gameId: GAME_IDS.WARFRAME,
       title: `Sortie — ${sortie.boss}`,
+      description: `Today's 3-mission Sortie chain ends with a boss fight against ${sortie.boss}. Resets daily.`,
       status: "LIVE",
       trackedUsers: 0,
       checkedAt: now,
@@ -93,6 +102,7 @@ function mapArchonHunt(
       id: "warframe-archon-hunt",
       gameId: GAME_IDS.WARFRAME,
       title: `Archon Hunt — ${archonHunt.boss}`,
+      description: `This week's 3-mission Archon Hunt chain (no life support, no revives) ends with a fight against ${archonHunt.boss}. Resets weekly.`,
       status: "LIVE",
       trackedUsers: 0,
       checkedAt: now,
