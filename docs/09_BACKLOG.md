@@ -769,8 +769,12 @@ Current
   Terms of Service ve Privacy Policy sayfası olan, kendi domain'inde
   barındırılan çalışan bir uygulama/prototip olmasını şart koşuyor
   (ayrıca doğrulama için ~10 iş günü sürüyor) — `/privacy` ve `/terms`
-  artık canlıda, footer'dan bağlı. Başvuru artık sadece Deniz'in
-  Riot Developer Portal'a girip formu doldurmasını bekliyor.
+  artık canlıda, footer'dan bağlı. **Başvuru gönderildi (2026-08-06,
+  App ID 867857, Product Game Focus: League of Legends, Status:
+  Pending Review).** Domain doğrulaması `public/riot.txt` ile
+  yapıldı (Riot'un istediği doğrulama kodu, `/riot.txt`'te canlı).
+  Riot Developer Relations incelemesi ~10 iş günü sürüyor — onay
+  gelince yeni production key'i `.env`/Vercel'e işlemek kalıyor.
 
 - ~~Auth yok. Her şey `"demo"` adında tek, hardcoded bir kullanıcı
   üzerinden çalışıyor~~ — **çözüldü (2026-08-05)**, bkz.

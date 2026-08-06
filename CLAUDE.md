@@ -38,7 +38,7 @@ biliyor. Buna göre:
   health(), name, priority. Bağımsız ve değiştirilebilir olmalı.
 - Prisma sadece repository katmanı içinden kullanılır.
 
-## Şu Anki Durum (2026-08-05 itibarıyla)
+## Şu Anki Durum (2026-08-06 itibarıyla)
 
 - Asıl geliştirme `feature/landing-page-v2` branch'inde yapılıyor.
   `main` branch'i hâlâ sadece create-next-app iskeleti.
@@ -48,7 +48,7 @@ biliyor. Buna göre:
 - **Veritabanı:** Neon Postgres (Vercel Storage Marketplace üzerinden).
   Artık SQLite değil — `DATABASE_URL` (pooled) + `DATABASE_URL_UNPOOLED`
   (migration'lar için) kullanılıyor.
-- **Aktif provider'lar (7, hepsi gerçek veriyle doğrulandı):** Riot API
+- **Aktif provider'lar (10, hepsi gerçek veriyle doğrulandı):** Riot API
   (platform status + champion rotation), CommunityDragon (event-hub,
   live+pbe patchline), Valorant (platform status + act/episode),
   **Destiny 2** (Bungie API — platform status + haftalık aktif
@@ -57,16 +57,32 @@ biliyor. Buna göre:
   **Fortnite** (`fortnite-api.com`, key gerektirmiyor — Item Shop
   rotasyonu, 2026-08-05, bkz. ADR-011), **Warframe**
   (`api.warframestat.us`, key gerektirmiyor — Void Trader, Nightwave,
-  Sortie, Archon Hunt, 2026-08-06, bkz. ADR-013).
+  Sortie, Archon Hunt, 2026-08-06, bkz. ADR-013), **Path of Exile**
+  (`api.pathofexile.com`, key gerektirmiyor — güncel challenge league,
+  2026-08-06, bkz. ADR-014), **Helldivers 2** (`api.helldivers2.dev`,
+  topluluk aynası, key gerektirmiyor — aktif Major Order'lar,
+  2026-08-06, bkz. ADR-015), **Foxhole** (resmi geliştirici API'si,
+  key gerektirmiyor — güncel savaş durumu, 2026-08-06, bkz. ADR-016).
   LCU sadece kişiselleştirme için — event keşfi için KULLANILMAZ
   (bkz. docs/06_DECISIONS.md ADR-001). Call of Duty değerlendirildi ve
   **reddedildi** — Activision'ın resmi bir API'si yok, gayri-resmi
   yollar hesap girişi gerektiriyor ve zaten event verisi sağlamıyor
   (bkz. ADR-006). LoR ve Wild Rift de denendi, Riot API 403 döndü
   (ayrı ürün erişimi gerekiyor / hiç public API yok) — bkz. ADR-009.
-- **`RIOT_API_KEY` dev key, 24 saatte bir expire oluyor** — 2026-08-05'te
-  bir kez daha expire oldu, Deniz yeniledi. Production key başvurusu
-  hâlâ yapılmadı (bkz. docs/09_BACKLOG.md).
+  2026-08-06'da ayrıca Diablo 4, Elite Dangerous, Albion Online, EVE
+  Online, Brawlhalla, OpenDota ve PoE2 araştırılıp reddedildi (key
+  gerekiyor, veri çok granüler, ya da event kavramı yok) — detay
+  docs/09_BACKLOG.md'de. **Apex Legends** için Deniz key aldı ama
+  apexlegendsapi.com key'i Discord hesabı bağlanmadan aktif olmuyor
+  (Discord Türkiye'den VPN'siz erişilemiyor — Discord auth'taki aynı
+  engel, ADR-005) — key `.env`'de duruyor, VPN'e geçilince tamamlanır.
+- **`RIOT_API_KEY` dev key, 24 saatte bir expire oluyor.** Production
+  key başvurusu **gönderildi (2026-08-06, App ID 867857, Product
+  Game Focus: League of Legends, Status: Pending Review)** — Riot'un
+  istediği domain doğrulaması `public/riot.txt` ile yapıldı, ön koşul
+  olan gerçek `/privacy`+`/terms` sayfaları da eklendi. İnceleme
+  ~10 iş günü sürüyor; onaylanınca yeni key `.env`/Vercel'e işlenecek
+  (bkz. docs/09_BACKLOG.md).
 - **Cron:** `/api/cron/sync` günde 1 kez (Vercel Hobby plan limiti —
   Pro'ya geçilirse saatliğe çekilebilir).
 - **Bildirimler:** Email (Resend) canlı, per-recipient gönderim,
