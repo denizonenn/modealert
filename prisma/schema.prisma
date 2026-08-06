@@ -140,6 +140,23 @@ model ProviderHealthCheck {
   @@index([checkedAt])
 }
 
+model NotificationFailure {
+  id        String   @id @default(cuid())
+
+  userId    String
+  eventId   String
+
+  channel   String
+
+  error     String
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+
+  @@index([createdAt])
+}
+
 model Watchlist {
   id        String   @id @default(cuid())
 

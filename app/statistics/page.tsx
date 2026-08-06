@@ -190,12 +190,12 @@ export default async function StatisticsPage() {
 
         <div className="mt-12">
           <h2 className="text-xl font-semibold tracking-tight">
-            Notifications sent
+            Notifications
           </h2>
           <p className="mt-1 text-sm text-zinc-500">
-            Successfully delivered notifications. We don&apos;t currently
-            persist failed sends, so this is a count of confirmed
-            deliveries, not a success rate.
+            Every send attempt (success or failure, all channels) is
+            recorded, so the success rate below is real, not just a count
+            of what worked.
           </p>
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -215,6 +215,27 @@ export default async function StatisticsPage() {
               <p className="mt-1 text-2xl font-semibold">
                 {formatCount(stats.notifications.last30Days)}
               </p>
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-5 sm:col-span-2">
+              <p className="text-xs uppercase tracking-wide text-zinc-600">
+                Success rate, last 30 days
+              </p>
+              {stats.notifications.successRate30d === null ? (
+                <p className="mt-1 text-sm text-zinc-500">
+                  No send attempts in the last 30 days.
+                </p>
+              ) : (
+                <>
+                  <p className="mt-1 text-2xl font-semibold">
+                    {stats.notifications.successRate30d}%
+                  </p>
+                  <p className="mt-1 text-xs text-zinc-600">
+                    {stats.notifications.last30Days} sent,{" "}
+                    {stats.notifications.failedLast30Days} failed
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </div>

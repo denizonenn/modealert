@@ -7,6 +7,10 @@ import {
 } from "@/lib/repositories/notification.repository";
 
 import {
+  getNotificationFailureCount,
+} from "@/lib/repositories/notification-failure.repository";
+
+import {
   getUptimeByProvider,
 } from "@/lib/repositories/provider-health-check.repository";
 
@@ -70,10 +74,12 @@ export const globalStatisticsService = {
       history,
       notifications,
       healthChecks,
+      notificationFailures30d,
     ] = await Promise.all([
       getAllHistory(),
       getNotificationStats(),
       getUptimeByProvider(since),
+      getNotificationFailureCount(since),
     ]);
 
     const groups = groupByEvent(history);
@@ -268,7 +274,27 @@ export const globalStatisticsService = {
           predictionSamples,
       },
 
-      notifications,
+      notifications: {
+        ...notifications,
+
+        failedLast30Days:
+          notificationFailures30d,
+
+        // Only meaningful once there's at least one attempt (success
+        // or failure) in the window — otherwise "100%" would be a
+        // misleading way to say "no data."
+        successRate30d:
+          notifications.last30Days +
+            notificationFailures30d ===
+          0
+            ? null
+            : Math.round(
+                (notifications.last30Days /
+                  (notifications.last30Days +
+                    notificationFailures30d)) *
+                  1000
+              ) / 10,
+      },
     };
   },
 };

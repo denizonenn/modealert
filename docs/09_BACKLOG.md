@@ -200,14 +200,15 @@ Need
   gerektirmeyen imzasız link (`/api/unsubscribe`), her e-postanın
   altında. Bkz. docs/06_DECISIONS.md ADR-007.
 - ~~Retry Policy (tek deneme, başarısızlık sadece loglanıyor)~~ —
-  **kısmen çözüldü (2026-08-05):** `notification-trigger.service.ts`
-  artık her gönderimi 3 deneme, artan gecikmeyle (500ms/1s) yapıyor.
-  Bilinçli olarak dışarıda bırakılan: kalıcı bir "failed notification"
-  kaydı/görünürlüğü (Vercel serverless log'ları geçicidir — 3 deneme
-  de başarısız olursa hâlâ sessizce kayboluyor). Şu anki trafik
-  hacminde ayrı bir queue/worker altyapısı kurmak erken optimizasyon
-  olurdu; hacim büyüdükçe (veya sık başarısızlık gözlemlenirse) yeniden
-  değerlendirilmeli.
+  **tamamlandı (2026-08-05 retry, 2026-08-06 kalıcı kayıt).**
+  `notification-trigger.service.ts` her gönderimi 3 deneme, artan
+  gecikmeyle (500ms/1s) yapıyor (artık `lib/utils/retry.ts` paylaşılan
+  helper'ı üzerinden — kendi kopyası değil). 3 deneme de başarısız
+  olursa artık `NotificationFailure` tablosuna kalıcı kayıt düşüyor
+  (Vercel log'larının aksine kaybolmuyor), `/statistics`'te gerçek bir
+  success rate'e dönüşüyor. Hâlâ yapılmayan (bilinçli, trafik hacmine
+  göre erken optimizasyon olurdu): ayrı bir queue/worker altyapısı,
+  başarısızlık için otomatik alarm/bildirim.
 
 Future — bilinçli olarak ertelendi
 
@@ -470,16 +471,22 @@ Completed
     end-to-end against a real sync (11 real health-check rows, real
     latencies, rendered on the page).
 
+- **Notification success (rate)** — **done (2026-08-06).** Added
+  `NotificationFailure` (userId, eventId, channel, error, createdAt)
+  via the corrected migration process (hand-written SQL, no
+  `migrate diff`; row counts verified identical before/after
+  `migrate deploy`). `notification-trigger.service.ts`'s catch block
+  now writes a failure row instead of only `console.error`-ing it —
+  this also closes the matching gap under Notification Engine's Retry
+  Policy note. While in that file, replaced its local hand-rolled
+  retry loop with the shared `lib/utils/retry.ts` (same one CommunityDragon's
+  client now uses), removing duplicate logic. `/statistics` now shows
+  a real 30-day success rate (`sent / (sent + failed)`), not just a
+  raw count — `null`/honest-empty-state when there have been zero send
+  attempts in the window.
+
 Need (not buildable without new instrumentation — flagged, not skipped)
 
-- **Notification success (rate)** — `Notification` rows are only
-  created on send *success*; failures are `console.error`'d in
-  `notification-trigger.service.ts` and never persisted (see existing
-  Retry Policy note above), so there's no real denominator to compute
-  a rate from. `/statistics` shows total successful sends instead,
-  labeled honestly as a count, not a rate. Getting the real number
-  needs a persisted failure record — likely the same "failed
-  notification" schema work already flagged under Notification Engine.
 - **False positives** — no concept for this exists in the app yet (no
   user-facing "this was wrong" feedback mechanism). Needs a product
   decision on what a false positive even means here (bad prediction?

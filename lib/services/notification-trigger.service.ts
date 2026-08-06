@@ -19,44 +19,17 @@ import {
 } from "@/lib/repositories/notification.repository";
 
 import {
+  createNotificationFailure,
+} from "@/lib/repositories/notification-failure.repository";
+
+import {
   getWatchlistsByEvent,
 } from "@/lib/repositories/watchlist.repository";
 
-import type {
-  NotificationProvider,
-  NotificationRecipient,
-} from "@/lib/notifications/core/notification-provider";
+import { retry } from "@/lib/utils/retry";
 
 const RETRY_ATTEMPTS = 3;
 const RETRY_DELAY_MS = 500;
-
-function wait(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function sendWithRetry(
-  provider: NotificationProvider,
-  recipient: NotificationRecipient,
-  event: ProviderEvent,
-  previous: EventWithGame | null
-) {
-  let lastError: unknown;
-
-  for (let attempt = 1; attempt <= RETRY_ATTEMPTS; attempt++) {
-    try {
-      await provider.send(recipient, event, previous);
-      return;
-    } catch (error) {
-      lastError = error;
-
-      if (attempt < RETRY_ATTEMPTS) {
-        await wait(RETRY_DELAY_MS * attempt);
-      }
-    }
-  }
-
-  throw lastError;
-}
 
 export const notificationTriggerService = {
   async trigger(
@@ -100,11 +73,20 @@ export const notificationTriggerService = {
             }
 
             try {
-              await sendWithRetry(
-                provider,
-                recipient,
-                event,
-                previous
+              await retry(
+                () =>
+                  provider.send(
+                    recipient,
+                    event,
+                    previous
+                  ),
+                {
+                  // RETRY_ATTEMPTS total attempts = 1 initial + (RETRY_ATTEMPTS - 1) retries
+                  retries:
+                    RETRY_ATTEMPTS - 1,
+                  delay:
+                    RETRY_DELAY_MS,
+                }
               );
 
               await createNotification(
@@ -124,6 +106,26 @@ export const notificationTriggerService = {
                 }
               );
             } catch (error) {
+              const errorMessage =
+                error instanceof Error
+                  ? error.message
+                  : "Unknown error";
+
+              await createNotificationFailure(
+                {
+                  userId:
+                    recipient.id,
+
+                  eventId:
+                    event.id,
+
+                  channel:
+                    provider.id,
+
+                  error: errorMessage,
+                }
+              );
+
               console.error(
                 `[Notification] ${provider.name} failed for ${recipient.email} after ${RETRY_ATTEMPTS} attempts:`,
                 error
