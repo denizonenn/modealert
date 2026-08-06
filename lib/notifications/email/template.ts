@@ -1,8 +1,25 @@
+// title/message come from ProviderEvent data (third-party game APIs —
+// Riot, CommunityDragon, Bungie, etc.), not hardcoded app strings, so
+// they're escaped before going into HTML — standard output encoding,
+// not a response to any known exploit.
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+}
+
 export function buildEmailHtml(
   title: string,
   message: string,
   unsubscribeUrl: string
 ): string {
+  const safeTitle = escapeHtml(title)
+  const safeMessage = escapeHtml(message)
+  const safeUnsubscribeUrl = escapeHtml(unsubscribeUrl)
+
   return `<!doctype html>
 <html>
   <body style="margin:0;padding:32px;background:#000;font-family:system-ui,sans-serif;color:#fff;">
@@ -18,17 +35,17 @@ export function buildEmailHtml(
             Event Update
           </p>
           <h1 style="margin:0 0 12px;font-size:20px;">
-            ${title}
+            ${safeTitle}
           </h1>
           <p style="margin:0;color:#aaaaaa;font-size:14px;line-height:1.5;">
-            ${message}
+            ${safeMessage}
           </p>
         </td>
       </tr>
       <tr>
         <td style="padding-top:16px;font-size:12px;color:#666666;">
           Bu e-postayı, takip listene eklediğin bir event güncellendiği için alıyorsun.
-          <a href="${unsubscribeUrl}" style="color:#666666;">Unsubscribe</a>
+          <a href="${safeUnsubscribeUrl}" style="color:#666666;">Unsubscribe</a>
         </td>
       </tr>
     </table>

@@ -837,7 +837,19 @@ Current
   layers (real HTTP calls) deliberately left untested — no mocking
   framework introduced, kept to pure-function coverage for now.
 
-- Notification tests
+- ~~Notification tests~~ — **done (2026-08-06).** Pure-function
+  coverage for the notification pipeline: `message-builder.test.ts`
+  (new-event vs status-transition copy), `unsubscribe-token.test.ts`
+  (deterministic/per-user HMAC, tamper/empty-token rejection),
+  `template.test.ts`. Found and fixed a real bug while writing the
+  last one: `buildEmailHtml` interpolated `event.title`/`message`
+  (third-party provider data — Riot/CommunityDragon/etc, not
+  hardcoded strings) straight into HTML with no escaping. Added
+  `escapeHtml()`, now covered by a test asserting `<script>`/`<img
+  onerror=...>` in a title renders as inert text, not live markup.
+  `notification-trigger.service.ts` itself (DB writes, retry timing)
+  stays untested — same "no mocking framework, pure functions only"
+  boundary as the provider tests.
 
 - Scheduler tests
 

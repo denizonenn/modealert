@@ -1,0 +1,36 @@
+import { describe, expect, it } from "vitest";
+
+import { buildEmailHtml } from "./template";
+
+describe("buildEmailHtml", () => {
+  it("embeds title, message, and unsubscribe URL", () => {
+    const html = buildEmailHtml(
+      "Arcane Anniversary is now LIVE",
+      "Arcane Anniversary just appeared with status LIVE.",
+      "https://modealert.vercel.app/api/unsubscribe?userId=1&token=abc"
+    );
+
+    expect(html).toContain("Arcane Anniversary is now LIVE");
+    expect(html).toContain(
+      "Arcane Anniversary just appeared with status LIVE."
+    );
+    expect(html).toContain(
+      "https://modealert.vercel.app/api/unsubscribe?userId=1&amp;token=abc"
+    );
+  });
+
+  it("escapes HTML in event title/message instead of injecting it raw", () => {
+    const html = buildEmailHtml(
+      '<img src=x onerror=alert(1)>',
+      "Update <script>alert(document.cookie)</script>",
+      "https://modealert.vercel.app/api/unsubscribe?userId=1&token=abc"
+    );
+
+    expect(html).not.toContain("<img src=x onerror=alert(1)>");
+    expect(html).not.toContain("<script>alert(document.cookie)</script>");
+    expect(html).toContain("&lt;img src=x onerror=alert(1)&gt;");
+    expect(html).toContain(
+      "Update &lt;script&gt;alert(document.cookie)&lt;/script&gt;"
+    );
+  });
+});
