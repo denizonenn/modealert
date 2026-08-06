@@ -51,4 +51,7 @@ export const env = {
 
   AUTH_DISCORD_SECRET:
     process.env.AUTH_DISCORD_SECRET ?? "",
+
+  ADMIN_EMAILS:
+    process.env.ADMIN_EMAILS ?? "",
 } as const;

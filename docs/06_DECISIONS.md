@@ -1579,3 +1579,59 @@ değişmedi), ama en azından artık yanlışlıkla LIVE göstermiyoruz.
 - Champion Rotation kasıtlı olarak dokunulmadı — Deniz "önemli değil"
   dedi ama bu gerçek, kullanılan veri (dashboard/`/live`'da referans
   alınıyor); kaldırmak ayrı bir ürün kararı, bu ADR'ın kapsamı değil.
+
+---
+
+# ADR-021: `/admin` — Şema Değişikliği Olmadan Basit Email-Listesi Gate
+
+Status: Accepted
+
+Date: 2026-08-06
+
+## Bağlam
+
+P1 — Admin backlog kalemi (Manual Sync, Provider Status, vb.) hiç
+başlanmamıştı. İlk admin-only sayfa olduğu için, projede daha önce
+hiç var olmayan bir "kim admin" kavramı gerekiyordu — `User`
+modelinde `role` alanı yok.
+
+## Karar
+
+1. **Şema değişikliği yapılmadı.** `ADMIN_EMAILS` (virgülle ayrılmış
+   email listesi, `lib/config/env.ts`) + `lib/auth/is-admin.ts`
+   (`isAdminEmail()`, case-insensitive) ile basit bir gate kuruldu.
+   Tek admin şu an `denizate@gmail.com`, `.env`'de tanımlı.
+2. **`/admin` sayfası `notFound()` döndürüyor**, redirect/403 değil —
+   admin olmayan biri için sayfa hiç var olmamış gibi davranıyor,
+   "buraya erişimin yok" bilgisini bile sızdırmıyor.
+3. **`POST /api/admin/sync`, `CRON_SECRET`'tan ayrı, session+admin
+   gate'li yeni bir endpoint** — `/api/cron/sync` zaten var ama
+   Vercel Cron için `CRON_SECRET` bearer token'ıyla korunuyor; bu
+   secret'ı tarayıcıya/client JS'e taşımak güvenlik açığı olurdu.
+   Yeni endpoint aynı `providerSyncService.syncAll()`'u çağırıyor,
+   sadece farklı bir yoldan (oturum) korunuyor.
+4. **"Clear Cache" ve "Rebuild Data" kasıtlı olarak yapılmadı** — cache
+   katmanı yok (buton dekorasyon olurdu), "rebuild" ise neyin neyden
+   yeniden kurulacağı tanımsız/riskli bir aksiyon; Deniz'den somut bir
+   tanım gelmeden yazılmadı. "Logs" da aynı sebeple yapılmadı — Vercel
+   serverless log'ları geçici, kalıcı bir log görüntüleyici ayrı bir
+   altyapı işi.
+
+## Gerekçe
+
+`role` alanı eklemek gelecekte gerçek bir ihtiyaç olabilir (çoklu
+admin, farklı yetki seviyeleri), ama şu an tek kullanıcı (Deniz) için
+bunun için migration riskine girmek (ADR-019) gereksiz. Env-var gate
+şu anki ihtiyacı tam karşılıyor, geri dönüşü kolay (env var
+değiştirmek, migration değil).
+
+## Sonuçlar
+
+- Gerçek istekle doğrulandı: `/admin` oturumsuz istekte 404, `POST
+  /api/admin/sync` oturumsuz istekte 401 döndürüyor.
+- `lib/auth/is-admin.test.ts` eklendi (case-insensitivity, çoklu
+  email, null/undefined — 4/4 geçiyor).
+- **Deniz'in yapması gereken:** `ADMIN_EMAILS=denizate@gmail.com`
+  Vercel production environment variables'a eklenmeli — şu an sadece
+  local `.env`'de var, canlıda `/admin` şu anki haliyle herkese
+  (admin dahil) 404 döner.

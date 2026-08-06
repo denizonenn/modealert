@@ -512,17 +512,40 @@ Database health
 
 # P1 — Admin
 
-Need
+Status: 🟡 (2026-08-06)
 
-Manual Sync
+Completed
 
-Clear Cache
+- `/admin` — first admin-only page in the app, and the first thing
+  requiring an actual "who's an admin" concept, which didn't exist
+  (`User` has no `role` field). Rather than a schema change,
+  gated by `ADMIN_EMAILS` (comma-separated, `lib/config/env.ts`) +
+  `lib/auth/is-admin.ts`. Page itself calls `notFound()` (not a
+  redirect/403) for non-admins, same as a route that doesn't exist —
+  doesn't reveal it's there. Currently just `denizate@gmail.com` in
+  `.env`/Vercel; **needs `ADMIN_EMAILS` added to Vercel production
+  env vars to work live** (only set locally so far).
+  - **Manual Sync** — `POST /api/admin/sync` (session+admin gated,
+    separate from the `CRON_SECRET`-gated `/api/cron/sync` used by
+    Vercel Cron — a browser button can't safely hold that secret).
+    Reuses `providerSyncService.syncAll()` as-is. Useful right after
+    a Riot key renewal instead of waiting for the next daily cron.
+  - **Provider Status** — reuses the existing `useProviderHealth()`
+    hook/`/api/providers/health` endpoint (same data `/status`
+    shows), just rendered inline on the admin page.
 
-Rebuild Data
+Deliberately not built (would be fake or genuinely risky)
 
-Provider Status
-
-Logs
+- **Clear Cache** — there's no cache layer in the app to clear.
+  Building a button for this would be decoration, not a real action.
+- **Rebuild Data** — too undefined to build blind (rebuild *what*,
+  from *what* source, deleting existing rows first or not?). A
+  destructive-sounding admin action needs a specific, scoped
+  definition from Deniz before it's safe to write, not a guess.
+- **Logs** — Vercel serverless function logs are ephemeral (already
+  noted under Notification Engine's Retry Policy). A real persistent
+  log viewer needs its own storage, which is new infrastructure, not
+  a page.
 
 ---
 
