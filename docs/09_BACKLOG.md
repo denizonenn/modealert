@@ -539,6 +539,35 @@ Evaluated and rejected
   no credible community dataset either. Static/manual calendar was
   considered and rejected (goes stale, violates the real-data-only
   principle). Same rejection profile as Call of Duty. See ADR-012.
+- ~~OpenDota~~ (Dota 2, `api.opendota.com`, no key) — re-verified
+  2026-08-06: `/leagues` returns every league ever played (16000+
+  entries, no active/date filter), same failure mode as Fortnite's
+  old `/v1/playlists` problem. Not usable without a second endpoint
+  to isolate currently-running tournaments, which doesn't exist.
+- ~~Diablo 4~~ — no official Blizzard API without a registered
+  client id/secret (same key-required profile as WoW/Hearthstone/
+  Overwatch 2). Community Helltide/world-boss trackers
+  (helltides.com, d4armory.io) are websites, not documented public
+  JSON APIs.
+- ~~Elite Dangerous~~ — Frontier has no first-party keyless Community
+  Goals API; third-party tools (Inara, ED-API) proxy through their
+  own services, which isn't a source ModeAlert can depend on directly.
+- ~~Albion Online~~ (`gameinfo.albiononline.com/api/gameinfo`) — no
+  key needed, but the only real-time endpoint (`/events`) is a raw
+  PvP kill-feed, same too-granular/high-frequency profile as GW2's
+  event feed and Warframe's excluded alerts/invasions.
+- ~~EVE Online~~ (`esi.evetech.net`) — genuinely keyless and public,
+  but neither candidate endpoint fit: `/incursions/` has no
+  start/end timestamps (only a `state` enum), and
+  `/sovereignty/campaigns/` returns dozens of concurrent, constantly
+  churning skirmishes — same rejection class as Albion's kill-feed.
+- ~~Brawlhalla~~ — v1.0 dropped the key requirement, but the API only
+  covers player/guild stats, no event or season-rotation endpoint.
+- ~~Path of Exile 2~~ — checked whether `api.pathofexile.com` exposes
+  a separate PoE2 realm; the `realm=poe2` query param is silently
+  ignored (same `pc` league data comes back either way). Not a real
+  second data source yet; PoE's existing provider already covers the
+  shared account/league system. See ADR-014.
 
 Evaluated and deferred (keyless, but data source currently broken)
 
@@ -546,16 +575,22 @@ Evaluated and deferred (keyless, but data source currently broken)
   `/v2/build` work with no key, but the endpoint that actually matters
   (`/v2/events`, real-time meta-event/world-boss timers) returned
   `503 "API not active"` on a real request — a known, long-standing
-  ArenaNet bug, not a fluke. Falling back to a static rotation table
-  would violate the no-fake-data principle (ADR-012). Revisit if
-  ArenaNet ever fixes it. See ADR-013.
+  ArenaNet bug, not a fluke (re-checked again 2026-08-06, still
+  broken). Falling back to a static rotation table would violate the
+  no-fake-data principle (ADR-012). Revisit if ArenaNet ever fixes it.
+  See ADR-013.
 
-Future no-key candidates worth a look (unverified)
+Future no-key candidates worth a look (unverified, higher effort)
 
-- OpenDota (Dota 2, `api.opendota.com`, no key) — free tier exists,
-  but it's a stats/match API, not really an "event" source in the
-  sense ModeAlert tracks (game modes, rotations, limited-time
-  content). Would need its own scoping exercise like Fortnite's.
+- PlanetSide 2 (Daybreak Census API, `census.daybreakgames.com`) —
+  the shared `s:example` service ID works with zero registration
+  (confirmed live 2026-08-06), so it's keyless in spirit even though
+  it looks like a key. The interesting data (active continent
+  "Alerts") isn't exposed as a clean "currently active" REST
+  endpoint though — trackers derive it from the realtime ESS
+  websocket or by diffing `world_event` history, which is a much
+  bigger lift than the REST-polling pattern every other provider
+  uses here. Worth it only if Deniz specifically wants PS2.
 
 Done (2026-08-05)
 
