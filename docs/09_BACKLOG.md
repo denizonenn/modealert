@@ -520,9 +520,12 @@ Live providers
 
 Pending Deniz's action
 
-- Apex Legends — `apexlegendsapi.com` is the viable source, but needs
-  a free API key obtained via Discord signup (Deniz needs to do this
-  himself). Map rotation is solid; Collection Events/LTMs are as
+- Apex Legends — `apexlegendsapi.com` is the viable source, needs a
+  free API key from a simple web form at `apexlegendsapi.com/auth`
+  (re-verified 2026-08-06 — no Discord signup needed, just a project
+  description + URL + terms checkbox; Deniz needs to do this himself
+  since it requires agreeing to the usage terms as the account
+  holder). Map rotation is solid; Collection Events/LTMs are as
   unreliable as Fortnite's, likely same "shop/rotation only" scope.
 
 Evaluated and rejected
