@@ -1635,3 +1635,97 @@ değiştirmek, migration değil).
   Vercel production environment variables'a eklenmeli — şu an sadece
   local `.env`'de var, canlıda `/admin` şu anki haliyle herkese
   (admin dahil) 404 döner.
+
+---
+
+# ADR-022: OLAY #2 — ADR-019'un "Güvenli" Adım 2'si de Prod DB'yi Sıfırladı
+
+Status: Accepted (Incident Postmortem)
+
+Date: 2026-08-06
+
+## Ne oldu
+
+`/statistics`'teki "Provider uptime" boşluğunu kapatmak için yeni bir
+`ProviderHealthCheck` tablosu eklerken, ADR-019'un tam olarak
+belgelediği "güvenli" süreç izlendi:
+
+1. `schema.prisma`'ya model eklendi.
+2. **Adım 2:** `npx prisma migrate diff --from-migrations
+   prisma/migrations --to-schema-datamodel prisma/schema.prisma
+   --shadow-database-url "$DATABASE_URL_UNPOOLED" --script` çalıştırıldı
+   — ADR-019'da "hiçbir şeye dokunmaz" diye belgelenmiş adım.
+3. SQL üretildi (temiz, sadece `CREATE TABLE`/`CREATE INDEX`),
+   migration dosyasına yapıştırıldı.
+4. `npx prisma migrate deploy` çalıştırıldı → `P3005: database schema
+   is not empty` hatası verdi.
+5. Hata sonrası kontrol edilince: **`User`/`Event`/`Game`/`Watchlist`/
+   `Notification`/`EventHistory`/`Account`/`Session` tablolarının
+   HEPSİ 0 satır** — tablo yapıları (Event.slug dahil) güncel ve
+   duruyordu, ama tüm veri silinmişti. `_prisma_migrations` tablosu
+   da tamamen yok olmuştu.
+
+## Kök neden
+
+`DATABASE_URL_UNPOOLED`, `DATABASE_URL` ile **aynı** Neon
+veritabanını gösteriyor — sadece pooled değil, direkt bağlantı.
+ADR-019'un "adım 2 hiçbir şeye dokunmaz" varsayımı, `--shadow-
+database-url`'in her zaman ayrı/boş bir veritabanı olduğu öncülüne
+dayanıyordu — ama bu projede öyle bir DB hiç kurulmamıştı, aynı DB
+verilmişti. Prisma'nın shadow-database mekanizması: migration
+geçmişinden şemayı yeniden inşa etmek için verilen URL'i "boş,
+harcanabilir" kabul edip resetler/yeniden oluşturur. Aynı DB
+verilince, bu resetleme doğrudan production'a uygulandı — tablo
+yapıları migration'lardan yeniden kurulduğu için güncel görünüyordu,
+ama tüm satırlar (ve migration bookkeeping'in kendisi) gitmişti.
+
+Yani: **ADR-019'un çözümü tamamlanmamıştı.** `migrate dev`'i
+yasaklamak doğruydu ama "güvenli alternatif" olarak önerilen adım da
+aynı sınıfta bir riskti — sadece daha az bilinen bir yoldan.
+
+## Kurtarma
+
+Deniz, olayı fark ettikten (~14:46 UTC / 17:46 TR) hemen sonra Neon
+Console'dan point-in-time restore ile veritabanını **17:30 TR
+(14:30 UTC)** anına geri aldı — olaydan önceki bir nokta. Doğrulandı:
+tüm sayılar tam (3 user, 49 event, 9 game, 23 watchlist, 6
+notification, 33 event history, aynı gün içindeki `Event.slug`
+backfill'i dahil), `_prisma_migrations` 7 migration'la sağlıklı
+durumda. Hiçbir veri kaybı olmadı.
+
+`ProviderHealthCheck` migration'ı hiç uygulanmamıştı (deploy P3005
+ile hata verip durdu) — `schema.prisma`'dan geri alındı, oluşturulan
+migration klasörü silindi. Bu özellik bu ADR kapsamında yapılmadı,
+aşağıdaki düzeltilmiş süreçle yeniden ele alınmalı.
+
+## Karar — Düzeltilmiş süreç
+
+**`prisma migrate diff --shadow-database-url` artık YASAK**, ta ki
+Deniz gerçekten ayrı bir Neon database/branch kurup connection
+string'ini verene kadar. Yerine: migration SQL'i elle yazılacak
+(additive değişiklikler için — yeni tablo/sütun/index — bu SQL basit
+ve mevcut migration dosyalarından örneklenebilir), sonra doğrudan
+`migrate deploy` ile uygulanacak. Ayrıca: **deploy'dan hemen önce ve
+sonra birkaç ana tablonun satır sayısı kontrol edilecek** — beklenmedik
+bir reset anında yakalansın. Tam güncellenmiş süreç: CLAUDE.md →
+"ŞEMA DEĞİŞİKLİĞİ KURALI".
+
+## Gerekçe
+
+İki olay da aynı kök nedenden geliyor: bu projede gerçek bir dev/
+shadow veritabanı yok, ve Prisma'nın "development"/"shadow" araçları
+bunu varsayıyor. Elle SQL yazmak bu varsayımı tamamen ortadan
+kaldırıyor — Prisma'nın hiçbir arka plan DB-reset mekanizmasına
+güvenmiyoruz, sadece `CREATE`/`ALTER ADD` gibi additive, insan
+tarafından doğrulanmış SQL'i doğrudan `migrate deploy` ile
+uyguluyoruz.
+
+## Sonuçlar
+
+- CLAUDE.md "ŞEMA DEĞİŞİKLİĞİ KURALI" bölümü güncellendi — olay #2
+  ve düzeltilmiş 7 adımlık süreç eklendi.
+- `ProviderHealthCheck` (provider uptime tracking) backlog'da açık
+  kaldı — düzeltilmiş (elle SQL) süreçle yeniden denenmeli.
+- Deniz'e gerçek bir Neon shadow database/branch kurması önerilir —
+  kurulursa `migrate diff` güvenle tekrar kullanılabilir hale gelir;
+  o zamana kadar elle SQL yazmak tek yöntem.

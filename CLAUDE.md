@@ -38,24 +38,52 @@ biliyor. Buna göre:
   health(), name, priority. Bağımsız ve değiştirilebilir olmalı.
 - Prisma sadece repository katmanı içinden kullanılır.
 
-## ⚠️ ŞEMA DEĞİŞİKLİĞİ KURALI — `prisma migrate dev` YASAK
+## ⚠️ ŞEMA DEĞİŞİKLİĞİ KURALI — `prisma migrate dev` YASAK, `--shadow-database-url` de YASAK
 
 Bu projede local `.env` ile Vercel production **AYNI Neon
-veritabanını** kullanıyor — ayrı bir dev DB yok. 2026-08-06'da
-`prisma migrate dev` bir unique constraint uyarısında interaktif
-onay isteyip non-interactive terminalde hata verdi, ama hata
-vermeden ÖNCE veritabanını resetledi — canlıdaki tüm kullanıcılar/
-watchlist'ler/event'ler silindi (Neon point-in-time restore ile
-kurtarıldı). Detay: docs/06_DECISIONS.md ADR-019.
+veritabanını** kullanıyor — ayrı bir dev/shadow DB yok. Bu kural iki
+ayrı olaydan sonra iki kez sertleştirildi:
+
+- **2026-08-06, olay #1:** `prisma migrate dev` bir unique constraint
+  uyarısında interaktif onay isteyip non-interactive terminalde hata
+  verdi, ama hata vermeden ÖNCE veritabanını resetledi. Bkz. ADR-019.
+- **2026-08-06, olay #2 (aynı gün, birkaç saat sonra):** ADR-019'un
+  "güvenli" dediği adım-2 komutu (`prisma migrate diff
+  --shadow-database-url "$DATABASE_URL_UNPOOLED"`) da veritabanını
+  resetledi — çünkü `DATABASE_URL_UNPOOLED`, prod ile **aynı**
+  veritabanı (sadece pooled değil bağlantı), gerçek ayrı bir shadow DB
+  değil. Prisma'nın shadow-database mekanizması "ayrı, boş bir DB"
+  bekliyor; aynı DB verilince production'ı resetleyip migration'ları
+  sıfırdan replay etti — tablo yapıları güncel kaldı ama TÜM VERİ
+  silindi, `_prisma_migrations` bile yok oldu. Neon PITR ile
+  kurtarıldı. Bkz. ADR-022.
+
+**Sonuç: `--shadow-database-url` bayrağı, gerçekten ayrı/boş bir
+veritabanına işaret etmediği sürece `migrate dev` kadar tehlikeli.
+Bu projede öyle bir DB yok — o yüzden bu bayrak da YASAK, ta ki Deniz
+ayrı bir Neon branch/database kurup connection string'ini verene
+kadar.**
 
 **Şema değişikliği gerektiğinde SADECE bu sırayla ilerle:**
 
 1. `schema.prisma`'yı düzenle.
-2. `npx prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma --shadow-database-url "$DATABASE_URL_UNPOOLED" --script` ile SQL'i üret (hiçbir şeye dokunmaz).
-3. SQL'i oku, yıkıcı bir şey olmadığından emin ol.
-4. `prisma/migrations/<timestamp>_<isim>/migration.sql` dosyasını elle oluşturup SQL'i yapıştır.
-5. `npx prisma migrate deploy` ile uygula (non-interactive, reset yapmaz — TEK güvenli yöntem).
-6. `npx prisma generate` (Windows'ta dev server açıksa önce durdur, yoksa dll kilitlenip EPERM verir).
+2. Migration SQL'ini **elle yaz** (`prisma migrate diff` kullanma —
+   yukarıdaki olay #2 bunun neden yasak olduğunu gösteriyor). Ek
+   sütun/tablo/index gibi additive değişiklikler için bu SQL basit ve
+   tahmin edilebilir (`ALTER TABLE ... ADD COLUMN`, `CREATE TABLE`,
+   `CREATE INDEX` — mevcut `prisma/migrations/*/migration.sql`
+   dosyalarındaki formatı örnek al).
+3. `prisma/migrations/<timestamp>_<isim>/migration.sql` dosyasını
+   oluşturup SQL'i yapıştır.
+4. SQL'i tekrar oku, yıkıcı bir şey olmadığından emin ol (DROP/DELETE/
+   TRUNCATE yoksa, sadece ADD/CREATE varsa güvenlidir).
+5. `npx prisma migrate deploy` ile uygula (non-interactive, reset
+   yapmaz).
+6. **Deploy'dan hemen önce ve sonra satır sayılarını kontrol et**
+   (`SELECT COUNT(*)` birkaç ana tablodan) — beklenmedik bir reset
+   olursa hemen fark edilsin.
+7. `npx prisma generate` (Windows'ta dev server açıksa önce durdur,
+   yoksa dll kilitlenip EPERM verir).
 
 ## Şu Anki Durum (2026-08-06 itibarıyla)
 

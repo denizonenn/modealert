@@ -461,8 +461,14 @@ Need (not buildable without new instrumentation — flagged, not skipped)
 - **Provider uptime** — `/status` only ever checks current live health,
   nothing is persisted over time. Would need a health-check history
   table + a place to write to it on every check (cron sync and/or the
-  `/status` page's polling). Real schema change, so it goes through
-  the ADR-019 safe-migration process, not a quick add.
+  `/status` page's polling). **Attempted 2026-08-06, reverted after
+  causing a second prod DB wipe (ADR-022)** — the `prisma migrate
+  diff --shadow-database-url` step ADR-019 documented as safe turned
+  out not to be (no real shadow DB exists in this project). Neon PITR
+  restored everything, no data lost. The `ProviderHealthCheck` model
+  was rolled back out of `schema.prisma`; needs to be re-attempted
+  with the corrected process (hand-written migration SQL, no
+  `migrate diff`) — see CLAUDE.md's updated "ŞEMA DEĞİŞİKLİĞİ KURALI".
 - **Notification success (rate)** — `Notification` rows are only
   created on send *success*; failures are `console.error`'d in
   `notification-trigger.service.ts` and never persisted (see existing
