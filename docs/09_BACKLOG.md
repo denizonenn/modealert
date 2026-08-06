@@ -455,20 +455,23 @@ Completed
     `EventHistory` rows have a real `endedAt` yet. Will fill in as
     events complete naturally via daily sync. Not backfillable: there's
     no fake substitute for "it actually finished."
+  - **Provider uptime** — **done (2026-08-06, second attempt, ADR-022).**
+    First attempt caused a real prod DB wipe via a documented-as-safe
+    step that turned out not to be (`migrate diff --shadow-database-url`
+    pointed at the same DB, not a real shadow one) — Neon PITR restored
+    everything, no data lost, and CLAUDE.md's migration process was
+    corrected before retrying. Second attempt used hand-written
+    migration SQL (no `migrate diff`), verified row counts identical
+    before/after `migrate deploy`. `ProviderHealthCheck` table now
+    records a real row (provider, healthy, latencyMs, error) on every
+    `providerSyncService.syncAll()` call — both the daily cron and
+    `/admin`'s manual sync feed it, same code path. `/statistics` shows
+    uptime % per provider over a rolling 30-day window. Verified
+    end-to-end against a real sync (11 real health-check rows, real
+    latencies, rendered on the page).
 
 Need (not buildable without new instrumentation — flagged, not skipped)
 
-- **Provider uptime** — `/status` only ever checks current live health,
-  nothing is persisted over time. Would need a health-check history
-  table + a place to write to it on every check (cron sync and/or the
-  `/status` page's polling). **Attempted 2026-08-06, reverted after
-  causing a second prod DB wipe (ADR-022)** — the `prisma migrate
-  diff --shadow-database-url` step ADR-019 documented as safe turned
-  out not to be (no real shadow DB exists in this project). Neon PITR
-  restored everything, no data lost. The `ProviderHealthCheck` model
-  was rolled back out of `schema.prisma`; needs to be re-attempted
-  with the corrected process (hand-written migration SQL, no
-  `migrate diff`) — see CLAUDE.md's updated "ŞEMA DEĞİŞİKLİĞİ KURALI".
 - **Notification success (rate)** — `Notification` rows are only
   created on send *success*; failures are `console.error`'d in
   `notification-trigger.service.ts` and never persisted (see existing
@@ -502,17 +505,24 @@ Failure recovery
 
 # P1 — Health Monitoring
 
+Status: 🟡 (2026-08-06)
+
+Completed
+
+- **Provider latency** and **provider failures** — `ProviderHealthCheck`
+  (see P1 Statistics → Provider uptime) records both on every sync,
+  surfaced as uptime % on `/statistics` and live per-provider status on
+  `/status`/`/admin`.
+
 Need
 
-Provider latency
-
-Provider failures
-
-Sync duration
-
-Notification latency
-
-Database health
+- Sync duration (whole-sync wall-clock time, not just per-provider
+  latency — `providerSyncService.syncAll()` doesn't currently time
+  itself as a unit)
+- Notification latency (time from event-change-detected to
+  notification-sent)
+- Database health (Neon connection/query health as its own signal,
+  distinct from "did a Prisma query happen to succeed")
 
 ---
 

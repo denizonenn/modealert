@@ -6,6 +6,10 @@ import {
   eventSyncService,
 } from "@/lib/services/event-sync.service";
 
+import {
+  createHealthCheck,
+} from "@/lib/repositories/provider-health-check.repository";
+
 export const providerSyncService = {
   async syncAll() {
     const providers =
@@ -26,9 +30,21 @@ export const providerSyncService = {
               };
             }
 
+            const startedAt =
+              Date.now();
+
             try {
               const events =
                 await provider.getEvents();
+
+              const latencyMs =
+                Date.now() - startedAt;
+
+              await createHealthCheck({
+                providerId: provider.id,
+                healthy: true,
+                latencyMs,
+              });
 
               const saved =
                 await eventSyncService.sync(
@@ -47,6 +63,21 @@ export const providerSyncService = {
                   saved.length,
               };
             } catch (error) {
+              const latencyMs =
+                Date.now() - startedAt;
+
+              const message =
+                error instanceof Error
+                  ? error.message
+                  : "Unknown error";
+
+              await createHealthCheck({
+                providerId: provider.id,
+                healthy: false,
+                latencyMs,
+                error: message,
+              });
+
               console.error(
                 `[ProviderSync] ${provider.name} failed:`,
                 error

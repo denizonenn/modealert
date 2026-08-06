@@ -6,6 +6,16 @@ import {
   getNotificationStats,
 } from "@/lib/repositories/notification.repository";
 
+import {
+  getUptimeByProvider,
+} from "@/lib/repositories/provider-health-check.repository";
+
+import {
+  getProviderName,
+} from "@/lib/providers/core/registry";
+
+const UPTIME_WINDOW_DAYS = 30;
+
 type HistoryWithEvent = Awaited<
   ReturnType<typeof getAllHistory>
 >[number];
@@ -47,11 +57,24 @@ function groupByEvent(
 
 export const globalStatisticsService = {
   async get() {
-    const [history, notifications] =
-      await Promise.all([
-        getAllHistory(),
-        getNotificationStats(),
-      ]);
+    const since = new Date(
+      Date.now() -
+        UPTIME_WINDOW_DAYS *
+          24 *
+          60 *
+          60 *
+          1000
+    );
+
+    const [
+      history,
+      notifications,
+      healthChecks,
+    ] = await Promise.all([
+      getAllHistory(),
+      getNotificationStats(),
+      getUptimeByProvider(since),
+    ]);
 
     const groups = groupByEvent(history);
 
@@ -148,8 +171,59 @@ export const globalStatisticsService = {
       }
     }
 
+    const uptimeByProvider = new Map<
+      string,
+      { healthy: number; total: number }
+    >();
+
+    for (const row of healthChecks) {
+      const stats =
+        uptimeByProvider.get(
+          row.providerId
+        ) ?? { healthy: 0, total: 0 };
+
+      stats.total += row._count._all;
+
+      if (row.healthy) {
+        stats.healthy +=
+          row._count._all;
+      }
+
+      uptimeByProvider.set(
+        row.providerId,
+        stats
+      );
+    }
+
+    const providerUptime = [
+      ...uptimeByProvider.entries(),
+    ]
+      .map(([providerId, stats]) => ({
+        providerId,
+        providerName:
+          getProviderName(providerId),
+        uptimePercent: Math.round(
+          (stats.healthy /
+            stats.total) *
+            1000
+        ) / 10,
+        sampleSize: stats.total,
+      }))
+      .sort(
+        (a, b) =>
+          a.providerName.localeCompare(
+            b.providerName
+          )
+      );
+
     return {
       mostCommon,
+
+      providerUptime: {
+        windowDays:
+          UPTIME_WINDOW_DAYS,
+        providers: providerUptime,
+      },
 
       averageDuration: {
         overallMs:

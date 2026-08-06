@@ -155,6 +155,41 @@ export default async function StatisticsPage() {
 
         <div className="mt-12">
           <h2 className="text-xl font-semibold tracking-tight">
+            Provider uptime
+          </h2>
+          <p className="mt-1 text-sm text-zinc-500">
+            Share of sync attempts that succeeded per provider, last{" "}
+            {stats.providerUptime.windowDays} days. Recorded on every sync —
+            data starts filling in from 2026-08-06.
+          </p>
+
+          {stats.providerUptime.providers.length === 0 ? (
+            <p className="mt-4 text-sm text-zinc-500">
+              No health checks recorded yet — check back after the next
+              sync.
+            </p>
+          ) : (
+            <div className="mt-4 space-y-2">
+              {stats.providerUptime.providers.map((provider) => (
+                <div
+                  key={provider.providerId}
+                  className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm"
+                >
+                  <span className="text-zinc-300">
+                    {provider.providerName}
+                  </span>
+                  <span className="text-zinc-500">
+                    {provider.uptimePercent}% · {provider.sampleSize} check
+                    {provider.sampleSize === 1 ? "" : "s"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="mt-12">
+          <h2 className="text-xl font-semibold tracking-tight">
             Notifications sent
           </h2>
           <p className="mt-1 text-sm text-zinc-500">

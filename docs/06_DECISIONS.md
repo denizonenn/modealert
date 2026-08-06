@@ -1724,8 +1724,15 @@ uyguluyoruz.
 
 - CLAUDE.md "ŞEMA DEĞİŞİKLİĞİ KURALI" bölümü güncellendi — olay #2
   ve düzeltilmiş 7 adımlık süreç eklendi.
-- `ProviderHealthCheck` (provider uptime tracking) backlog'da açık
-  kaldı — düzeltilmiş (elle SQL) süreçle yeniden denenmeli.
-- Deniz'e gerçek bir Neon shadow database/branch kurması önerilir —
-  kurulursa `migrate diff` güvenle tekrar kullanılabilir hale gelir;
+- **`ProviderHealthCheck` düzeltilmiş süreçle aynı oturumda tekrar
+  denendi ve başarılı oldu.** Elle yazılan SQL doğrudan `migrate
+  deploy` ile uygulandı, `migrate diff` hiç çağrılmadı. Deploy'dan
+  hemen önce ve sonra 8 ana tablonun satır sayısı doğrulandı (hepsi
+  birebir aynı: 3 user, 49 event, 9 game, 23 watchlist, vb.), yeni
+  tablo 0 satırla boş başladı. Gerçek bir sync tetiklenip 11
+  provider'ın hepsi için gerçek health-check kaydı oluştuğu, `/statistics`
+  sayfasında uptime %'nin göründüğü doğrulandı. Bkz. docs/09_BACKLOG.md
+  P1 — Statistics / Health Monitoring.
+- Deniz'e gerçek bir Neon shadow database/branch kurması hâlâ önerilir
+  — kurulursa `migrate diff` güvenle tekrar kullanılabilir hale gelir;
   o zamana kadar elle SQL yazmak tek yöntem.

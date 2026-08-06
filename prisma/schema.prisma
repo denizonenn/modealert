@@ -122,6 +122,24 @@ model EventHistory {
   @@index([startedAt])
 }
 
+model ProviderHealthCheck {
+  id         String   @id @default(cuid())
+
+  providerId String
+
+  healthy    Boolean
+
+  latencyMs  Int?
+
+  error      String?
+
+  checkedAt  DateTime @default(now())
+
+  @@index([providerId])
+
+  @@index([checkedAt])
+}
+
 model Watchlist {
   id        String   @id @default(cuid())
 
