@@ -97,6 +97,24 @@ const KNOWN_MODES: KnownMode[] = [
     isLimitedTime: false,
   },
   {
+    id: "lol-mode-aram-mayhem",
+    gameId: GAME_IDS.LEAGUE_OF_LEGENDS,
+    title: "ARAM: Mayhem",
+    description:
+      "ARAM with chaotic augments and Set-based progression. Started as a limited-time test but Riot confirmed in a March 2026 dev update that it's staying with no end date in mind (verified via WebSearch 2026-08-12) — no longer inferred from its battle-pass window, it's a confirmed-permanent core mode now.",
+    status: "LIVE",
+    isLimitedTime: false,
+  },
+  {
+    id: "lol-mode-league-classic",
+    gameId: GAME_IDS.LEAGUE_OF_LEGENDS,
+    title: "League Classic",
+    description:
+      "The old-school alternate client, recreating early-League gameplay (Season 3-inspired) inside the current launcher — no separate install. Launched July 29, 2026 designed as a permanent mode, sitting alongside Arena/URF in the mode picker (verified via WebSearch 2026-08-12). Recent enough that long-term permanence isn't as proven as Summoner's Rift/ARAM's decade-plus track record, but it wasn't launched as a time-limited test the way Arena/original Mayhem were.",
+    status: "LIVE",
+    isLimitedTime: false,
+  },
+  {
     id: "rotating-mode-urf",
     gameId: GAME_IDS.LEAGUE_OF_LEGENDS,
     title: "URF",

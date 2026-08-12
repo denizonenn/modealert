@@ -2283,3 +2283,147 @@ karşılaşılabilir, o zaman yeniden değerlendirilmeli).
   HTML'inde "Playable"/"Limited Time" rozetleri gerçekten mevcuttu —
   Deniz'in ekran görüntüsünde eksik görünmesi kod hatası değil, deploy
   henüz bitmeden bakılmış olmasıydı.
+
+---
+
+# ADR-029: ARAM Mayhem + League Classic Kalıcı Mod Olarak Doğrulandı (WebSearch) — Ayrı Gerçek Girdiler Aldı
+
+Status: Accepted
+
+Date: 2026-08-12
+
+## Bağlam
+
+Deniz, ARAM Mayhem ve League Classic'in "Limited Time" etiketiyle
+gösterilmesinin doğru olup olmadığını sorguladı — "sadece API
+verisine bakma, interneti de tara." Bu haklı bir şüpheydi: bu ikisi
+event-hub'da hâlâ `kSeasonPass`/`kDemaciaPass` tipinde, tarihli
+"pass" girdileri olarak görünüyordu, ve bu oturumda daha önce
+(ADR-026/ADR-028) bu pass pencerelerini modun kendisinin sinyali
+olarak kullanmıştım — ama bu, modun GERÇEKTEN kalıcı hale gelmiş
+olma ihtimalini hiç sorgulamamıştı.
+
+WebSearch ile doğrulandı:
+- **ARAM: Mayhem** — Riot'un Mart 2026 dev update'i: "kalmaya devam
+  ediyor, şu an için bir bitiş tarihi düşünülmüyor" (dotesports,
+  gamegrin, sheepesports, resmi Riot support sayfası — birden fazla
+  bağımsız kaynak). Başlangıçta limited-time bir testti, artık
+  kalıcı.
+- **League Classic** — 29 Temmuz 2026'da, wiki'nin "a permanent game
+  mode" dediği, Arena/URF ile aynı mod seçim kategorisinde, ayrı
+  client gerektirmeyen bir mod olarak piyasaya sürüldü. Arena/orijinal
+  Mayhem gibi "limited-time test" olarak değil, baştan kalıcı olarak
+  tasarlanmış — ama henüz 2 haftalık, Summoner's Rift/ARAM'ın
+  onlarca yıllık geçmişi kadar kanıtlanmış değil.
+- **Arena** (karşılaştırma için kontrol edildi) — Haziran 2026'ya
+  kadar garantiliydi, o tarihten sonrası (şu an=12 Ağustos 2026) net
+  değil. Kalıcı olarak eklenmedi, belirsizlik sürüyor.
+
+## Karar
+
+1. `lib/providers/rotating-modes/provider.ts`'e iki yeni kalıcı satır
+   eklendi: **ARAM: Mayhem** ve **League Classic** (`status: LIVE`,
+   `isLimitedTime: false`), Summoner's Rift/ARAM'ın yanına.
+2. `lib/providers/communitydragon/normalizer.ts`'te bu ikisi artık
+   event-hub'ın pass penceresinden **çıkarılmadı/yeniden
+   kategorize edilmedi** — `kDemaciaPass` kategorisi `SEASON_PASS`'e
+   geri döndü, "Mayhem" başlık eşleşmesi
+   `UNCONFIRMED_ROTATING_MODE_TITLE_MATCHES`'ten kaldırıldı (artık
+   sadece `["URF", "Arena"]`). Bu ikisinin pass girdileri artık
+   sadece kendi gerçek Riot başlıklarıyla ("Mayhem Set 2", "Classic
+   Pass: Act I"), düz `SEASON_PASS` olarak görünüyor — dürüstlük
+   hedge'i de kaldırıldı çünkü artık modun kendisi ayrı, doğrulanmış
+   bir satırla temsil ediliyor, pass'in bunun için proxy olmasına
+   gerek kalmadı.
+3. "ARAM: Mayhem Classic-ish" companion mantığı (ADR-028) değişmedi
+   — o hâlâ League Classic'in pass penceresine bağlı, çünkü bu
+   spesifik crossover varyantının kendisinin kalıcı olduğuna dair
+   ayrı bir kanıt yok.
+
+## Gerekçe
+
+ADR-026/ADR-028'in "pass penceresi = modun sinyali" yaklaşımı,
+modun kendisi doğrulanmamışken makul bir vekildi. Ama artık iki mod
+için de bağımsız, güvenilir doğrulama var — vekil sinyale gerek
+kalmadı, ve onu kullanmaya devam etmek yanlıştı: bir pass biterse
+(örn. Classic Pass 23 Eylül'de kapanırsa) modun kendisi hâlâ kalıcı
+olarak orada olacak, ama vekil mantık onu yanlışlıkla ENDED
+gösterirdi. Ayrı, doğrudan doğrulanmış bir satır bu riski ortadan
+kaldırıyor.
+
+## Sonuçlar
+
+- 79/79 test (`Mayhem`/`Classic` kategorizasyon testleri güncellendi,
+  yeni bir URF-özel test eklendi), `tsc --noEmit`, `npm run build`
+  temiz.
+- Gerçek sync ile doğrulandı: LoL'de artık 7 kalıcı LIVE mod var
+  (Normal, Ranked Solo/Duo, Ranked Flex, Swiftplay, ARAM, ARAM:
+  Mayhem, League Classic) — hiçbiri "Limited Time" değil, hepsi
+  "Permanent". "Mayhem Set 2"/"Classic Pass: Act I" ayrı, doğru
+  şekilde `SEASON_PASS` satırlar olarak duruyor, isim çakışması yok.
+
+---
+
+# ADR-030: Event.predictNextArrival — "Ne Zaman Geri Gelir" Tahmini
+
+Status: Accepted
+
+Date: 2026-08-12
+
+## Bağlam
+
+Deniz'in aynı mesajdaki ikinci isteği: her event için bir istatistik
+sayfası — "daha önceki yıllarda ne zaman gelmiş, ne kadar aktif
+kalmış, tahmini aktif kalma süresi, tahmini sonraki gelme süresi."
+`/events/[slug]` sayfası bunun çoğunu zaten yapıyordu (first
+tracked, times seen, average duration, tam timeline, "estimated to
+end" — `eventPredictionService.predict()`), ama "ne zaman geri
+gelir" eksikti — sadece "şu anki occurrence ne zaman biter" tahmini
+vardı, "bir sonraki occurrence ne zaman başlar" yoktu.
+
+## Karar
+
+`lib/services/event-prediction.service.ts`'e yeni bir fonksiyon:
+`predictNextArrival(eventId)`. Mantığı:
+
+- Sadece event şu an aktif DEĞİLKEN anlamlı (aktifken zaten "ne
+  zaman biter" sorusu daha alakalı — mevcut `predict()` bunu
+  yanıtlıyor).
+- `computeRecurrence()` (yeni, saf/test edilebilir fonksiyon): tüm
+  geçmiş occurrence'lar arasında, bir occurrence'ın bitişiyle bir
+  sonrakinin başlangıcı arasındaki gerçek boşlukları hesaplıyor,
+  ortalamasını alıyor. Art arda gelen (boşluksuz, örn. Act I'den
+  Act II'ye direkt geçiş) occurrence'lar hariç tutuluyor — bunlar
+  "ne kadar sürede geri gelir" sorusuna gürültü katardı.
+  - En az 2 tamamlanmış occurrence yoksa: `nextExpectedAt: null`,
+    dürüstçe "yeterli geçmiş yok" gösteriliyor.
+  - Varsa: `nextExpectedAt = son bitiş + ortalama boşluk`, confidence
+    boşluk sayısına göre ölçekleniyor (`gapCount * 20`, max 100).
+- `/events/[slug]` sayfasına "Typically returns after" kutusu
+  eklendi (sadece event aktif değilken ve tahmin mümkünken
+  gösteriliyor), yetersiz veri durumunda dürüst bir mesaj.
+
+## Bilinen sınırlama
+
+Bu, TEK BİR event ID'sinin geçmişini kullanıyor. CommunityDragon'ın
+LoL pass girdileri (Mayhem Set 1, Set 2, ...) her sezon YENİ bir
+Riot UUID'siyle geliyor — yani "Mayhem Set 2" kendi geçmişini
+tutuyor ama "bir önceki Mayhem sezonu"nu otomatik bağlamıyor.
+PoE ligi, Warframe Nightwave, Foxhole savaşı gibi SABİT id kullanan
+provider'larda bu sorun yok (aynı id yıllarca aynı kalıyor, gerçek
+tekrar geçmişi doğal olarak birikiyor). LoL'ün sezon geçişli
+pass'leri için "yıllar boyunca aynı şeyin farklı occurrence'ları"
+diye gruplamak, ayrı bir "seri anahtarı" mekanizması gerektirir —
+bu oturumda eklenmedi, istenirse ayrı bir iş.
+
+## Sonuçlar
+
+- 79/79 test (`computeRecurrence` için 5 yeni, saf-fonksiyon testi:
+  yetersiz veri, tek boşluk, çoklu boşluk ortalaması, art arda
+  occurrence'ların hariç tutulması, aktif occurrence'ın hariç
+  tutulması), `tsc --noEmit`, `npm run build` temiz.
+- Gerçek veriyle doğrulanamadı — geçmiş takibi 2026-08-04'te
+  başladığı için DB'de henüz 2+ TAMAMLANMIŞ occurrence'ı olan hiçbir
+  event yok (en yakın adaylar hâlâ aktif/ongoing). Mantık saf
+  fonksiyon testleriyle doğrulandı; gerçek tahminler zaman geçtikçe
+  doğal olarak dolacak.

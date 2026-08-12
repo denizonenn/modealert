@@ -49,14 +49,25 @@ export default async function EventDetailPage({ params }: Props) {
     notFound()
   }
 
-  const [history, statistics, prediction] = await Promise.all([
+  const [history, statistics, prediction, nextArrival] = await Promise.all([
     eventHistoryService.getByEvent(event.id),
     eventStatisticsService.getByEvent(event.id),
     eventPredictionService.predict(event.id),
+    eventPredictionService.predictNextArrival(event.id),
   ])
 
   const predictedEndAt =
     "predictedEndAt" in prediction ? prediction.predictedEndAt : undefined
+
+  const nextExpectedAt =
+    nextArrival.available && "nextExpectedAt" in nextArrival
+      ? nextArrival.nextExpectedAt
+      : undefined
+
+  const recurrenceIntervalMs =
+    nextArrival.available && "recurrenceIntervalMs" in nextArrival
+      ? nextArrival.recurrenceIntervalMs
+      : undefined
 
   const timeline = [...history].reverse()
 
@@ -156,7 +167,38 @@ export default async function EventDetailPage({ params }: Props) {
               </p>
             )}
           </div>
+
+          {!prediction.active && nextExpectedAt && (
+            <div>
+              <p className="text-xs uppercase tracking-wide text-zinc-600">
+                Typically returns after
+              </p>
+              <p className="mt-0.5 text-zinc-300">
+                {recurrenceIntervalMs
+                  ? formatDuration(recurrenceIntervalMs)
+                  : "—"}
+              </p>
+              <p className="mt-0.5 text-xs text-zinc-600">
+                next expected around{" "}
+                {nextExpectedAt.toLocaleDateString()}
+                {nextArrival.available &&
+                  "confidence" in nextArrival && (
+                    <> (~{nextArrival.confidence}% confidence)</>
+                  )}
+              </p>
+            </div>
+          )}
         </div>
+
+        {!prediction.active &&
+          nextArrival.available &&
+          !nextExpectedAt && (
+            <p className="mt-3 text-xs text-zinc-600">
+              Only seen once so far — not enough history yet to
+              estimate when it typically comes back. We&apos;ll be
+              able to once it&apos;s reappeared at least twice.
+            </p>
+          )}
 
         <div className="mt-10">
           <SectionEyebrow>Timeline</SectionEyebrow>

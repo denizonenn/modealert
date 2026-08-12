@@ -493,9 +493,18 @@ Completed
   to, so it stays a static `ENDED` placeholder — same risk of going
   stale exists for it too if it ever actually returns.
 
+- **ARAM: Mayhem + League Classic confirmed permanent (2026-08-12,
+  ADR-029)** — Deniz asked to double-check the Limited Time label via
+  web research, not just API data. WebSearch confirmed both are now
+  Riot-confirmed/designed-as permanent modes, not rotating — moved off
+  the pass-window-inference workaround (ADR-026/ADR-028) onto their
+  own dedicated, independently-verified `LIVE`/`isLimitedTime: false`
+  entries. Arena checked too but stays unconfirmed (its guaranteed-run
+  commitment lapsed with no clear follow-up found).
+
 Full rationale, the URF-specific reasoning, and the per-provider
 category mapping: docs/06_DECISIONS.md ADR-023/ADR-024/ADR-025/
-ADR-026/ADR-027/ADR-028.
+ADR-026/ADR-027/ADR-028/ADR-029.
 
 Future
 
@@ -520,7 +529,28 @@ Future
 
 # P1 — Event History
 
-Status: 🟡 (2026-08-06)
+Status: 🟡 (2026-08-12)
+
+Completed (2026-08-12, ADR-030)
+
+- **`eventPredictionService.predictNextArrival()`** — "typically
+  returns after X, next expected around [date]" prediction for
+  currently-ended events with 2+ completed historical occurrences.
+  Shown on `/events/[slug]` alongside the existing "estimated to end"
+  prediction. Pure computation (`computeRecurrence`) covered by 5
+  unit tests; not yet verifiable against real data since history
+  tracking only started 2026-08-04 and no event has 2+ *completed*
+  occurrences yet.
+
+Known limitation
+
+- Only works within a single event id's history. CommunityDragon's
+  LoL season-pass entries (Mayhem Set 1, Set 2, ...) get a fresh Riot
+  UUID each season, so cross-season recurrence isn't tracked yet —
+  providers with a stable id across real-world recurrences (PoE
+  league, Warframe Nightwave, Foxhole war) aren't affected. A
+  cross-season "series" grouping key would be a separate, bigger
+  feature if wanted.
 
 Completed
 

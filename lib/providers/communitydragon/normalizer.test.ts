@@ -114,7 +114,7 @@ describe("normalizeEventHub", () => {
     expect(events[0].id).toBe("communitydragon-event-real");
   });
 
-  it("keeps rotating-mode season-pass wrappers (Mayhem/URF/Arena), categorized PLAYABLE (it's a real mode) with an honest hedge in the description", () => {
+  it("categorizes Mayhem's pass window as a plain SEASON_PASS — Mayhem is now a confirmed-permanent mode with its own dedicated entry, no hedge needed", () => {
     const events = normalizeEventHub(
       [
         entry(
@@ -139,11 +139,12 @@ describe("normalizeEventHub", () => {
 
     const mayhem = events.find((e) => e.id === "communitydragon-event-mayhem");
 
-    expect(mayhem?.category).toBe("PLAYABLE");
-    expect(mayhem?.description).toContain("battle-pass window only");
+    expect(mayhem?.title).toBe("Mayhem Set 2");
+    expect(mayhem?.category).toBe("SEASON_PASS");
+    expect(mayhem?.description).not.toContain("battle-pass window only");
   });
 
-  it("categorizes League Classic's pass (kDemaciaPass) as PLAYABLE — it represents a real mode, not just a reward track", () => {
+  it("categorizes League Classic's pass (kDemaciaPass) as SEASON_PASS — League Classic has its own dedicated PLAYABLE entry now", () => {
     const [event] = normalizeEventHub(
       [
         entry(
@@ -159,42 +160,29 @@ describe("normalizeEventHub", () => {
       now
     );
 
-    expect(event.category).toBe("PLAYABLE");
+    expect(event.title).toBe("Classic Pass: Act I");
+    expect(event.category).toBe("SEASON_PASS");
   });
 
-  it("renames pass-tier titles to the real, recognizable mode name — dates/status still come from the real event-hub entry", () => {
-    const events = normalizeEventHub(
+  it("still renames URF/Arena pass-tier titles to the real mode name — no dedicated permanent entry exists for those yet", () => {
+    const [event] = normalizeEventHub(
       [
         entry(
-          "mayhem",
+          "urf",
           "2026-06-10T00:00:00.000Z",
           "2026-10-06T00:00:00.000Z",
           {
-            localizedShortName: "Mayhem Set 2",
+            localizedShortName: "URF Set 2",
             eventHubType: "kSeasonPass",
-          }
-        ),
-        entry(
-          "classic",
-          "2026-07-29T00:00:00.000Z",
-          "2026-09-23T00:00:00.000Z",
-          {
-            localizedShortName: "Classic Pass: Act I",
-            eventHubType: "kDemaciaPass",
           }
         ),
       ],
       now
     );
 
-    const mayhem = events.find((e) => e.id === "communitydragon-event-mayhem");
-    const classic = events.find((e) => e.id === "communitydragon-event-classic");
-
-    expect(mayhem?.title).toBe("ARAM: Mayhem");
-    expect(mayhem?.status).toBe("LIVE");
-
-    expect(classic?.title).toBe("League Classic");
-    expect(classic?.status).toBe("LIVE");
+    expect(event.title).toBe("URF");
+    expect(event.category).toBe("PLAYABLE");
+    expect(event.description).toContain("battle-pass window only");
   });
 
   it("derives 'ARAM: Mayhem Classic-ish' status from League Classic's real pass window, not a static guess", () => {

@@ -24,8 +24,7 @@ const EVENT_HUB_TYPE_LABELS: Record<string, string> = {
   kActivityCenterMilestones:
     "Limited-time milestone event with special rewards.",
   kHallOfLegends: "Hall of Legends celebration event.",
-  kDemaciaPass:
-    "The old-school alternate client's battle pass. Riot doesn't publish a separate 'is League Classic queueable' signal, so this pass being open is the best real indicator ModeAlert has.",
+  kDemaciaPass: "Classic-mode battle pass — earn track rewards.",
 };
 
 // Same eventHubType lookup used for descriptions, mapped to a
@@ -33,35 +32,35 @@ const EVENT_HUB_TYPE_LABELS: Record<string, string> = {
 // event-hub feed's entries are, overwhelmingly, real time-boxed
 // events tied to something players actually do in-client.
 //
-// kSeasonPass/kDemaciaPass default to SEASON_PASS (narrative content
-// tracks like "Season 3: Act I" or "Spirit Blossom Beyond" — earn
-// missions, unlock skins, not a mode you queue into). The exception
-// is rotating-mode wrappers (Mayhem/URF/Arena) and kDemaciaPass
-// itself (League Classic's pass) — see below, both PLAYABLE, because
-// per Deniz these represent a real mode a player queues into, not
-// just a reward track.
+// kSeasonPass/kDemaciaPass are SEASON_PASS (reward tracks — Season N:
+// Act X, Spirit Blossom Beyond, Classic Pass — none of these are a
+// mode you queue into, just a track you earn rewards through). The
+// mode each pass is tied to, when confirmed real and worth tracking
+// on its own, gets its own dedicated PLAYABLE entry instead — see
+// lib/providers/rotating-modes/provider.ts and ADR-029 (ARAM: Mayhem
+// and League Classic both confirmed permanent by Riot, verified via
+// WebSearch 2026-08-12, so they're no longer inferred from a pass
+// window — they have their own real, standalone entries now).
 const EVENT_HUB_TYPE_CATEGORIES: Record<string, EventCategory> = {
   kSeasonPass: EVENT_CATEGORIES.SEASON_PASS,
-  kDemaciaPass: EVENT_CATEGORIES.PLAYABLE,
+  kDemaciaPass: EVENT_CATEGORIES.SEASON_PASS,
   kActivityCenterMilestones: EVENT_CATEGORIES.PLAYABLE,
   kHallOfLegends: EVENT_CATEGORIES.PLAYABLE,
 };
 
-// Rotating featured modes (ARAM Mayhem, URF, Arena) publish their
-// season-long progression-track entry under kSeasonPass, same as any
-// other battle pass. There's still no reliable "is the mode actually
-// in rotation right now" signal (see docs/06_DECISIONS.md ADR-017/
-// ADR-020) — but per Deniz, these represent a real mode he wants
-// filed as PLAYABLE, not tucked away as a generic season pass. The
-// hedge stays in the description instead: visible and trackable
-// under the category he actually wants, but never claiming the mode
-// itself is confirmed live.
-const ROTATING_MODE_TITLE_MATCHES = ["Mayhem", "URF", "Arena"];
+// URF and Arena still have no confirmed-permanent status and no
+// dedicated real entry to stand on their own (see ADR-026/ADR-029) —
+// their event-hub season-pass wrapper (when one exists) is still the
+// best available signal, filed as PLAYABLE with an honest hedge in
+// the description. Mayhem was removed from this list: it's now a
+// confirmed-permanent mode with its own dedicated entry, so its pass
+// window can go back to being a plain, unhedged SEASON_PASS.
+const UNCONFIRMED_ROTATING_MODE_TITLE_MATCHES = ["URF", "Arena"];
 
-function isRotatingModeWrapper(
+function isUnconfirmedRotatingModeWrapper(
   title: string
 ): boolean {
-  return ROTATING_MODE_TITLE_MATCHES.some((match) =>
+  return UNCONFIRMED_ROTATING_MODE_TITLE_MATCHES.some((match) =>
     title.includes(match)
   );
 }
@@ -76,26 +75,17 @@ function isPassCurrencyWrapper(
   return title.includes("Token Bank");
 }
 
-// The event-hub's own title for a rotating-mode/Classic pass is a
-// pass-tier name ("Mayhem Set 2", "Classic Pass: Act I") — real and
-// accurate, but not the name a player would recognize as the actual
-// mode. The real mode names come from CommunityDragon's public
-// queues.json (verified 2026-08-12, see ADR-026/ADR-027) — used here
-// for display only. The dates/status driving this event still come
-// entirely from this real, dated event-hub entry; only the label
-// changes.
+// The event-hub's own title for URF/Arena's pass wrapper is a
+// pass-tier name ("URF Set 2") — real and accurate, but not the name
+// a player would recognize. Renamed to the real mode name from
+// queues.json for display only; dates/status still come from this
+// real, dated event-hub entry. Mayhem/Classic are NOT renamed here
+// anymore — they have their own dedicated, standalone permanent
+// entries now (see ADR-029), so their pass-window title stays as
+// Riot's own real pass-tier name to avoid two rows sharing one name.
 function canonicalModeTitle(
-  event: CommunityDragonEventHubEntry["event"],
   rawTitle: string
 ): string | null {
-  if (event.eventHubType === "kDemaciaPass") {
-    return "League Classic";
-  }
-
-  if (rawTitle.includes("Mayhem")) {
-    return "ARAM: Mayhem";
-  }
-
   if (rawTitle.includes("URF")) {
     return "URF";
   }
@@ -121,7 +111,7 @@ function describeEvent(
 
   if (
     event.eventHubType === "kSeasonPass" &&
-    isRotatingModeWrapper(title)
+    isUnconfirmedRotatingModeWrapper(title)
   ) {
     return `${description} This is the battle-pass window only — whether the mode itself is in rotation today isn't something Riot exposes a reliable signal for yet.`;
   }
@@ -135,7 +125,7 @@ function categorizeEvent(
 ): EventCategory {
   if (
     event.eventHubType === "kSeasonPass" &&
-    isRotatingModeWrapper(title)
+    isUnconfirmedRotatingModeWrapper(title)
   ) {
     return EVENT_CATEGORIES.PLAYABLE;
   }
@@ -201,7 +191,7 @@ function toProviderEvent(
     event.localizedShortName ||
     event.localizedName;
 
-  const title = canonicalModeTitle(event, rawTitle) ?? rawTitle;
+  const title = canonicalModeTitle(rawTitle) ?? rawTitle;
 
   return {
     id: `communitydragon-event-${event.eventId}`,
