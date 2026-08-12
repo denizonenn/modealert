@@ -2651,3 +2651,67 @@ güvenmeye devam etmeli), tek taraflı bir mimari karar değil.
   Roll) hepsi `LIVE`/`Permanent` olarak DB'de.
 - Destiny 2 bulgusu docs/09_BACKLOG.md'ye ayrı bir madde olarak
   işlendi, Deniz'in dikkatine sunuldu.
+
+---
+
+# ADR-034: Destiny 2 — Iron Banner, Gerçek Duyurulmuş Takvimden Hesaplanan Statü
+
+Status: Accepted
+
+Date: 2026-08-12
+
+## Bağlam
+
+ADR-033'te flag'lenen Destiny 2 sorusuna Deniz'in cevabı: "sonraki
+adım ne olmalıysa onu yap." Önce iki şeyi ayırt etmek gerekti:
+
+1. **Trials of Osiris** — Bungie'nin Public Milestones API'sinde
+   gerçek bir tanımı var (`milestoneHash` 2311040624, "Trials
+   Returns", doğrulandı). Bugünkü sync'te görünmüyor çünkü bugün
+   (2026-08-12, Çarşamba) Trials'ın aktif olduğu bir gün değil —
+   mevcut `mapActiveMilestones` pipeline'ı bu, aktif olduğunda zaten
+   doğru yakalayacak. **Kod değişikliği gerekmedi.**
+2. **Iron Banner** — Bungie'nin 31 kayıtlık milestone tanım
+   tablosunda **hiç yok**. Bu mekanizma üzerinden asla
+   yakalanamayacak, gerçek bir boşluk.
+
+Iron Banner için WebSearch ile resmi bir kaynak bulundu: Bungie'nin
+kendi `@DestinyTheGame` hesabı doğrudan duyurmuş — "Iron Banner will
+return on June 30, 2026, and then every 4 weeks after." Destiny 2'nin
+canlı içerik geliştirmesi bittiği için (ADR-033) bu takvim artık
+kalıcı ve değişmeyecek.
+
+## Karar
+
+`lib/providers/destiny/event-mapper.ts`'e `mapIronBanner(now)`
+eklendi — gerçek çapa tarihinden (30 Haziran 2026) ve gerçek
+periyottan (4 hafta, ~7 günlük pencere) LIVE/ENDED durumunu
+hesaplıyor. Canlı bir API sinyali değil ama tahmin de değil —
+Bungie'nin kendi resmi, tarihli duyurusundan deterministik bir
+formül. Pencereler arası durum bilinçli olarak `UPCOMING` değil
+`ENDED` — `eventSyncService`'in `syncHistoryForStatus`'u sadece
+`ENDED`'de `finish()` çağırıyor, `UPCOMING` kullansaydım geçmiş kaydı
+hiç kapanmaz, `predictNextArrival` (ADR-030) hiç çalışmazdı. Sıradaki
+gerçek tarih açıklama metninde ayrıca gösteriliyor.
+
+## Gerekçe
+
+Bu, URF'ten kasıtlı olarak farklı bir karar: URF'ün gerçek bir
+periyodu/formülü yok (araştırıldı, yok — ADR-033), o yüzden statik
+"ENDED, sinyal yok" placeholder olarak kaldı. Iron Banner'ın ise
+gerçek, resmi, tarihli bir çapa noktası ve periyodu var — bu,
+tahmin değil hesaplama. Format Warframe'in `voidTrader`/`nightwave`
+mantığıyla aynı aile: gerçek zaman damgalarından LIVE/UPCOMING
+hesaplamak, sadece kaynak canlı API yerine resmi bir duyuru.
+
+## Sonuçlar
+
+- 88/88 test (5 yeni `mapIronBanner` testi: pencere içi LIVE, pencere
+  son günü LIVE, pencereler arası ENDED + sıradaki tarih, sonraki 2
+  döngüde tekrar LIVE), `tsc --noEmit`, `npm run build` temiz.
+- Gerçek sync ile doğrulandı: `status: ENDED`, açıklama "This window
+  ended Tue Aug 04 2026. Next expected Tue Aug 25 2026" — WebSearch'te
+  bulunan gerçek pencerelerle (28 Temmuz - 4 Ağustos aktifti, sıradaki
+  25 Ağustos) birebir eşleşiyor.
+- docs/09_BACKLOG.md'deki `⚠️ Needs Deniz's attention` notu
+  güncellendi/kapatıldı.

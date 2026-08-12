@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { mapActiveMilestones, mapPlatformStatus } from "./event-mapper";
+import {
+  mapActiveMilestones,
+  mapIronBanner,
+  mapPlatformStatus,
+} from "./event-mapper";
 
 describe("destiny mapPlatformStatus", () => {
   it("is LIVE when Destiny2 system is enabled", () => {
@@ -47,5 +51,40 @@ describe("destiny mapActiveMilestones", () => {
 
     expect(events).toHaveLength(1);
     expect(events[0].id).toBe("destiny-milestone-123");
+  });
+});
+
+describe("destiny mapIronBanner", () => {
+  it("is LIVE during the announced window (June 30, 2026 + every 4 weeks, 7-day window)", () => {
+    const [event] = mapIronBanner(new Date("2026-06-30T12:00:00.000Z"));
+
+    expect(event.status).toBe("LIVE");
+    expect(event.id).toBe("destiny-iron-banner");
+    expect(event.gameId).toBe("destiny");
+  });
+
+  it("is LIVE on the last day of the 7-day window", () => {
+    const [event] = mapIronBanner(new Date("2026-07-07T00:00:00.000Z"));
+
+    expect(event.status).toBe("LIVE");
+  });
+
+  it("is ENDED between windows, with the next expected date in the description", () => {
+    const [event] = mapIronBanner(new Date("2026-07-15T00:00:00.000Z"));
+
+    expect(event.status).toBe("ENDED");
+    expect(event.description).toContain("Next expected");
+  });
+
+  it("is LIVE again on the next 4-week cycle (July 28, 2026)", () => {
+    const [event] = mapIronBanner(new Date("2026-07-28T12:00:00.000Z"));
+
+    expect(event.status).toBe("LIVE");
+  });
+
+  it("is LIVE on the cycle after that too (August 25, 2026)", () => {
+    const [event] = mapIronBanner(new Date("2026-08-25T12:00:00.000Z"));
+
+    expect(event.status).toBe("LIVE");
   });
 });

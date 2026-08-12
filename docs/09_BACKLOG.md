@@ -773,20 +773,21 @@ Live providers
 - Valorant ✅ (2026-08-04, Riot)
 - Destiny 2 ✅ (2026-08-05, Bungie API — platform status + active
   weekly milestones/raid rotation. See docs/06_DECISIONS.md ADR-006.)
-  **⚠️ Needs Deniz's attention (found 2026-08-12, ADR-033):** Bungie
-  ended Destiny 2's planned live-service content on 2026-06-09
-  ("Monument of Triumph", Update 9.7.0) — servers stay up, game stays
-  playable, but no more seasons/expansions, ever. Trials of
-  Osiris/Iron Banner keep rotating on a fixed, publicly-known schedule
-  (Trials every weekend Iron Banner isn't active; Iron Banner every 4
-  weeks) — everything else Destiny-related is now permanently frozen.
-  The provider itself still works (13 real milestones returned in this
-  session's syncs), but this description above is now missing context
-  — the game isn't in active development anymore. Open question for
-  Deniz: worth adding Trials/Iron Banner as known-schedule permanent
-  entries (same pattern as LoL's known-modes) now that their cadence
-  is publicly fixed forever, or leave as-is? Not decided here —
-  flagged, not acted on unilaterally.
+  **Context update (2026-08-12, ADR-033/ADR-034):** Bungie ended
+  Destiny 2's planned live-service content on 2026-06-09 ("Monument of
+  Triumph", Update 9.7.0) — servers stay up, game stays playable, but
+  no more seasons/expansions, ever. Resolved the open question from
+  ADR-033: checked Bungie's real milestone definitions directly —
+  Trials of Osiris has a real milestone entry (`milestoneHash`
+  2311040624) so the existing pipeline already catches it correctly
+  when active, no change needed. Iron Banner has zero entries in that
+  table (structurally can't be caught that way), so
+  `mapIronBanner()` was added — computes real LIVE/ENDED status from
+  Bungie's own official announced schedule (`@DestinyTheGame`: returns
+  June 30, 2026, every 4 weeks after), not a live API signal but a
+  deterministic formula from a dated, official source. Verified
+  against real sync: computed dates matched independently-found real
+  window dates exactly.
 - TFT ✅ (2026-08-05, Riot — platform status only for now, same
   `RIOT_API_KEY`. See ADR-009.)
 - Fortnite ✅ (2026-08-05, `fortnite-api.com`, no key needed — Item
