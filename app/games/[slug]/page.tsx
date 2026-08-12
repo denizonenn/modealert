@@ -84,10 +84,12 @@ export default async function GameDetailPage({ params }: Props) {
     (a, b) =>
       categorySortKey(
         a.event.category,
+        a.event.isLimitedTime,
         STATUS_ORDER[a.event.status as EventStatus]
       ) -
       categorySortKey(
         b.event.category,
+        b.event.isLimitedTime,
         STATUS_ORDER[b.event.status as EventStatus]
       )
   )

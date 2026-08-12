@@ -7,11 +7,15 @@ import { useOnboardingStore } from "@/stores/onboarding-store";
 import { useEvents } from "@/hooks/use-events";
 import { Skeleton } from "@/components/shared/skeleton";
 import { CategoryFilterBar } from "@/components/shared/category-filter-bar";
+import { RotationFilterBar } from "@/components/shared/rotation-filter-bar";
 
 import {
   categorySortKey,
   EVENT_CATEGORIES,
+  matchesRotationFilter,
+  ROTATION_FILTER_ORDER,
   type EventCategory,
+  type RotationFilter,
 } from "@/lib/constants/event-category";
 
 import EventCard from "../cards/event-card";
@@ -31,6 +35,10 @@ const DEFAULT_CATEGORIES: Set<EventCategory> = new Set([
   EVENT_CATEGORIES.PLAYABLE,
 ]);
 
+const DEFAULT_ROTATIONS: Set<RotationFilter> = new Set(
+  ROTATION_FILTER_ORDER
+);
+
 export default function EventSelector() {
   const {
     selectedGames,
@@ -48,6 +56,10 @@ export default function EventSelector() {
     Set<EventCategory>
   >(DEFAULT_CATEGORIES);
 
+  const [selectedRotations, setSelectedRotations] = useState<
+    Set<RotationFilter>
+  >(DEFAULT_ROTATIONS);
+
   function toggleCategory(category: EventCategory) {
     setSelectedCategories((current) => {
       const next = new Set(current);
@@ -64,20 +76,43 @@ export default function EventSelector() {
     });
   }
 
+  function toggleRotation(rotation: RotationFilter) {
+    setSelectedRotations((current) => {
+      const next = new Set(current);
+
+      if (next.has(rotation)) {
+        next.delete(rotation);
+      } else {
+        next.add(rotation);
+      }
+
+      return next.size === 0 ? new Set(ROTATION_FILTER_ORDER) : next;
+    });
+  }
+
   const filteredEvents = useMemo(
     () =>
       events
         .filter(
           (event) =>
             selectedGames.includes(event.gameId) &&
-            selectedCategories.has(event.category as EventCategory)
+            selectedCategories.has(event.category as EventCategory) &&
+            matchesRotationFilter(event.isLimitedTime, selectedRotations)
         )
         .sort(
           (a, b) =>
-            categorySortKey(a.category, STATUS_PRIORITY[a.status] ?? 9) -
-            categorySortKey(b.category, STATUS_PRIORITY[b.status] ?? 9)
+            categorySortKey(
+              a.category,
+              a.isLimitedTime,
+              STATUS_PRIORITY[a.status] ?? 9
+            ) -
+            categorySortKey(
+              b.category,
+              b.isLimitedTime,
+              STATUS_PRIORITY[b.status] ?? 9
+            )
         ),
-    [events, selectedGames, selectedCategories]
+    [events, selectedGames, selectedCategories, selectedRotations]
   );
 
   if (isLoading) {
@@ -100,10 +135,15 @@ export default function EventSelector() {
 
   return (
     <div>
-      <div className="mt-8">
+      <div className="mt-8 space-y-4">
         <CategoryFilterBar
           selected={selectedCategories}
           onToggle={toggleCategory}
+        />
+
+        <RotationFilterBar
+          selected={selectedRotations}
+          onToggle={toggleRotation}
         />
       </div>
 

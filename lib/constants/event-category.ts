@@ -25,8 +25,8 @@ export type EventCategory =
 
 // Lower number = shown first. Ended events in a higher-priority
 // category still outrank live events in a lower-priority one — see
-// EVENT_CATEGORY_SORT_WEIGHT below, which is what actually encodes
-// "a real event you'd play beats infrastructure noise, even ended."
+// CATEGORY_SORT_WEIGHT below, which is what actually encodes "a real
+// event you'd play beats infrastructure noise, even ended."
 export const EVENT_CATEGORY_PRIORITY: Record<EventCategory, number> = {
   PLAYABLE: 0,
   SEASON_PASS: 1,
@@ -35,21 +35,30 @@ export const EVENT_CATEGORY_PRIORITY: Record<EventCategory, number> = {
   PLATFORM_STATUS: 4,
 };
 
-// Multiplier applied to category priority before adding status
-// priority, so category always dominates the sort — status only
-// breaks ties within the same category. Must exceed the number of
-// distinct status values (4).
-const CATEGORY_SORT_WEIGHT = 10;
+// Sort weights, largest to smallest so each dimension dominates the
+// one after it: category first (a real played thing beats
+// infrastructure noise), then limited-time vs permanent (the rare,
+// easy-to-miss thing beats the one that's always there — that's the
+// whole point of an alert app), then status as the final tiebreak.
+const CATEGORY_SORT_WEIGHT = 100;
+const ROTATION_SORT_WEIGHT = 10;
 
 export function categorySortKey(
   category: string,
+  isLimitedTime: boolean,
   statusPriority: number
 ): number {
   const categoryPriority =
     EVENT_CATEGORY_PRIORITY[category as EventCategory] ??
     EVENT_CATEGORY_PRIORITY.PLAYABLE;
 
-  return categoryPriority * CATEGORY_SORT_WEIGHT + statusPriority;
+  const rotationPriority = isLimitedTime ? 0 : 1;
+
+  return (
+    categoryPriority * CATEGORY_SORT_WEIGHT +
+    rotationPriority * ROTATION_SORT_WEIGHT +
+    statusPriority
+  );
 }
 
 export const EVENT_CATEGORY_LABELS: Record<EventCategory, string> = {
@@ -78,3 +87,22 @@ export const EVENT_CATEGORY_ORDER: EventCategory[] = [
   "COSMETIC_SHOP",
   "PLATFORM_STATUS",
 ];
+
+export type RotationFilter = "limited" | "permanent";
+
+export const ROTATION_FILTER_LABELS: Record<RotationFilter, string> = {
+  limited: "Limited Time",
+  permanent: "Permanent",
+};
+
+export const ROTATION_FILTER_ORDER: RotationFilter[] = [
+  "limited",
+  "permanent",
+];
+
+export function matchesRotationFilter(
+  isLimitedTime: boolean,
+  selected: Set<RotationFilter>
+): boolean {
+  return selected.has(isLimitedTime ? "limited" : "permanent");
+}

@@ -2525,3 +2525,129 @@ elden veri varsa onu kullan.
   Event satırı olarak var ama EventHistory'de değil (ModeAlert o
   zaman henüz onları gözlemlemiyordu). Zaman geçtikçe gerçek veri
   doğal olarak birikecek.
+
+---
+
+# ADR-032: Limited Time Her Zaman Üstte + Ayrı Limited/Permanent Filtresi
+
+Status: Accepted
+
+Date: 2026-08-12
+
+## Bağlam
+
+Deniz: "her zaman limited'lar üstte çıksın ve limited/permanent
+filtresi olsun." Kategori sistemi "ne tür içerik" sorusuna cevap
+veriyordu ama sıralamada limited-time/permanent ayrımının bir ağırlığı
+yoktu — aynı kategoride (örn. PLAYABLE) kalıcı modlar (Sihirdar
+Vadisi) ile nadir/kaçırılabilecek olanlar (URF) durum bazlı
+sıralanıyordu, "nadir olan öne çıksın" mantığı yoktu.
+
+## Karar
+
+1. **`categorySortKey()` üç parametreli oldu**: `(category,
+   isLimitedTime, statusPriority)`. Ağırlıklandırma: kategori (×100)
+   > limited/permanent (×10, limited önce) > status (tie-break).
+   Kategori hâlâ en baskın sıralama ekseni, ama artık aynı kategori
+   içinde limited-time olanlar her zaman permanent olanların önünde.
+   Tüm çağıran yerler güncellendi (onboarding, dashboard, homepage,
+   `/games/[slug]`).
+2. **`components/shared/rotation-filter-bar.tsx`** (yeni) —
+   `CategoryFilterBar` ile aynı desende, "Limited Time"/"Permanent"
+   çoklu-seçim rozetleri. Onboarding'e ve dashboard'un "All Events"
+   bölümüne eklendi, varsayılan ikisi de seçili (filtre yok, sadece
+   sıralama etkisi varsayılan).
+
+## Sonuçlar
+
+- 83/83 test, `tsc --noEmit`, `npm run build` temiz.
+
+---
+
+# ADR-033: URF'ün Gerçek Tarihi Araştırıldı (Uydurma Kesinlik Yok) + Diğer Oyunlara Kalıcı Modlar + Destiny 2 Bulgusu
+
+Status: Accepted
+
+Date: 2026-08-12
+
+## Bağlam
+
+Deniz'in isteği üç parçalıydı: (1) URF için internetten gerçek
+historical data oluşturulabilir mi, (2) diğer oyunlarda da gerçekten
+oynanan/beklenen modları araştır, (3) limited/permanent sıralama+
+filtre (ADR-032'de yapıldı).
+
+## (1) URF'ün gerçek tarihi — bulunan ama kullanılmayan veri
+
+WebSearch + resmi Riot patch notes sayfası (`leagueoflegends.com/
+.../patch-26-2-notes`) doğruladı: **ARURF, 22 Ocak 2026'da Patch
+26.2 ile başladı** (orijinal planı Patch 26.3/4 Şubat'tı, öne
+çekildi). Patch 26.4'te hâlâ aktif olduğu doğrulandı. Ama **kesin
+bir bitiş tarihi hiçbir kaynakta bulunamadı** — sadece "Patch
+26.11'de artık aktif değil" gibi geniş bir pencere biliniyordu
+(önceki oturumdan). Patch aralığından (~2 hafta) tahmini bir bitiş
+tarihi uydurmak mümkündü ama bu **gerçek değil, tahmin** olurdu.
+
+**Karar: EventHistory'ye sahte kesinlikte bir satır eklenmedi.**
+Bunun yerine URF'ün açıklaması gerçek, kaynaklı bilgiyle
+güncellendi ("son bilinen başlangıcı 22 Ocak 2026, Patch 26.2"),
+ama `predictNextArrival`'ın kullandığı EventHistory tablosuna
+elle satır eklenmedi — çünkü bu, "gerçek gözlem" ile "internetten
+bulunan ama kesinliği belirsiz bilgi"yi aynı veri kaynağında
+karıştırırdı, ve bu proje boyunca korunan "gösterilen sayılar gerçek
+gözleme dayanır" ilkesini zedelerdi.
+
+## (2) Diğer oyunlara kalıcı mod ekleme
+
+LoL'deki Sihirdar Vadisi/ARAM örneğiyle aynı titizlikte, WebSearch ile
+doğrulanan, yıllardır değişmemiş kalıcı modlar eklendi
+(`lib/providers/rotating-modes/provider.ts`, hepsi `LIVE`/
+`isLimitedTime: false`):
+
+- **Valorant**: Competitive, Unrated (2026'da hâlâ orijinal kalıcı
+  modlar arasında, doğrulandı).
+- **Fortnite**: Battle Royale, Zero Build (Zero Build 2022'den beri
+  kalıcı, 2026'da hâlâ aktif geliştiriliyor — doğrulandı).
+- **TFT**: Normal, Ranked, Hyper Roll — bunlar için yeni web
+  araştırması gerekmedi, zaten bu oturumda `queues.json`'dan çekilmiş
+  gerçek queue id'leri (1090/1100/1130) kullanıldı.
+
+Eklenmeyenler: Destiny 2 (Crucible/Gambit) — aşağıdaki bulgu
+yüzünden bilinçli olarak ertelendi. Warframe/PoE/Helldivers 2/Foxhole
+— bu oyunların "hep orada olan" şeyi zaten oyunun kendisi, LoL/
+Valorant/TFT'deki gibi temiz bir alt-mod ayrımı yok.
+
+## (3) Önemli yan bulgu: Destiny 2 canlı içerik geliştirmesi bitti
+
+Destiny 2 için kalıcı mod araştırması yapılırken bulundu:
+**Bungie, 9 Haziran 2026'da "Monument of Triumph" (Update 9.7.0) ile
+Destiny 2'nin planlı canlı-servis içerik güncellemelerini resmen
+sonlandırdı.** Sunucular KAPANMIYOR, oyun oynanabilir durumda kalıyor,
+ama:
+- Düzenli sezon döngüleri, expansion'lar, canlı-servis makinesi
+  tamamen duruyor — "9 Haziran'da ne görüyorsan sonsuza kadar o."
+- Festival of the Lost, The Dawning, Guardian Games, Solstice gibi
+  sezonluk event'ler kalıcı olarak emekliye ayrıldı.
+- Ama Trials of Osiris (Iron Banner aktif olmadığı her hafta sonu) ve
+  Iron Banner (her 4 haftada bir) **sabit bir döngüde devam ediyor** —
+  resmi Bungie duyurusu.
+
+Bu, ModeAlert'in Destiny 2 provider'ının (`lib/providers/destiny/`)
+hâlâ gerçek veri döndürdüğünü (bu oturumdaki gerçek sync'lerde 13
+milestone alındı, doğrulandı) ama CLAUDE.md/docs'daki "haftalık aktif
+milestone'lar" açıklamasının artık eksik bir bağlamı olduğunu
+gösteriyor — oyun artık "canlı geliştirme" değil "dondurulmuş, sabit
+döngü" modunda. **Kod tarafında bir değişiklik yapılmadı** — bu,
+Deniz'in bilmesi/karar vermesi gereken bir ürün bulgusu (örn. Trials/
+Iron Banner'ı sabit bilinen döngüleriyle statik kalıcı entry'ler
+olarak mı eklemeli, yoksa mevcut canlı milestone API'sine mi
+güvenmeye devam etmeli), tek taraflı bir mimari karar değil.
+
+## Sonuçlar
+
+- 83/83 test, `tsc --noEmit`, `npm run build` temiz.
+- Gerçek sync ile doğrulandı: Valorant (Competitive, Unrated),
+  Fortnite (Battle Royale, Zero Build), TFT (Normal, Ranked, Hyper
+  Roll) hepsi `LIVE`/`Permanent` olarak DB'de.
+- Destiny 2 bulgusu docs/09_BACKLOG.md'ye ayrı bir madde olarak
+  işlendi, Deniz'in dikkatine sunuldu.

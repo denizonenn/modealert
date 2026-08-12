@@ -119,7 +119,7 @@ const KNOWN_MODES: KnownMode[] = [
     gameId: GAME_IDS.LEAGUE_OF_LEGENDS,
     title: "URF",
     description:
-      "Ultra Rapid Fire — near-zero cooldowns, no mana, chaos. A rotating featured mode; Riot doesn't publish a schedule for when featured modes are in rotation, so ModeAlert has no live signal for it right now (checked both the live and PBE event-hub feeds directly — neither has a URF entry). Tracked here so you don't miss it — the moment Riot's data shows a real URF window, ModeAlert reports its actual status and starts building real history (how long it stays live, PBE-to-live lag) automatically.",
+      "Ultra Rapid Fire — near-zero cooldowns, no mana, chaos. A rotating featured mode; Riot doesn't publish a schedule for when featured modes are in rotation, so ModeAlert has no live signal for it right now (checked both the live and PBE event-hub feeds directly — neither has a URF entry). Its last confirmed run (as ARURF) started January 22, 2026 with Patch 26.2, per Riot's own official patch notes (verified via WebSearch 2026-08-12) — no reliable end date found, so that's not seeded as history here (would be false precision). Tracked so you don't miss the next one — the moment Riot's data shows a real URF window, ModeAlert reports its actual status and starts building real history (how long it stays live, PBE-to-live lag) automatically.",
     status: "ENDED",
     isLimitedTime: true,
   },
@@ -128,6 +128,80 @@ const KNOWN_MODES: KnownMode[] = [
   // it's now derived from League Classic's real pass-window dates
   // instead of a hardcoded guess (see ADR-028). A static entry that
   // can never say LIVE was flatly wrong the moment that window opened.
+
+  // Valorant and Fortnite core modes — same treatment as LoL's
+  // Summoner's Rift/ARAM: structurally permanent, years-unchanged,
+  // confirmed via WebSearch 2026-08-12, not something requiring live
+  // verification. Both games previously had zero PLAYABLE-category
+  // entries (only Platform Status/Item Shop/Acts), so the Playable
+  // filter showed nothing meaningful for them until now.
+  {
+    id: "valorant-mode-competitive",
+    gameId: GAME_IDS.VALORANT,
+    title: "Competitive",
+    description:
+      "5v5 ranked ladder, best-of-25 (first to 13), Iron through Radiant. One of Valorant's original permanent modes since launch.",
+    status: "LIVE",
+    isLimitedTime: false,
+  },
+  {
+    id: "valorant-mode-unrated",
+    gameId: GAME_IDS.VALORANT,
+    title: "Unrated",
+    description:
+      "Same rules as Competitive, no rank on the line. Permanent core mode since launch.",
+    status: "LIVE",
+    isLimitedTime: false,
+  },
+  {
+    id: "fortnite-mode-battle-royale",
+    gameId: GAME_IDS.FORTNITE,
+    title: "Battle Royale",
+    description:
+      "Fortnite's original permanent mode — 100 players, last one standing. Building enabled.",
+    status: "LIVE",
+    isLimitedTime: false,
+  },
+  {
+    id: "fortnite-mode-zero-build",
+    gameId: GAME_IDS.FORTNITE,
+    title: "Zero Build",
+    description:
+      "Battle Royale with building disabled. Permanent playlist since its 2022 launch, still actively updated (confirmed via WebSearch 2026-08-12).",
+    status: "LIVE",
+    isLimitedTime: false,
+  },
+
+  // TFT core queues — sourced from the same real CommunityDragon
+  // queues.json already used for LoL (queue ids 1090/1100/1130,
+  // fetched 2026-08-12), not re-derived from a new source.
+  {
+    id: "tft-mode-normal",
+    gameId: GAME_IDS.TFT,
+    title: "Normal",
+    description:
+      "Standard Teamfight Tactics queue, no rank on the line. Permanent core queue.",
+    status: "LIVE",
+    isLimitedTime: false,
+  },
+  {
+    id: "tft-mode-ranked",
+    gameId: GAME_IDS.TFT,
+    title: "Ranked",
+    description:
+      "TFT's ranked ladder. Permanent core queue.",
+    status: "LIVE",
+    isLimitedTime: false,
+  },
+  {
+    id: "tft-mode-hyper-roll",
+    gameId: GAME_IDS.TFT,
+    title: "Hyper Roll",
+    description:
+      "Faster-paced TFT — more gold, faster rerolls, single-elimination-style. Permanent core queue.",
+    status: "LIVE",
+    isLimitedTime: false,
+  },
 ];
 
 export const rotatingModesProvider: EventProvider = {

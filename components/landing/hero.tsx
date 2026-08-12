@@ -21,8 +21,16 @@ const STATUS_ORDER: Record<string, number> = {
 // battle-pass window, a PoE league, ...) represents the game better
 // than an always-on "Platform Status"/"Champion Rotation" row, even
 // if the real event has since ended and the noise row is live.
-function previewRank(event: { status: string; category: string }): number {
-  return categorySortKey(event.category, STATUS_ORDER[event.status] ?? 9)
+function previewRank(event: {
+  status: string
+  category: string
+  isLimitedTime: boolean
+}): number {
+  return categorySortKey(
+    event.category,
+    event.isLimitedTime,
+    STATUS_ORDER[event.status] ?? 9
+  )
 }
 
 async function getPreviewData(): Promise<{

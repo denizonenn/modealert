@@ -15,11 +15,15 @@ import type { EventWithGame } from "@/lib/repositories/event.repository"
 import type { EventStatus } from "@/types/status"
 
 import { CategoryFilterBar } from "@/components/shared/category-filter-bar"
+import { RotationFilterBar } from "@/components/shared/rotation-filter-bar"
 
 import {
   categorySortKey,
   EVENT_CATEGORIES,
+  matchesRotationFilter,
+  ROTATION_FILTER_ORDER,
   type EventCategory,
+  type RotationFilter,
 } from "@/lib/constants/event-category"
 
 interface GameOption {
@@ -94,6 +98,10 @@ const DEFAULT_CATEGORIES: Set<EventCategory> = new Set([
   EVENT_CATEGORIES.PLAYABLE,
 ])
 
+const DEFAULT_ROTATIONS: Set<RotationFilter> = new Set(
+  ROTATION_FILTER_ORDER
+)
+
 function EventSections({
   events,
   watchlistedIds,
@@ -120,8 +128,8 @@ function EventSections({
           .filter((event) => event.status === status)
           .sort(
             (a, b) =>
-              categorySortKey(a.category, 0) -
-              categorySortKey(b.category, 0)
+              categorySortKey(a.category, a.isLimitedTime, 0) -
+              categorySortKey(b.category, b.isLimitedTime, 0)
           )
 
         if (items.length === 0) {
@@ -191,6 +199,10 @@ export default function WatchingList() {
     Set<EventCategory>
   >(DEFAULT_CATEGORIES)
 
+  const [selectedRotations, setSelectedRotations] = useState<
+    Set<RotationFilter>
+  >(DEFAULT_ROTATIONS)
+
   function toggleCategory(category: EventCategory) {
     setSelectedCategories((current) => {
       const next = new Set(current)
@@ -202,6 +214,20 @@ export default function WatchingList() {
       }
 
       return next.size === 0 ? new Set([EVENT_CATEGORIES.PLAYABLE]) : next
+    })
+  }
+
+  function toggleRotation(rotation: RotationFilter) {
+    setSelectedRotations((current) => {
+      const next = new Set(current)
+
+      if (next.has(rotation)) {
+        next.delete(rotation)
+      } else {
+        next.add(rotation)
+      }
+
+      return next.size === 0 ? new Set(ROTATION_FILTER_ORDER) : next
     })
   }
 
@@ -257,8 +283,10 @@ export default function WatchingList() {
     watchlistedIds.has(event.id)
   )
 
-  const browsableEvents = filteredEvents.filter((event) =>
-    selectedCategories.has(event.category as EventCategory)
+  const browsableEvents = filteredEvents.filter(
+    (event) =>
+      selectedCategories.has(event.category as EventCategory) &&
+      matchesRotationFilter(event.isLimitedTime, selectedRotations)
   )
 
   return (
@@ -292,10 +320,15 @@ export default function WatchingList() {
             All Events
           </h2>
 
-          <div className="mb-6">
+          <div className="mb-6 space-y-3">
             <CategoryFilterBar
               selected={selectedCategories}
               onToggle={toggleCategory}
+            />
+
+            <RotationFilterBar
+              selected={selectedRotations}
+              onToggle={toggleRotation}
             />
           </div>
 
