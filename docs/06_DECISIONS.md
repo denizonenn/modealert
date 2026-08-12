@@ -2715,3 +2715,65 @@ hesaplamak, sadece kaynak canlı API yerine resmi bir duyuru.
   25 Ağustos) birebir eşleşiyor.
 - docs/09_BACKLOG.md'deki `⚠️ Needs Deniz's attention` notu
   güncellendi/kapatıldı.
+
+---
+
+# ADR-035: Kalan Oyunlar Araştırıldı — Warframe'e Yeni Gerçek Sinyal (Deep Archimedea), Diğerlerinde Kullanılabilir Bir Şey Bulunamadı
+
+Status: Accepted
+
+Date: 2026-08-12
+
+## Bağlam
+
+"Sonraki aşama ne" sorusuna Deniz'in seçimi: kalan oyunları (Warframe,
+PoE, Helldivers 2, Foxhole) URF/Iron Banner'daki gibi gerçek,
+doğrulanabilir sinyaller için araştır. Her biri ayrı ayrı incelendi.
+
+## Bulgular
+
+- **Path of Exile** — sıradaki lig (3.30) için "Kasım sonu/Aralık
+  başı, muhtemelen 27 Kasım" deniyor ama bu GGG'nin resmi bir
+  duyurusu değil, fan sitelerinin tahmini ("expected... likely").
+  Iron Banner'daki gibi resmi/tarihli bir kaynak değil — bu güven
+  eşiğini geçmiyor. **Hiçbir şey eklenmedi**, mevcut "current league"
+  takibi zaten gerçek verilerle çalışıyor.
+- **Helldivers 2** — bulunanlar içerik güncellemeleri/roadmap
+  (yeni biome'lar, warbond'lar) — "Galactic War campaigns" zaten
+  mevcut Major Order API'sinin kapsadığı şey. **Yeni bir şey yok.**
+- **Foxhole** — savaş süresi ortalama 20-30 gün ama 1-5 hafta arası
+  değişebiliyor, sabit bir takvim yok (Iron Banner'ın aksine).
+  **Hesaplanabilir bir şey yok**, mevcut "current war" gerçek zamanlı
+  takibi zaten en iyi sinyal.
+- **Warframe** — WebSearch "Deep Archimedea"nın haftalık sıfırlanan,
+  kalıcı bir endgame aktivitesi olduğunu doğruladı. Bu projenin zaten
+  kullandığı `api.warframestat.us` worldstate API'sinde gerçekten
+  var olup olmadığı kontrol edildi (canlı istek, 2026-08-12) —
+  `archimedeas` alanı gerçekten dönüyor, gerçek `activation`/`expiry`
+  zaman damgalarıyla (2026-08-10 → 2026-08-17, haftalık pencereyle
+  tutarlı). Bu, zaten var olan bir API alanının hiç kullanılmıyor
+  olması — "written but not connected" kalıbının bir varyantı, ama
+  bu kez "hiç yazılmamış, ama zaten orada duran gerçek veri."
+
+## Karar
+
+`lib/providers/warframe/event-mapper.ts`'e `mapArchimedea()` eklendi
+— Void Trader/Sortie/Archon Hunt ile aynı desen (`activation`/
+`expiry`'den `isWithin` ile LIVE/ENDED hesaplama), tamamen gerçek
+canlı API verisi, tahmin/statik değil. API'nin döndürdüğü 2 eşzamanlı
+girdi (muhtemelen Deep + Temporal varyantları, `type` alanları
+`"C T_ L A B"`/`"C T_ H E X"` gibi okunaksız kodlar — hangisinin
+hangisi olduğunu ayırt edecek temiz bir isim yok) tek bir "Deep
+Archimedea" event'i olarak birleştirildi, çünkü ikisi de aynı gerçek
+pencereyi paylaşıyor ve API'de güvenilir bir ayrım yapacak veri yok.
+
+## Sonuçlar
+
+- 91/91 test (3 yeni: pencere içi LIVE, pencere dışı ENDED, veri
+  yokken hiç üretilmemesi), `tsc --noEmit`, `npm run build` temiz.
+- Gerçek sync ile doğrulandı: `warframe-archimedea` DB'de
+  `status: LIVE`, gerçek API verisinden (`ROTATION_MILESTONE`,
+  `isLimitedTime: true`).
+- PoE/Helldivers 2/Foxhole için kod değişikliği yapılmadı — araştırma
+  yapıldı, güven eşiğini geçen bir şey bulunmadı, bu bilinçli bir
+  "eklenmedi" kararı, atlanmış bir araştırma değil.

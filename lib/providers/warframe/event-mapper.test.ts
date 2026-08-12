@@ -129,3 +129,47 @@ describe("warframe mapWarframeEvents — Archon Hunt", () => {
     expect(hunt?.title).toBe("Archon Hunt — Archon Nira");
   });
 });
+
+describe("warframe mapWarframeEvents — Archimedea", () => {
+  it("is LIVE when within the activation/expiry window", () => {
+    const events = mapWarframeEvents({
+      archimedeas: [
+        {
+          id: "1",
+          activation: iso(-HOUR),
+          expiry: iso(HOUR),
+          type: "C T_ L A B",
+        },
+      ],
+    });
+
+    const archimedea = events.find((e) => e.id === "warframe-archimedea");
+
+    expect(archimedea?.status).toBe("LIVE");
+    expect(archimedea?.title).toBe("Deep Archimedea");
+  });
+
+  it("is ENDED outside the activation/expiry window", () => {
+    const events = mapWarframeEvents({
+      archimedeas: [
+        {
+          id: "1",
+          activation: iso(-2 * HOUR),
+          expiry: iso(-HOUR),
+        },
+      ],
+    });
+
+    const archimedea = events.find((e) => e.id === "warframe-archimedea");
+
+    expect(archimedea?.status).toBe("ENDED");
+  });
+
+  it("is omitted entirely when absent", () => {
+    const events = mapWarframeEvents({});
+
+    expect(
+      events.find((e) => e.id === "warframe-archimedea")
+    ).toBeUndefined();
+  });
+});

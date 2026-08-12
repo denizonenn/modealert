@@ -799,7 +799,11 @@ Live providers
   Void Trader (Baro Ki'Teer) arrival, Nightwave season status, daily
   Sortie, weekly Archon Hunt. All 4 verified against real data with
   real activation/expiry timestamps. Alerts/invasions deliberately
-  excluded (too high-frequency, low signal). See ADR-013.)
+  excluded (too high-frequency, low signal). See ADR-013. **5th
+  activity added 2026-08-12 (ADR-035): Deep Archimedea** — weekly
+  endgame mission chain, found via WebSearch then confirmed the same
+  worldstate API already in use exposes it (`archimedeas` field, real
+  activation/expiry) — was just never wired up.)
 - Path of Exile ✅ (2026-08-06, `api.pathofexile.com`, no key needed —
   current challenge league only (`Allflame` verified live). See
   ADR-014.)

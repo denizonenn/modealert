@@ -119,6 +119,45 @@ function mapArchonHunt(
   ];
 }
 
+// Deep/Temporal Archimedea — weekly-reset endgame missions (3-mission
+// chains, no loadout switching mid-run, unlocked via Search Pulses).
+// Found via WebSearch 2026-08-12 while researching real recurring
+// content across every tracked game; confirmed the field is already
+// in the same worldstate response this provider already fetches
+// (`archimedeas`, real activation/expiry, verified live 2026-08-12 —
+// two concurrent entries sharing one weekly window, most likely Deep
+// + Temporal variants). Only one combined event is emitted since both
+// entries share the same real window and the API doesn't expose a
+// clean human-readable name to tell them apart.
+function mapArchimedea(
+  archimedeas: WarframeWorldstate["archimedeas"],
+  now: Date
+): ProviderEvent[] {
+  const current = archimedeas?.[0];
+
+  if (!current) {
+    return [];
+  }
+
+  const active = isWithin(current.activation, current.expiry, now);
+
+  return [
+    {
+      id: "warframe-archimedea",
+      gameId: GAME_IDS.WARFRAME,
+      title: "Deep Archimedea",
+      description: active
+        ? "This week's 3-mission Archimedea chain — no loadout switching between missions, unlocked with Search Pulses. Resets weekly."
+        : "Between weekly Archimedea windows.",
+      status: active ? "LIVE" : "ENDED",
+      category: EVENT_CATEGORIES.ROTATION_MILESTONE,
+      isLimitedTime: true,
+      trackedUsers: 0,
+      checkedAt: now,
+    },
+  ];
+}
+
 export function mapWarframeEvents(
   worldstate: WarframeWorldstate
 ): ProviderEvent[] {
@@ -129,5 +168,6 @@ export function mapWarframeEvents(
     ...mapNightwave(worldstate.nightwave, now),
     ...mapSortie(worldstate.sortie, now),
     ...mapArchonHunt(worldstate.archonHunt, now),
+    ...mapArchimedea(worldstate.archimedeas, now),
   ];
 }

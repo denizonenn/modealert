@@ -40,6 +40,16 @@ export interface WarframeArchonHunt {
   boss: string;
 }
 
+export interface WarframeArchimedea {
+  id: string;
+
+  activation: string;
+
+  expiry: string;
+
+  type?: string;
+}
+
 export interface WarframeWorldstate {
   voidTrader?: WarframeVoidTrader;
 
@@ -48,4 +58,6 @@ export interface WarframeWorldstate {
   sortie?: WarframeSortie;
 
   archonHunt?: WarframeArchonHunt;
+
+  archimedeas?: WarframeArchimedea[];
 }
