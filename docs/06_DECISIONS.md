@@ -1861,3 +1861,105 @@ it" sonucunu veriyor.
   güncellenmeyecek). Key yenilenince (veya bekleyen production key
   onaylanınca) bir sonraki sync'te kendiliğinden düzelir, ekstra işlem
   gerekmiyor.
+- **Aynı gün, aynı oturumda düzeltildi:** 401 nedeniyle stale kalan 6
+  satır (`riot-platform-TR1`, `riot-champion-rotation`,
+  `tft-platform-TR1`, `valorant-platform-EU`, 2 Valorant Act'i) elle
+  tek seferlik bir `prisma.event.update` betiğiyle doğru kategoriye
+  çekildi — kodun zaten üreteceği değerle birebir aynı, sadece Riot
+  key'in düzelmesini beklemeden.
+
+---
+
+# ADR-024: URF için "Bilinen Ama Şu An Sinyali Olmayan Mod" Placeholder'ı — İlk Provider-Dışı Event Satırı
+
+Status: Accepted
+
+Date: 2026-08-12
+
+## Bağlam
+
+ADR-023 deploy edildikten hemen sonra Deniz gerçek siteye baktı:
+CommunityDragon'ın gerçek event-hub verisi incelendiğinde URF'ün ne
+live ne de PBE feed'inde hiçbir girdisi olmadığı görüldü (ikisi de bu
+oturumda tekrar çekildi, birebir aynı 21 girdi — hiçbirinde "URF"
+geçmiyor). WebSearch ile üçüncü taraf patch-notu kaynakları da bunu
+doğruladı: mevcut patch'te rotasyondaki featured modlar ARAM Mayhem,
+Arena ve League Classic — URF değil. Yani ADR-023'ün "Mayhem/URF/Arena
+artık gizlenmiyor" kararı teknik olarak doğruydu ama pratikte hiçbir
+şey değiştirmedi, çünkü feed'de zaten yalnızca Mayhem'in penceresi
+açıktı — URF'ün kendisi hiç görünmüyordu.
+
+Deniz'in tepkisi netti: "urf olmayacak zaten ama urf görülmesi ve
+seçilebilmesi lazım" — URF'ün şu an oynanamaz olduğunu, ended
+kategorisinde olması gerektiğini kabul ediyor, ama ended olsa bile
+sistemde bir "şey" olarak var olmasını, seçilebilir/takip edilebilir
+olmasını istiyor. Gerekçesi: gelecekte "ne kadar live kalıyor",
+"PBE'den live'a geçiş ne kadar sürüyor" gibi analizler yapılacak — bu
+yüzden URF'ün DB'de bir kimliği olması lazım, ilk gerçek görünüşünden
+itibaren.
+
+Bu, projenin en sert şekilde savunduğu ilkeyle doğrudan gerilimde:
+"gerçek veri, asla uydurma" — bkz. `lib/events.ts`'in tam bu sebeple
+silinmesi (hardcoded "URF" verisi), ADR-007, ADR-012, ADR-017, ADR-020.
+Bugüne kadar her Event satırı bir provider'ın o an gözlemlediği gerçek
+veriden geliyordu.
+
+## Karar
+
+Yeni, minimal bir provider: `lib/providers/rotating-modes/provider.ts`
+(`id: "rotating-modes"`, registry'ye eklendi). Statik, elle yazılmış
+tek bir satır döndürüyor (URF), ama şu kurallara kesinlikle uyarak:
+
+- **Asla `status: "LIVE"` demiyor.** Her zaman `ENDED` — "şu an
+  oynanabilir değil" gerçeğinin dürüst karşılığı, ADR-023'ün
+  `categorySortKey`'i sayesinde ended olsa bile `PLAYABLE`
+  kategorisiyle listelerin başında çıkıyor.
+- **Asla tarih uydurmuyor.** `startDate`/`endDate` yok — sadece
+  id/title/description/status/category var, tıpkı diğer provider'lar
+  gibi `ProviderEvent` şeklinde.
+- Açıklama dürüstçe "Riot şu an için bir sinyal sunmuyor" diyor ve
+  gelecekteki gerçek mekanizmayı anlatıyor: CommunityDragon feed'i
+  (live ya da PBE) bir gün gerçekten "URF" adlı bir girdi
+  raporladığında, o girdi kendi `communitydragon`/`communitydragon-pbe`
+  source'uyla ayrı bir satır olarak gerçek veriyle senkronize olacak;
+  bu placeholder onunla çakışmıyor (farklı id/source), sadece kendi
+  köşesinde "hâlâ sinyal yok" demeye devam ediyor.
+- Her `syncAll()` çağrısında bu provider de çalışıp aynı satırı tekrar
+  upsert ediyor — bu yüzden `eventSyncService`'in "kaynak artık
+  raporlamıyorsa ENDED yap" temizlik mantığı bu satırı hiç
+  tetiklemiyor, ekstra özel durum kodu gerekmedi.
+
+Aynı oturumda ayrıca gerçek veri incelenirken bir kategorilendirme
+hatası bulundu: `kActivityCenterMilestones` tipindeki "Classic Pass
+Token Bank" girdisi (pass-para birimi takip eden, oynanabilir bir şey
+olmayan bir satır) varsayılan olarak `PLAYABLE`'a düşüyordu.
+Normalizer'a "Token Bank" başlık eşleşmesi eklendi, artık
+`SEASON_PASS`.
+
+## Gerekçe
+
+Bu bir istisna, kural değişikliği değil: "gerçek veri" ilkesinin
+ihlal ettiği tek şey, önceki olaylarda (lib/events.ts, ADR-007) hep
+aynıydı — **sahte bir "şu an LIVE/aktif" iddiası.** Bu placeholder o
+iddiayı hiç yapmıyor; tam tersi, "aktif değil, sinyal yok" diyor ve
+bunu asla değiştirmiyor kendi başına. Riskli olan kısım (yanlış "bu
+şu an oynanıyor" izlenimi) bilinçli olarak dışarıda bırakıldı.
+Bununla birlikte bu, codebase'deki ilk provider-dışı/statik Event
+satırı — ileride başka "bilinen ama sinyali olmayan" modlar (Arena da
+aynı durumda — cherry-lobby.json'da da tarih yok) eklenmek istenirse
+aynı `rotating-modes` provider'ına eklenmeli, yeni bir mekanizma
+icat edilmemeli.
+
+## Sonuçlar
+
+- Gerçek sync ile doğrulandı: `rotating-mode-urf` artık DB'de
+  (`source: "rotating-modes"`, `status: ENDED`, `category: PLAYABLE`,
+  gerçek bir `slug` ile — `/events/lol-urf-...` üzerinden de
+  erişilebilir). `categorySortKey` sayesinde LoL için onboarding,
+  dashboard, homepage ve `/games/lol` sayfalarının hepsinde en üstte
+  çıkıyor (ended olsa bile, aynı Deniz'in istediği gibi).
+- 71/71 test geçiyor (`Token Bank` kategorisi için yeni bir test
+  eklendi), `tsc`/`next build` temiz.
+- Arena'nın da URF ile aynı durumda olduğu (cherry-lobby.json'da tarih
+  yok) not edildi ama Deniz'in isteği kapsamına girmediği için
+  eklenmedi — istenirse aynı provider'a tek satır eklemek yeterli.

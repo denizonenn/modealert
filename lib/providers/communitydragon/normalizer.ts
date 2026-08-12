@@ -56,6 +56,16 @@ function isRotatingModeWrapper(
   );
 }
 
+// "Token Bank" entries track pass-currency balances, not something a
+// player plays — same administrative family as the season-pass
+// windows themselves, not a real piece of content like Hall of
+// Legends or a named collab event.
+function isPassCurrencyWrapper(
+  title: string
+): boolean {
+  return title.includes("Token Bank");
+}
+
 function describeEvent(
   event: CommunityDragonEventHubEntry["event"],
   title: string
@@ -86,6 +96,10 @@ function categorizeEvent(
     event.eventHubType === "kSeasonPass" &&
     isRotatingModeWrapper(title)
   ) {
+    return EVENT_CATEGORIES.SEASON_PASS;
+  }
+
+  if (isPassCurrencyWrapper(title)) {
     return EVENT_CATEGORIES.SEASON_PASS;
   }
 

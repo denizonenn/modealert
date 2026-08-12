@@ -143,6 +143,22 @@ describe("normalizeEventHub", () => {
     expect(mayhem?.description).toContain("battle-pass window only");
   });
 
+  it("categorizes a 'Token Bank' pass-currency entry as SEASON_PASS, not PLAYABLE", () => {
+    const [event] = normalizeEventHub(
+      [
+        entry(
+          "token-bank",
+          "2026-07-29T00:00:00.000Z",
+          "2026-09-23T00:00:00.000Z",
+          { localizedShortName: "Classic Pass Token Bank" }
+        ),
+      ],
+      now
+    );
+
+    expect(event.category).toBe("SEASON_PASS");
+  });
+
   it("categorizes a regular event-hub entry as PLAYABLE by default", () => {
     const [event] = normalizeEventHub(
       [

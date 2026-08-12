@@ -11,6 +11,7 @@ import { warframeProvider } from "@/lib/providers/warframe/provider";
 import { poeProvider } from "@/lib/providers/poe/provider";
 import { helldivers2Provider } from "@/lib/providers/helldivers2/provider";
 import { foxholeProvider } from "@/lib/providers/foxhole/provider";
+import { rotatingModesProvider } from "@/lib/providers/rotating-modes/provider";
 
 const providers: EventProvider[] = [
   riotProvider,
@@ -24,6 +25,7 @@ const providers: EventProvider[] = [
   poeProvider,
   helldivers2Provider,
   foxholeProvider,
+  rotatingModesProvider,
 ];
 
 export function getProviders(): EventProvider[] {

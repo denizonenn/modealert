@@ -435,15 +435,32 @@ Completed
 - Category badges added to event cards on onboarding, dashboard, and
   `/games/[slug]`.
 
+- **`lib/providers/rotating-modes/provider.ts`** (2026-08-12, ADR-024)
+  — a small hand-written provider (first non-fetch, non-live-data
+  provider in the codebase) that surfaces URF as a trackable
+  `ENDED`/`PLAYABLE` row even though Riot's feed currently has zero
+  signal for it (verified live + PBE, both checked). Never claims
+  LIVE, never invents dates — exists purely so it's selectable ahead
+  of a real signal ever showing up. Arena has the identical
+  no-signal problem (`cherry-lobby.json` has no dates either) and
+  could get the same treatment if wanted — not added yet, out of
+  scope of what was asked.
+
 Full rationale, the URF-specific reasoning, and the per-provider
-category mapping: docs/06_DECISIONS.md ADR-023.
+category mapping: docs/06_DECISIONS.md ADR-023/ADR-024.
 
 Future
 
-- A few CommunityDragon event-hub sub-types (e.g. "Classic Pass Token
-  Bank") fall through to the `PLAYABLE` default rather than a more
-  specific category — fine for now, but worth a real hubType-to-
-  category mapping if more of these show up.
+- ~~A few CommunityDragon event-hub sub-types (e.g. "Classic Pass
+  Token Bank") fall through to the `PLAYABLE` default~~ — fixed same
+  day, title-matched to `SEASON_PASS` (it's pass-currency tracking,
+  not real content).
+- How long URF/rotating modes stay live once they do appear, and the
+  average PBE-to-live lag — explicitly deferred by Deniz to a later
+  phase. `EventHistory` already captures LIVE/TRACKING windows per
+  event once real data exists, and PBE-preview rows are already
+  timestamped from first sight, so the raw data this needs will
+  already be there when it's time to build it.
 
 ---
 
@@ -1102,7 +1119,13 @@ No open bugs.
   battle-pass window) is too important to hide entirely — it's now
   synced and trackable under the new `SEASON_PASS` category, with an
   honest description that it's the pass window only, not a "mode is
-  live" claim. See the new Event Categories section below.
+  live" claim. **Follow-up same day:** turned out URF currently has no
+  entry at all on either the live or PBE event-hub feed (verified
+  directly — re-fetched both, 21 identical entries, none named URF;
+  current rotation per third-party patch notes is Mayhem/Arena/League
+  Classic). So the SEASON_PASS fix alone didn't make URF visible. Added
+  a small honest placeholder instead — see ADR-024. See the new Event
+  Categories section below.
 
 - Event popularity heatmap
 
