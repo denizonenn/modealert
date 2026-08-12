@@ -105,15 +105,11 @@ const KNOWN_MODES: KnownMode[] = [
     status: "ENDED",
     isLimitedTime: true,
   },
-  {
-    id: "lol-mode-aram-mayhem-classic",
-    gameId: GAME_IDS.LEAGUE_OF_LEGENDS,
-    title: "ARAM: Mayhem Classic-ish",
-    description:
-      "A rotating ARAM Mayhem variant themed around Classic mode. Riot's own queue data flags this one specifically as a limited-time queue type (unlike base ARAM or ARAM Mayhem) — no live signal for whether it's currently unlocked.",
-    status: "ENDED",
-    isLimitedTime: true,
-  },
+  // "ARAM: Mayhem Classic-ish" used to be a static always-ENDED entry
+  // here. Moved to lib/providers/communitydragon/normalizer.ts —
+  // it's now derived from League Classic's real pass-window dates
+  // instead of a hardcoded guess (see ADR-028). A static entry that
+  // can never say LIVE was flatly wrong the moment that window opened.
 ];
 
 export const rotatingModesProvider: EventProvider = {

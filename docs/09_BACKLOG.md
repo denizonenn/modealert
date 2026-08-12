@@ -483,9 +483,19 @@ Completed
   ("ARAM: Mayhem", "League Classic") — dates/status still come from
   the real event-hub entry, only the label changed.
 
+- **"ARAM: Mayhem Classic-ish" derived from real data (2026-08-12,
+  ADR-028)** — Deniz's screenshot proved his client showed it as
+  currently selectable while ModeAlert showed it as a hardcoded
+  always-`ENDED` placeholder. Moved off the static provider entirely;
+  now emitted as a companion event alongside League Classic's real
+  pass-window entry in the CommunityDragon normalizer, sharing its
+  actual dates/status. URF still has no comparable real anchor to tie
+  to, so it stays a static `ENDED` placeholder — same risk of going
+  stale exists for it too if it ever actually returns.
+
 Full rationale, the URF-specific reasoning, and the per-provider
 category mapping: docs/06_DECISIONS.md ADR-023/ADR-024/ADR-025/
-ADR-026/ADR-027.
+ADR-026/ADR-027/ADR-028.
 
 Future
 

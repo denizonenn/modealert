@@ -197,6 +197,52 @@ describe("normalizeEventHub", () => {
     expect(classic?.status).toBe("LIVE");
   });
 
+  it("derives 'ARAM: Mayhem Classic-ish' status from League Classic's real pass window, not a static guess", () => {
+    const liveClassic = normalizeEventHub(
+      [
+        entry(
+          "classic",
+          "2026-07-29T00:00:00.000Z",
+          "2026-09-23T00:00:00.000Z",
+          {
+            localizedShortName: "Classic Pass: Act I",
+            eventHubType: "kDemaciaPass",
+          }
+        ),
+      ],
+      now
+    );
+
+    const companionLive = liveClassic.find(
+      (e) => e.id === "lol-mode-aram-mayhem-classic"
+    );
+
+    expect(companionLive?.title).toBe("ARAM: Mayhem Classic-ish");
+    expect(companionLive?.status).toBe("LIVE");
+    expect(companionLive?.category).toBe("PLAYABLE");
+
+    const endedClassic = normalizeEventHub(
+      [
+        entry(
+          "classic-old",
+          "2026-01-01T00:00:00.000Z",
+          "2026-02-01T00:00:00.000Z",
+          {
+            localizedShortName: "Classic Pass: Act 0",
+            eventHubType: "kDemaciaPass",
+          }
+        ),
+      ],
+      now
+    );
+
+    const companionEnded = endedClassic.find(
+      (e) => e.id === "lol-mode-aram-mayhem-classic"
+    );
+
+    expect(companionEnded?.status).toBe("ENDED");
+  });
+
   it("categorizes a 'Token Bank' pass-currency entry as SEASON_PASS, not PLAYABLE", () => {
     const [event] = normalizeEventHub(
       [

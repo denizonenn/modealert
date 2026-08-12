@@ -230,14 +230,66 @@ function toProviderEvent(
   };
 }
 
+// "ARAM: Mayhem Classic-ish" has no event-hub entry of its own to
+// derive real dates from (verified — checked both live and PBE
+// feeds). It's a Classic-mode-themed ARAM Mayhem crossover, so its
+// closest real signal is League Classic's own pass window (the
+// kDemaciaPass entry): while that's live, Deniz's own client showed
+// this variant as selectable (2026-08-12) — while it's not, there's
+// no better guess available. This replaces the old static
+// always-ENDED placeholder (see ADR-027), which was wrong the moment
+// League Classic's pass went live.
+function toClassicMayhemCompanion(
+  event: CommunityDragonEventHubEntry["event"],
+  now: Date
+): ProviderEvent {
+  return {
+    id: "lol-mode-aram-mayhem-classic",
+
+    gameId: GAME_IDS.LEAGUE_OF_LEGENDS,
+
+    title: "ARAM: Mayhem Classic-ish",
+
+    description:
+      "A Classic-mode-themed ARAM Mayhem crossover variant. Riot doesn't publish a dedicated schedule for it, so ModeAlert ties its status to League Classic's real, dated pass window — the closest real signal available, not a confirmed direct source for this specific variant.",
+
+    status: computeStatus(
+      event.startDate,
+      event.endDate,
+      now
+    ),
+
+    category: EVENT_CATEGORIES.PLAYABLE,
+
+    isLimitedTime: true,
+
+    trackedUsers: 0,
+
+    checkedAt: now,
+  };
+}
+
+function toProviderEvents(
+  entry: CommunityDragonEventHubEntry,
+  now: Date
+): ProviderEvent[] {
+  const base = toProviderEvent(entry, now);
+
+  if (entry.event.eventHubType === "kDemaciaPass") {
+    return [base, toClassicMayhemCompanion(entry.event, now)];
+  }
+
+  return [base];
+}
+
 export function normalizeEventHub(
   response: CommunityDragonEventHubResponse,
   now: Date = new Date()
 ): ProviderEvent[] {
   return response
     .filter(isTrackableEntry)
-    .map((entry) =>
-      toProviderEvent(entry, now)
+    .flatMap((entry) =>
+      toProviderEvents(entry, now)
     );
 }
 

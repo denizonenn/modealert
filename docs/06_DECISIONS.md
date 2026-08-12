@@ -2211,3 +2211,75 @@ eklenebilir.
 - Gerçek sync ile doğrulandı: "ARAM: Mayhem" (LIVE), "League Classic"
   (LIVE) gerçek isimleriyle görünüyor; "ARAM: Mayhem Classic-ish"
   artık ENDED_DISPLAY_LIMIT kaldırıldığı için gerçekten görünür.
+
+---
+
+# ADR-028: "ARAM: Mayhem Classic-ish" — Statik Sabit ENDED Yerine League Classic'in Gerçek Pas Penceresine Bağlandı
+
+Status: Accepted
+
+Date: 2026-08-12
+
+## Bağlam
+
+Deniz iki ekran görüntüsü attı: biri ModeAlert'te "ARAM: Mayhem
+Classic-ish" kartının `ENDED` gösterdiğini, diğeri kendi LoL
+client'ında bu modun ARAM sekmesinde seçilebilir bir sırada
+göründüğünü kanıtlıyordu (saat ikonu vardı ama listeden çıkarılmış/
+kilitli değildi). "Neden ended gözüküyor, oynanabilir, düzeltmek
+lazım" dedi.
+
+Kök sebep: ADR-026'da bu satırı statik `rotating-modes`
+provider'ında sabit `status: "ENDED"` olarak eklemiştim, çünkü ona
+özel bir event-hub girdisi yoktu (live/PBE feed'de "Classic-ish"
+geçen hiçbir şey yok — ikisi de bu oturumda tekrar kontrol edildi).
+Ama bu, hiçbir zaman kendini güncelleyemeyen, kalıcı olarak yanlış
+kalabilecek bir tasarımdı — ve Deniz'in ekran görüntüsü tam da bunu
+kanıtladı: mod şu an gerçekten aktif, ben sabit "ENDED" gösteriyordum.
+
+## Karar
+
+"ARAM: Mayhem Classic-ish" statik listeden tamamen kaldırıldı.
+Yerine: `lib/providers/communitydragon/normalizer.ts`'te, her
+`kDemaciaPass` (League Classic'in pas'ı) girdisi işlendiğinde bir
+"kardeş" event üretiliyor — aynı gerçek `startDate`/`endDate`'i
+kullanarak `computeStatus()` ile hesaplanan status'u paylaşıyor.
+Gerekçe: bu, Classic-mode temalı bir ARAM Mayhem crossover'ı —
+kendi event-hub girdisi olmasa da, League Classic'in penceresiyle
+aynı promosyon dönemine bağlı olduğu, hem tema hem Deniz'in gerçek
+gözlemiyle (Classic Pass açıkken bu varyant da seçilebilirdi)
+destekleniyor. `id` aynı kaldı (`lol-mode-aram-mayhem-classic`),
+sadece `source` `rotating-modes`'tan `communitydragon`'a geçti —
+slug/geçmiş kesintisiz devam ediyor.
+
+Açıklama metninde bu çıkarımın **doğrulanmış bir doğrudan sinyal
+olmadığı**, League Classic'in penceresine bağlı en iyi tahmin olduğu
+açıkça belirtiliyor — yanlış çıkarsa (örn. bu varyant gerçekte
+Classic Pass'ten bağımsız kapanırsa/açılırsa) düzeltilmesi gereken
+bir varsayım olarak işaretli.
+
+## Gerekçe
+
+Statik, hiç güncellenmeyen bir "ENDED" placeholder'ın temel sorunu:
+yanlış olduğunda kendini asla düzeltemiyor — tam da bu oturumda
+olduğu gibi. Gerçek, tarihli bir veriye (League Classic'in pas'ı)
+bağlamak, yanlış olma ihtimali sıfır olmasa da, kendi kendini
+güncelleyen ve gerekçesi açık bir sinyale dönüştürüyor. URF için aynı
+yaklaşım uygulanmadı çünkü URF'ün böyle bağlanabileceği hiçbir gerçek,
+tarihli kardeş event yok — o yüzden hâlâ statik/ENDED kalıyor
+(dürüst, ama Deniz'in bu oturumda gösterdiği gibi, potansiyel olarak
+yanlış kalabilir günü gelince — URF gerçekten dönerse aynı sorunla
+karşılaşılabilir, o zaman yeniden değerlendirilmeli).
+
+## Sonuçlar
+
+- 74/74 test (yeni test: companion'ın League Classic LIVE'ken LIVE,
+  ENDED'ken ENDED olduğunu doğruluyor), `tsc --noEmit`, `npm run
+  build` temiz.
+- Gerçek sync ile doğrulandı: "ARAM: Mayhem Classic-ish" artık
+  `status: LIVE`, `source: communitydragon` (League Classic'in pas'ı
+  şu an açık olduğu için) — Deniz'in ekran görüntüsüyle eşleşiyor.
+- Rozet görünürlüğü ayrıca doğrulandı: canlı `/games/league-of-legends`
+  HTML'inde "Playable"/"Limited Time" rozetleri gerçekten mevcuttu —
+  Deniz'in ekran görüntüsünde eksik görünmesi kod hatası değil, deploy
+  henüz bitmeden bakılmış olmasıydı.
