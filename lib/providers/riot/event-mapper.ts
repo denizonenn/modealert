@@ -38,6 +38,8 @@ export function mapPlatformStatus(
 
       category: EVENT_CATEGORIES.PLATFORM_STATUS,
 
+      isLimitedTime: false,
+
       trackedUsers: 0,
 
       checkedAt: new Date(),

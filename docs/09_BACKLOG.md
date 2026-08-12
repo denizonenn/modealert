@@ -470,9 +470,22 @@ Completed
   entries and League Classic's pass reclassified `SEASON_PASS` →
   `PLAYABLE` — they represent a real mode, not just a reward track.
 
+- **`Event.isLimitedTime` (2026-08-12, ADR-027)** — separate from
+  category, marks whether a mode/event is structurally permanent
+  (Summoner's Rift's queues, ARAM, platform status) or genuinely
+  time-boxed. Shown as a "Permanent"/"Limited Time" badge everywhere
+  events are listed. Also fixed same day: dashboard's "All Events"
+  list had a hardcoded 6-item cap on the Ended section with a
+  non-clickable "+N more" — real cause of "Mayhem Classic-ish still
+  doesn't show up" (it existed, just hidden behind the cap). Cap
+  removed. And event-hub's pass-tier titles ("Mayhem Set 2", "Classic
+  Pass: Act I") now display as their real, recognizable mode name
+  ("ARAM: Mayhem", "League Classic") — dates/status still come from
+  the real event-hub entry, only the label changed.
+
 Full rationale, the URF-specific reasoning, and the per-provider
 category mapping: docs/06_DECISIONS.md ADR-023/ADR-024/ADR-025/
-ADR-026.
+ADR-026/ADR-027.
 
 Future
 
@@ -486,6 +499,12 @@ Future
   event once real data exists, and PBE-preview rows are already
   timestamped from first sight, so the raw data this needs will
   already be there when it's time to build it.
+- **Known duplicate-title issue (ADR-027)** — "ARAM: Mayhem" now
+  appears twice in listings (once ENDED from the old pass window,
+  once LIVE from the current one) since both canonicalize to the same
+  display name. Not deduplicated yet; would need a "collapse to most
+  recent occurrence per canonical name" rule if this becomes annoying
+  enough to fix.
 
 ---
 

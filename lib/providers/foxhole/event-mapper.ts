@@ -35,6 +35,7 @@ export function mapCurrentWar(war: FoxholeWarState): ProviderEvent[] {
       description: description[status],
       status,
       category: EVENT_CATEGORIES.PLAYABLE,
+      isLimitedTime: true,
       trackedUsers: 0,
       checkedAt: now,
     },

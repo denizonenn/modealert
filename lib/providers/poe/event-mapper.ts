@@ -42,6 +42,7 @@ export function mapCurrentLeague(
       description: current.description || undefined,
       status,
       category: EVENT_CATEGORIES.PLAYABLE,
+      isLimitedTime: true,
       trackedUsers: 0,
       checkedAt: now,
     },

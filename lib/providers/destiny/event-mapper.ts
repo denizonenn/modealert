@@ -24,6 +24,7 @@ export function mapPlatformStatus(
         : "Destiny 2 has an active maintenance window — the game may be unreachable.",
       status,
       category: EVENT_CATEGORIES.PLATFORM_STATUS,
+      isLimitedTime: false,
       trackedUsers: 0,
       checkedAt: new Date(),
     },
@@ -54,6 +55,7 @@ export function mapActiveMilestones(
         description: displayProperties?.description || undefined,
         status: "LIVE",
         category: EVENT_CATEGORIES.ROTATION_MILESTONE,
+        isLimitedTime: true,
         trackedUsers: 0,
         checkedAt: now,
       };

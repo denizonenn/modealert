@@ -180,6 +180,8 @@ export async function upsertEvent(
 
     category: event.category,
 
+    isLimitedTime: event.isLimitedTime,
+
     trackedUsers:
       event.trackedUsers,
 

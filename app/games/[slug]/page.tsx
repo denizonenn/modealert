@@ -8,6 +8,7 @@ import { Footer } from "@/components/layout/footer"
 import { GameIcon } from "@/components/shared/game-icon"
 import { EventStatusBadge } from "@/components/shared/event-status-badge"
 import { SectionEyebrow } from "@/components/shared/section-eyebrow"
+import { RotationBadge } from "@/components/shared/rotation-badge"
 
 import { gameService } from "@/lib/services/game.service"
 import { eventQueryService } from "@/lib/services/event-query.service"
@@ -172,11 +173,12 @@ export default async function GameDetailPage({ params }: Props) {
                       )}
                     </h3>
                     <div className="flex shrink-0 items-center gap-2">
-                      <span className="hidden rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-zinc-500 sm:inline-block">
+                      <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-zinc-500">
                         {EVENT_CATEGORY_LABELS[
                           event.category as EventCategory
                         ] ?? event.category}
                       </span>
+                      <RotationBadge isLimitedTime={event.isLimitedTime} />
                       <EventStatusBadge
                         status={event.status as EventStatus}
                       />

@@ -2134,4 +2134,80 @@ satır "şu an aktif" diye yanlış iddia etmiyor.
   Şamata", ARAM: Mayhem Classic-ish = "ARAM Şamata: Classic Gibi")
   birebir eşleşiyor.
 - 72/72 test, `tsc --noEmit`, `npm run build` temiz.
-- 71/71 test, `tsc --noEmit`, `npm run build` temiz.
+
+---
+
+# ADR-027: Event.isLimitedTime + Pass-Tier Başlıkları Gerçek Mod Adına Çevrildi
+
+Status: Accepted
+
+Date: 2026-08-12
+
+## Bağlam
+
+İki ayrı geri bildirim aynı anda geldi:
+
+1. "Mayhem classic-ish hala gözükmüyor" — DB'de gerçekten vardı
+   (`status: ENDED, category: PLAYABLE`), ama dashboard'un "All
+   Events" listesi ENDED bölümünü 6 kayıtla sınırlıyordu
+   (`ENDED_DISPLAY_LIMIT`), kalanı statik, tıklanamayan bir "+N more"
+   metninin arkasında kayboluyordu — gerçek bir UI bug'ı.
+2. "hangileri limited time hangileri değil, ayırmak lazım" — kategori
+   sistemi (PLAYABLE/SEASON_PASS/vb.) "ne tür içerik" sorusuna cevap
+   veriyor ama "kalıcı mı rotasyonlu mu" sorusuna cevap vermiyor.
+3. Ayrıca (aynı konuşmada) "mayhem set 2 battle pass gibi... direkt
+   sadece aram mayhem olması lazım" — event-hub'ın kendi başlığı
+   ("Mayhem Set 2", "Classic Pass: Act I") gerçek ama pas-seviyesi bir
+   isim, oyuncunun tanıyacağı mod adı değil.
+
+## Karar
+
+1. **`Event.isLimitedTime` sütunu** eklendi (additive migration,
+   `20260812084500_add_event_is_limited_time`, `DEFAULT true` —
+   deploy öncesi/sonrası 59 event/4 user/25 watchlist/44 history
+   satırı birebir doğrulandı). `ProviderEvent.isLimitedTime: boolean`
+   zorunlu alan oldu, 10 provider'ın hepsi güncellendi:
+   - `false` (kalıcı): Sihirdar Vadisi'nin 4 kuyruğu, ARAM, Platform
+     Status (4 oyun), Champion Rotation.
+   - `true` (limited-time): CommunityDragon event-hub'ın TÜM
+     girdileri (hepsinin gerçek başlangıç/bitiş tarihi var —
+     yapısal olarak zaman sınırlı), URF, ARAM: Mayhem Classic-ish,
+     Valorant Act, Destiny milestone'lar, Fortnite Item Shop, Warframe'in
+     4 içeriği, PoE lig, Helldivers 2 Major Order, Foxhole savaşı.
+2. **`components/shared/rotation-badge.tsx`** (yeni) — "Permanent"
+   (yeşil) / "Limited Time" (amber) rozeti; onboarding, dashboard,
+   `/games/[slug]`'ın hepsinde event kartlarına eklendi.
+3. **`ENDED_DISPLAY_LIMIT` (6) kaldırıldı** — dashboard'un "All
+   Events" listesi artık hiçbir statusu gizli tıklanamaz bir "+N
+   more" arkasına saklamıyor. Varsayılan PLAYABLE filtresiyle zaten
+   liste makul boyutta kalıyor.
+4. **`lib/providers/communitydragon/normalizer.ts`** —
+   `canonicalModeTitle()` eklendi: event-hub'ın pas-seviyesi başlığı
+   yerine `queues.json`'dan doğrulanmış gerçek mod adı gösteriliyor
+   ("Mayhem Set 2"/"Mayhem Progression Track" → "ARAM: Mayhem",
+   "Classic Pass: Act I" → "League Classic"). Tarih/status hâlâ
+   event-hub'ın gerçek, tarihli girdisinden geliyor — sadece
+   görünen isim değişti.
+5. Ayrıca fark edilen küçük bir hata düzeltildi: dashboard/oyun
+   sayfasındaki kategori rozeti `hidden ... sm:inline-block` ile
+   mobilde/tarayıcı küçükken tamamen gizleniyordu — kaldırıldı,
+   artık her ekran boyutunda görünüyor.
+
+## Bilinen sınır — kayıt tekrarı
+
+"ARAM: Mayhem" adını hem eski "Mayhem Progression Track" (artık
+ENDED) hem yeni "Mayhem Set 2" (LIVE) satırı taşıyor — event-hub'da
+bunlar farklı ID'li iki ayrı pas penceresi (Şubat-Haziran, Haziran-
+Ekim), her ikisi de aynı gerçek moda karşılık geldiği için aynı ada
+çevrildi. Sonuç: listede "ARAM: Mayhem" iki kez görünüyor, biri LIVE
+biri ENDED. `categorySortKey` LIVE olanı önce gösteriyor ama tam bir
+tekilleştirme yapılmadı — Deniz isterse "aynı canonical isimli
+satırlardan sadece en güncelini göster" mantığı ayrı bir işte
+eklenebilir.
+
+## Sonuçlar
+
+- 73/73 test, `tsc --noEmit`, `npm run build` temiz.
+- Gerçek sync ile doğrulandı: "ARAM: Mayhem" (LIVE), "League Classic"
+  (LIVE) gerçek isimleriyle görünüyor; "ARAM: Mayhem Classic-ish"
+  artık ENDED_DISPLAY_LIMIT kaldırıldığı için gerçekten görünür.

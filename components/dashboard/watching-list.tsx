@@ -88,8 +88,6 @@ const SECTIONS: {
   { status: "ENDED", label: "Recently Ended" },
 ]
 
-const ENDED_DISPLAY_LIMIT = 6
-
 // Default "All Events" to just the real played category — everything
 // else is opt-in via the filter bar. Matches onboarding's default.
 const DEFAULT_CATEGORIES: Set<EventCategory> = new Set([
@@ -130,14 +128,6 @@ function EventSections({
           return null
         }
 
-        const visible =
-          status === "ENDED"
-            ? items.slice(0, ENDED_DISPLAY_LIMIT)
-            : items
-
-        const hiddenCount =
-          items.length - visible.length
-
         return (
           <div key={status}>
             <div className="mb-4 flex items-baseline gap-3">
@@ -151,13 +141,14 @@ function EventSections({
             </div>
 
             <div className="space-y-3">
-              {visible.map((event, index) => (
+              {items.map((event, index) => (
                 <EventStatusCard
                   key={event.id}
                   game={event.game}
                   event={event.title}
                   description={event.description}
                   category={event.category}
+                  isLimitedTime={event.isLimitedTime}
                   slug={event.slug}
                   status={
                     event.status as EventStatus
@@ -173,12 +164,6 @@ function EventSections({
                 />
               ))}
             </div>
-
-            {hiddenCount > 0 && (
-              <p className="mt-3 text-sm text-zinc-600">
-                +{hiddenCount} more
-              </p>
-            )}
           </div>
         )
       })}

@@ -19,6 +19,13 @@ export interface ProviderEvent {
 
   category: EventCategory;
 
+  // Whether this is a structurally permanent mode/feature (Summoner's
+  // Rift's core queues, platform status) vs something genuinely
+  // time-boxed (a battle pass window, a rotating featured mode, a
+  // daily/weekly reset). Independent of `status` — a limited-time
+  // thing can be LIVE right now and a permanent thing is always LIVE.
+  isLimitedTime: boolean;
+
   trackedUsers: number;
 
   checkedAt: Date;

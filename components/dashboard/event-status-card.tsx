@@ -15,6 +15,8 @@ import {
   type EventCategory,
 } from "@/lib/constants/event-category"
 
+import { RotationBadge } from "@/components/shared/rotation-badge"
+
 import type { EventStatus } from "@/types/status"
 
 interface Props {
@@ -27,6 +29,7 @@ interface Props {
   event: string
   description?: string | null
   category?: string
+  isLimitedTime?: boolean
   slug?: string | null
   status: EventStatus
   updatedAt: string
@@ -40,6 +43,7 @@ export default function EventStatusCard({
   event,
   description,
   category,
+  isLimitedTime,
   slug,
   status,
   updatedAt,
@@ -82,9 +86,21 @@ export default function EventStatusCard({
         />
 
         <div className="min-w-0">
-          <p className="truncate text-sm text-zinc-500">
-            {game.name}
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="truncate text-sm text-zinc-500">
+              {game.name}
+            </p>
+
+            {category && (
+              <span className="shrink-0 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-zinc-500">
+                {EVENT_CATEGORY_LABELS[category as EventCategory] ?? category}
+              </span>
+            )}
+
+            {isLimitedTime !== undefined && (
+              <RotationBadge isLimitedTime={isLimitedTime} className="shrink-0" />
+            )}
+          </div>
 
           <div className="flex items-center gap-2">
             {slug ? (
@@ -102,12 +118,6 @@ export default function EventStatusCard({
               >
                 {event}
               </h3>
-            )}
-
-            {category && (
-              <span className="hidden shrink-0 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-zinc-500 sm:inline-block">
-                {EVENT_CATEGORY_LABELS[category as EventCategory] ?? category}
-              </span>
             )}
           </div>
         </div>

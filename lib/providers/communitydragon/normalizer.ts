@@ -25,7 +25,7 @@ const EVENT_HUB_TYPE_LABELS: Record<string, string> = {
     "Limited-time milestone event with special rewards.",
   kHallOfLegends: "Hall of Legends celebration event.",
   kDemaciaPass:
-    "League Classic's battle pass — earn track rewards. Its active window is also the best real signal ModeAlert has for when League Classic (the old-school alternate client) is actually queueable.",
+    "The old-school alternate client's battle pass. Riot doesn't publish a separate 'is League Classic queueable' signal, so this pass being open is the best real indicator ModeAlert has.",
 };
 
 // Same eventHubType lookup used for descriptions, mapped to a
@@ -74,6 +74,37 @@ function isPassCurrencyWrapper(
   title: string
 ): boolean {
   return title.includes("Token Bank");
+}
+
+// The event-hub's own title for a rotating-mode/Classic pass is a
+// pass-tier name ("Mayhem Set 2", "Classic Pass: Act I") — real and
+// accurate, but not the name a player would recognize as the actual
+// mode. The real mode names come from CommunityDragon's public
+// queues.json (verified 2026-08-12, see ADR-026/ADR-027) — used here
+// for display only. The dates/status driving this event still come
+// entirely from this real, dated event-hub entry; only the label
+// changes.
+function canonicalModeTitle(
+  event: CommunityDragonEventHubEntry["event"],
+  rawTitle: string
+): string | null {
+  if (event.eventHubType === "kDemaciaPass") {
+    return "League Classic";
+  }
+
+  if (rawTitle.includes("Mayhem")) {
+    return "ARAM: Mayhem";
+  }
+
+  if (rawTitle.includes("URF")) {
+    return "URF";
+  }
+
+  if (rawTitle.includes("Arena")) {
+    return "Arena";
+  }
+
+  return null;
 }
 
 function describeEvent(
@@ -166,9 +197,11 @@ function toProviderEvent(
 ): ProviderEvent {
   const { event } = entry;
 
-  const title =
+  const rawTitle =
     event.localizedShortName ||
     event.localizedName;
+
+  const title = canonicalModeTitle(event, rawTitle) ?? rawTitle;
 
   return {
     id: `communitydragon-event-${event.eventId}`,
@@ -186,6 +219,10 @@ function toProviderEvent(
     ),
 
     category: categorizeEvent(event, title),
+
+    // Every event-hub entry has a real start/end date — it's
+    // structurally time-boxed content, never a permanent feature.
+    isLimitedTime: true,
 
     trackedUsers: 0,
 

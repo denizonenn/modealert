@@ -45,6 +45,9 @@ interface KnownMode {
   title: string;
   description: string;
   status: ProviderEventStatus;
+  // Structurally permanent (a core queue) vs a rotating/featured mode
+  // — independent of `status`. See ADR-026.
+  isLimitedTime: boolean;
 }
 
 const KNOWN_MODES: KnownMode[] = [
@@ -55,6 +58,7 @@ const KNOWN_MODES: KnownMode[] = [
     description:
       "Summoner's Rift, 5v5, draft pick against the enemy team. One of League's core queues — permanently available, not something that starts or ends.",
     status: "LIVE",
+    isLimitedTime: false,
   },
   {
     id: "lol-mode-sr-ranked-solo",
@@ -63,6 +67,7 @@ const KNOWN_MODES: KnownMode[] = [
     description:
       "Summoner's Rift, 5v5, the main ranked ladder (solo or duo queue). Permanently available core queue.",
     status: "LIVE",
+    isLimitedTime: false,
   },
   {
     id: "lol-mode-sr-ranked-flex",
@@ -71,6 +76,7 @@ const KNOWN_MODES: KnownMode[] = [
     description:
       "Summoner's Rift, 5v5, ranked for premade groups of 2-5. Permanently available core queue.",
     status: "LIVE",
+    isLimitedTime: false,
   },
   {
     id: "lol-mode-sr-swiftplay",
@@ -79,6 +85,7 @@ const KNOWN_MODES: KnownMode[] = [
     description:
       "Summoner's Rift, a faster-paced normal queue with a shortened draft. Permanently available core queue.",
     status: "LIVE",
+    isLimitedTime: false,
   },
   {
     id: "lol-mode-aram",
@@ -87,6 +94,7 @@ const KNOWN_MODES: KnownMode[] = [
     description:
       "Howling Abyss — random champions, one lane, no recalls to base shop between waves. Permanent, always-queueable core mode.",
     status: "LIVE",
+    isLimitedTime: false,
   },
   {
     id: "rotating-mode-urf",
@@ -95,6 +103,7 @@ const KNOWN_MODES: KnownMode[] = [
     description:
       "Ultra Rapid Fire — near-zero cooldowns, no mana, chaos. A rotating featured mode; Riot doesn't publish a schedule for when featured modes are in rotation, so ModeAlert has no live signal for it right now (checked both the live and PBE event-hub feeds directly — neither has a URF entry). Tracked here so you don't miss it — the moment Riot's data shows a real URF window, ModeAlert reports its actual status and starts building real history (how long it stays live, PBE-to-live lag) automatically.",
     status: "ENDED",
+    isLimitedTime: true,
   },
   {
     id: "lol-mode-aram-mayhem-classic",
@@ -103,6 +112,7 @@ const KNOWN_MODES: KnownMode[] = [
     description:
       "A rotating ARAM Mayhem variant themed around Classic mode. Riot's own queue data flags this one specifically as a limited-time queue type (unlike base ARAM or ARAM Mayhem) — no live signal for whether it's currently unlocked.",
     status: "ENDED",
+    isLimitedTime: true,
   },
 ];
 
@@ -131,6 +141,8 @@ export const rotatingModesProvider: EventProvider = {
         status: mode.status,
 
         category: EVENT_CATEGORIES.PLAYABLE,
+
+        isLimitedTime: mode.isLimitedTime,
 
         trackedUsers: 0,
 

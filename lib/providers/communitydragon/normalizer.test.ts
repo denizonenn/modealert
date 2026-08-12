@@ -162,6 +162,41 @@ describe("normalizeEventHub", () => {
     expect(event.category).toBe("PLAYABLE");
   });
 
+  it("renames pass-tier titles to the real, recognizable mode name — dates/status still come from the real event-hub entry", () => {
+    const events = normalizeEventHub(
+      [
+        entry(
+          "mayhem",
+          "2026-06-10T00:00:00.000Z",
+          "2026-10-06T00:00:00.000Z",
+          {
+            localizedShortName: "Mayhem Set 2",
+            eventHubType: "kSeasonPass",
+          }
+        ),
+        entry(
+          "classic",
+          "2026-07-29T00:00:00.000Z",
+          "2026-09-23T00:00:00.000Z",
+          {
+            localizedShortName: "Classic Pass: Act I",
+            eventHubType: "kDemaciaPass",
+          }
+        ),
+      ],
+      now
+    );
+
+    const mayhem = events.find((e) => e.id === "communitydragon-event-mayhem");
+    const classic = events.find((e) => e.id === "communitydragon-event-classic");
+
+    expect(mayhem?.title).toBe("ARAM: Mayhem");
+    expect(mayhem?.status).toBe("LIVE");
+
+    expect(classic?.title).toBe("League Classic");
+    expect(classic?.status).toBe("LIVE");
+  });
+
   it("categorizes a 'Token Bank' pass-currency entry as SEASON_PASS, not PLAYABLE", () => {
     const [event] = normalizeEventHub(
       [

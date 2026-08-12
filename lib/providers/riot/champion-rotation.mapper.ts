@@ -26,6 +26,8 @@ export function mapChampionRotation(
 
       category: EVENT_CATEGORIES.ROTATION_MILESTONE,
 
+      isLimitedTime: false,
+
       trackedUsers: 0,
 
       checkedAt: new Date(),

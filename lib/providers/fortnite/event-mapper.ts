@@ -46,6 +46,8 @@ export function mapItemShop(
 
       category: EVENT_CATEGORIES.COSMETIC_SHOP,
 
+      isLimitedTime: true,
+
       trackedUsers: 0,
 
       checkedAt: new Date(),

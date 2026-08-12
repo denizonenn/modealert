@@ -23,6 +23,7 @@ export function mapAssignments(
       description: assignment.briefing || undefined,
       status: "LIVE" as const,
       category: EVENT_CATEGORIES.PLAYABLE,
+      isLimitedTime: true,
       trackedUsers: 0,
       checkedAt: now,
     }));

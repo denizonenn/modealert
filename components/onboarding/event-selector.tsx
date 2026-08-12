@@ -122,6 +122,7 @@ export default function EventSelector() {
               gameName={event.game.name}
               description={event.description}
               category={event.category as EventCategory}
+              isLimitedTime={event.isLimitedTime}
               selected={selectedEvents.includes(event.id)}
               onClick={() => toggleEvent(event.id)}
             />

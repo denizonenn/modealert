@@ -7,12 +7,15 @@ import {
   type EventCategory,
 } from "@/lib/constants/event-category";
 
+import { RotationBadge } from "@/components/shared/rotation-badge";
+
 interface EventCardProps {
   id: string;
   name: string;
   gameName: string;
   description?: string | null;
   category?: EventCategory;
+  isLimitedTime?: boolean;
   selected: boolean;
   onClick: () => void;
 }
@@ -22,6 +25,7 @@ export default function EventCard({
   gameName,
   description,
   category,
+  isLimitedTime,
   selected,
   onClick,
 }: EventCardProps) {
@@ -44,6 +48,10 @@ export default function EventCard({
           <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-zinc-400">
             {EVENT_CATEGORY_LABELS[category]}
           </span>
+        )}
+
+        {isLimitedTime !== undefined && (
+          <RotationBadge isLimitedTime={isLimitedTime} />
         )}
       </div>
 
