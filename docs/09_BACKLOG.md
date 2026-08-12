@@ -460,8 +460,19 @@ Completed
   seen) already existed but wasn't reachable from the dashboard,
   only from `/games/[slug]`.
 
+- **Queue-level granularity (2026-08-12, ADR-026)** — Deniz clarified
+  he wants the real sub-modes he sees in the client, not one umbrella
+  row per game mode. `rotating-modes` provider now lists Summoner's
+  Rift's 4 real permanent queues (Normal, Ranked Solo/Duo, Ranked
+  Flex, Swiftplay) and ARAM by their real `queues.json` names, plus
+  "ARAM: Mayhem Classic-ish" as an honest `ENDED` placeholder (Riot
+  flags it specifically as limited-time). Mayhem/URF/Arena event-hub
+  entries and League Classic's pass reclassified `SEASON_PASS` →
+  `PLAYABLE` — they represent a real mode, not just a reward track.
+
 Full rationale, the URF-specific reasoning, and the per-provider
-category mapping: docs/06_DECISIONS.md ADR-023/ADR-024/ADR-025.
+category mapping: docs/06_DECISIONS.md ADR-023/ADR-024/ADR-025/
+ADR-026.
 
 Future
 
