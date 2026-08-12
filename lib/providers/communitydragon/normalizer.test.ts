@@ -114,7 +114,7 @@ describe("normalizeEventHub", () => {
     expect(events[0].id).toBe("communitydragon-event-real");
   });
 
-  it("keeps rotating-mode season-pass wrappers (Mayhem/URF/Arena) but categorizes them honestly as SEASON_PASS, not PLAYABLE", () => {
+  it("keeps rotating-mode season-pass wrappers (Mayhem/URF/Arena), categorized PLAYABLE (it's a real mode) with an honest hedge in the description", () => {
     const events = normalizeEventHub(
       [
         entry(
@@ -139,8 +139,27 @@ describe("normalizeEventHub", () => {
 
     const mayhem = events.find((e) => e.id === "communitydragon-event-mayhem");
 
-    expect(mayhem?.category).toBe("SEASON_PASS");
+    expect(mayhem?.category).toBe("PLAYABLE");
     expect(mayhem?.description).toContain("battle-pass window only");
+  });
+
+  it("categorizes League Classic's pass (kDemaciaPass) as PLAYABLE — it represents a real mode, not just a reward track", () => {
+    const [event] = normalizeEventHub(
+      [
+        entry(
+          "classic",
+          "2026-07-29T00:00:00.000Z",
+          "2026-09-23T00:00:00.000Z",
+          {
+            localizedShortName: "Classic Pass: Act I",
+            eventHubType: "kDemaciaPass",
+          }
+        ),
+      ],
+      now
+    );
+
+    expect(event.category).toBe("PLAYABLE");
   });
 
   it("categorizes a 'Token Bank' pass-currency entry as SEASON_PASS, not PLAYABLE", () => {

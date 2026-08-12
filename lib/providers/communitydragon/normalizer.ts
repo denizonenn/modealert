@@ -32,9 +32,17 @@ const EVENT_HUB_TYPE_LABELS: Record<string, string> = {
 // category instead. Unknown hub types default to PLAYABLE — the
 // event-hub feed's entries are, overwhelmingly, real time-boxed
 // events tied to something players actually do in-client.
+//
+// kSeasonPass/kDemaciaPass default to SEASON_PASS (narrative content
+// tracks like "Season 3: Act I" or "Spirit Blossom Beyond" — earn
+// missions, unlock skins, not a mode you queue into). The exception
+// is rotating-mode wrappers (Mayhem/URF/Arena) and kDemaciaPass
+// itself (League Classic's pass) — see below, both PLAYABLE, because
+// per Deniz these represent a real mode a player queues into, not
+// just a reward track.
 const EVENT_HUB_TYPE_CATEGORIES: Record<string, EventCategory> = {
   kSeasonPass: EVENT_CATEGORIES.SEASON_PASS,
-  kDemaciaPass: EVENT_CATEGORIES.SEASON_PASS,
+  kDemaciaPass: EVENT_CATEGORIES.PLAYABLE,
   kActivityCenterMilestones: EVENT_CATEGORIES.PLAYABLE,
   kHallOfLegends: EVENT_CATEGORIES.PLAYABLE,
 };
@@ -43,10 +51,11 @@ const EVENT_HUB_TYPE_CATEGORIES: Record<string, EventCategory> = {
 // season-long progression-track entry under kSeasonPass, same as any
 // other battle pass. There's still no reliable "is the mode actually
 // in rotation right now" signal (see docs/06_DECISIONS.md ADR-017/
-// ADR-020) — but per Deniz, these are too important to hide entirely.
-// They're categorized/described honestly as a battle-pass window
-// instead: visible and trackable, never claimed to mean the mode
-// itself is live.
+// ADR-020) — but per Deniz, these represent a real mode he wants
+// filed as PLAYABLE, not tucked away as a generic season pass. The
+// hedge stays in the description instead: visible and trackable
+// under the category he actually wants, but never claiming the mode
+// itself is confirmed live.
 const ROTATING_MODE_TITLE_MATCHES = ["Mayhem", "URF", "Arena"];
 
 function isRotatingModeWrapper(
@@ -97,7 +106,7 @@ function categorizeEvent(
     event.eventHubType === "kSeasonPass" &&
     isRotatingModeWrapper(title)
   ) {
-    return EVENT_CATEGORIES.SEASON_PASS;
+    return EVENT_CATEGORIES.PLAYABLE;
   }
 
   if (isPassCurrencyWrapper(title)) {

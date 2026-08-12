@@ -11,17 +11,29 @@ import { EVENT_CATEGORIES } from "@/lib/constants/event-category";
 // exposes an "is it currently queueable" signal for — either because
 // they're permanent fixtures (no API needed to know they're always
 // on) or because they're rotating and Riot simply doesn't publish a
-// schedule (see docs/06_DECISIONS.md ADR-017/ADR-020/ADR-023/ADR-024).
+// schedule (see docs/06_DECISIONS.md ADR-017/ADR-020/ADR-023/
+// ADR-024/ADR-025/ADR-026).
 //
-// The one rule that must never be broken here: `status` reflects a
-// fact this file's author can actually stand behind, never a guess.
-// - "LIVE" is only used for modes that are structurally permanent —
-//   have been continuously queueable for years, not something that
-//   needs live verification (same class of static fact as e.g. this
-//   codebase's hand-written eventHubType description lookup).
-// - "ENDED" is used for known rotating modes with zero live signal —
-//   an honest "not currently confirmed active", never a fabricated
-//   LIVE claim or an invented date.
+// Names and queue groupings below are sourced from CommunityDragon's
+// real, public, keyless queues.json (verified 2026-08-12) — not
+// invented. That file lists 420 queue ids spanning League's entire
+// history, most long dead, with no "currently active" field (the same
+// conclusion ADR-017 reached). What IS usable from it: which of the
+// CURRENT queue ids are the kind of queue Riot itself doesn't classify
+// as limited-time (`isLimitedTimeQueue: false`) — a stable structural
+// fact, not a live one. That signal isn't perfect on its own (ARAM
+// Mayhem is also flagged `false` despite genuinely rotating — its
+// actual availability is tracked separately via the real, dated
+// event-hub pass-window entries, e.g. "Mayhem Set 2"), so only queues
+// this file's author can independently verify have been continuously
+// queueable for years (Summoner's Rift's core queues, ARAM) get
+// `status: "LIVE"` here.
+//
+// The one rule that must never be broken: `status` reflects a fact
+// this file's author can actually stand behind, never a guess.
+// - "LIVE" — structurally permanent, no live verification needed.
+// - "ENDED" — known rotating mode, zero live signal right now. Never
+//   a fabricated LIVE claim, never an invented date.
 //
 // If a mode listed here ever gets its own real, dated
 // communitydragon-sourced row (live or PBE), that row reports the
@@ -37,11 +49,35 @@ interface KnownMode {
 
 const KNOWN_MODES: KnownMode[] = [
   {
-    id: "lol-mode-summoners-rift",
+    id: "lol-mode-sr-normal",
     gameId: GAME_IDS.LEAGUE_OF_LEGENDS,
-    title: "Summoner's Rift",
+    title: "Normal (Draft Pick)",
     description:
-      "The 5v5 map — League's core mode (Normal + Ranked). Permanently queueable, not something that starts or ends, so ModeAlert has nothing to detect here — this entry just exists so it shows up in your playable-modes list.",
+      "Summoner's Rift, 5v5, draft pick against the enemy team. One of League's core queues — permanently available, not something that starts or ends.",
+    status: "LIVE",
+  },
+  {
+    id: "lol-mode-sr-ranked-solo",
+    gameId: GAME_IDS.LEAGUE_OF_LEGENDS,
+    title: "Ranked Solo/Duo",
+    description:
+      "Summoner's Rift, 5v5, the main ranked ladder (solo or duo queue). Permanently available core queue.",
+    status: "LIVE",
+  },
+  {
+    id: "lol-mode-sr-ranked-flex",
+    gameId: GAME_IDS.LEAGUE_OF_LEGENDS,
+    title: "Ranked Flex",
+    description:
+      "Summoner's Rift, 5v5, ranked for premade groups of 2-5. Permanently available core queue.",
+    status: "LIVE",
+  },
+  {
+    id: "lol-mode-sr-swiftplay",
+    gameId: GAME_IDS.LEAGUE_OF_LEGENDS,
+    title: "Swiftplay",
+    description:
+      "Summoner's Rift, a faster-paced normal queue with a shortened draft. Permanently available core queue.",
     status: "LIVE",
   },
   {
@@ -49,7 +85,7 @@ const KNOWN_MODES: KnownMode[] = [
     gameId: GAME_IDS.LEAGUE_OF_LEGENDS,
     title: "ARAM",
     description:
-      "Howling Abyss — random champions, one lane, no recalls to base shop between waves. A permanent, always-queueable mode, same as Summoner's Rift.",
+      "Howling Abyss — random champions, one lane, no recalls to base shop between waves. Permanent, always-queueable core mode.",
     status: "LIVE",
   },
   {
@@ -58,6 +94,14 @@ const KNOWN_MODES: KnownMode[] = [
     title: "URF",
     description:
       "Ultra Rapid Fire — near-zero cooldowns, no mana, chaos. A rotating featured mode; Riot doesn't publish a schedule for when featured modes are in rotation, so ModeAlert has no live signal for it right now (checked both the live and PBE event-hub feeds directly — neither has a URF entry). Tracked here so you don't miss it — the moment Riot's data shows a real URF window, ModeAlert reports its actual status and starts building real history (how long it stays live, PBE-to-live lag) automatically.",
+    status: "ENDED",
+  },
+  {
+    id: "lol-mode-aram-mayhem-classic",
+    gameId: GAME_IDS.LEAGUE_OF_LEGENDS,
+    title: "ARAM: Mayhem Classic-ish",
+    description:
+      "A rotating ARAM Mayhem variant themed around Classic mode. Riot's own queue data flags this one specifically as a limited-time queue type (unlike base ARAM or ARAM Mayhem) — no live signal for whether it's currently unlocked.",
     status: "ENDED",
   },
 ];

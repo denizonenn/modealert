@@ -2047,4 +2047,91 @@ listesi artık gerçekten anlamlı bir taban içeriyor.
   sonra URF'ü, sonra geçmiş event'leri görüyor — Platform
   Status/Champion Rotation/Season Pass gürültüsü tamamen filtre
   dışında (istenirse tek tıkla açılabiliyor).
+
+---
+
+# ADR-026: Queue Seviyesinde Gerçek Mod Listesi (queues.json) + Mayhem/Classic PLAYABLE'a Taşındı
+
+Status: Accepted
+
+Date: 2026-08-12
+
+## Bağlam
+
+Deniz, LoL client'ının mod seçim ekranından bir ekran görüntüsü daha
+attı ve netleştirdi: "ben aram görmek istemiyorum, aramda 3 farklı mod
+var: aram, aram şamata, aram şamata klasik gibi — bunları görücem,
+sihirdar vadiside 4 farklı mod var, bunları görmek istiyorum." Yani
+ADR-025'teki tek "ARAM" / tek "Summoner's Rift" satırı yetersizdi —
+istenen, client'taki gerçek queue granularitesi.
+
+Bu, `queues.json`'u (public, keyless, ADR-017'de zaten incelenmiş)
+farklı bir amaçla yeniden değerlendirmeyi gerektirdi. ADR-017 doğru
+şekilde "hiçbir alan 'şu an aktif' bilgisi taşımıyor" demişti — ama
+bu, dosyanın TAMAMEN işe yaramaz olduğu anlamına gelmiyor. 420 kayıt
+arasında `isLimitedTimeQueue` diye bir bayrak var: bu bir "şu an
+açık mı" sinyali değil, ama "bu queue TÜRÜ yapısal olarak kalıcı mı,
+rotasyonlu mu" diye sabit bir sınıflandırma — farklı bir soru, ve
+cevabı gerçek/güvenilir.
+
+Bu bayrağı körü körüne güvenmek de riskli: "ARAM: Mayhem" (id 2400)
+`isLimitedTimeQueue: false` olarak işaretli, ama gerçekte sürekli
+açık DEĞİL — kendi gerçek event-hub pas-penceresi verisi (Mayhem
+Progression Track → bitti → Mayhem Set 2 → şu an açık) bunun
+rotasyonlu olduğunu zaten kanıtlıyor. Yani bayrak tek başına yeterli
+değil, ancak bağımsız olarak yıllardır kesintisiz bilinen modlar
+(Sihirdar Vadisi'nin temel kuyrukları, ARAM'ın kendisi) için ek bir
+doğrulama katmanı olarak kullanılabilir.
+
+## Karar
+
+1. **`lib/providers/rotating-modes/provider.ts`** queue-seviyesinde
+   gerçek isimlerle genişletildi (hepsi `queues.json`'dan, uydurma
+   değil):
+   - Sihirdar Vadisi'nin 4 kalıcı kuyruğu → hepsi `LIVE`: Normal
+     (Draft Pick, id 400), Ranked Solo/Duo (id 420), Ranked Flex
+     (id 440), Swiftplay (id 480).
+   - ARAM (id 450) → `LIVE`.
+   - ARAM: Mayhem Classic-ish (id 2450) → `ENDED` — Riot'un kendi
+     verisinde özellikle `isLimitedTimeQueue: true` işaretli (ekran
+     görüntüsündeki kilitli/saat ikonlu varyantla eşleşiyor), canlı
+     sinyal yok.
+   - URF → `ENDED`, değişmedi (ADR-024).
+   - Eski tek "Summoner's Rift" satırı listeden çıkarıldı — bir
+     sonraki sync'te `eventSyncService`'in var olan "source artık
+     raporlamıyorsa ENDED yap" temizliği sayesinde otomatik ENDED
+     oldu, ekstra kod gerekmedi.
+2. **ARAM: Mayhem'in kendisi ayrı bir statik satır değil** — zaten
+   gerçek, tarihli event-hub verisi var (`Mayhem Set 2`), o
+   kullanılıyor.
+3. **`lib/providers/communitydragon/normalizer.ts`** —
+   `isRotatingModeWrapper` (Mayhem/URF/Arena) eşleşen entry'ler ve
+   `kDemaciaPass` (League Classic'in pass'i) artık kategori olarak
+   `SEASON_PASS` değil **`PLAYABLE`**. Gerekçe: Deniz'in tekrar
+   tekrar netleştirdiği gibi bunlar gerçekten bir mod temsil ediyor,
+   sadece bir ödül takip sistemi değil — "battle-pass window only"
+   dürüstlüğü kategori yerine açıklama metninde kalmaya devam
+   ediyor. Genel `kSeasonPass` (Season N: Act X, Spirit Blossom
+   Beyond gibi anlatı içerikli pas'lar) hâlâ `SEASON_PASS` — bunlar
+   gerçekten bir mod değil, ödül takip sistemi.
+
+## Gerekçe
+
+`isLimitedTimeQueue` bayrağı tek başına "şu an aktif mi" sorusuna
+cevap vermiyor (ADR-017'nin sonucu hâlâ geçerli) — ama "bu queue
+TÜRÜ hangi sınıfa ait" sorusuna cevap veriyor, ve bu genel bilgiyle
+birlikte bağımsız olarak doğrulanabilir gerçekler (Sihirdar
+Vadisi/ARAM'ın yıllardır kesintisiz açık olması) kombine edilerek
+dürüst bir liste kuruldu. Hiçbir satırda tarih uydurulmadı, hiçbir
+satır "şu an aktif" diye yanlış iddia etmiyor.
+
+## Sonuçlar
+
+- Gerçek sync ile doğrulandı: LoL `PLAYABLE` kategorisinde artık 7
+  LIVE satır var (Normal, Ranked Solo/Duo, Ranked Flex, Swiftplay,
+  ARAM, Mayhem Set 2, Classic Pass: Act I) — ekran görüntüsündeki
+  Sihirdar Vadisi'nin 4 modu ve ARAM'ın 3 modu (Mayhem Set 2 = "ARAM
+  Şamata", ARAM: Mayhem Classic-ish = "ARAM Şamata: Classic Gibi")
+  birebir eşleşiyor.
+- 72/72 test, `tsc --noEmit`, `npm run build` temiz.
 - 71/71 test, `tsc --noEmit`, `npm run build` temiz.
