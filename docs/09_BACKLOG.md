@@ -1019,6 +1019,50 @@ No open bugs.
 
 # Ideas
 
+- ~~u.gg outbound links~~ — **done (2026-08-06).** Deniz asked for a
+  u.gg integration. u.gg has no public API (verified — it's a stats/
+  build site, nothing to embed/scrape), so this is outbound links
+  only: `lib/constants/external-resources.ts` maps gameId → real u.gg
+  URLs, rendered on `/games/[slug]` for LoL/TFT/Valorant. First pass
+  used URLs typed from memory instead of the ones actually verified
+  via WebSearch — caught and fixed before commit (`u.gg/val/tierlist/
+  agents` not `u.gg/valorant/tier-list`, `u.gg/tft` not `u.gg/tft/
+  tier-list`). Lesson: verify external URLs against the actual search
+  result, don't reconstruct them from memory even when the pattern
+  looks obvious.
+
+- **Riot account linking (RSO)** — Deniz wants "connect your LoL
+  account, show your actual champion" personalization. Researched
+  2026-08-06: RSO (Riot Sign-On) requires an **already-approved
+  production API key first** — Deniz's production key application is
+  still Pending Review (see Technical Debt below). Once approved, RSO
+  itself needs a *separate* application: documented user-flow
+  (account creation/login/queue-up mockups or a working prototype
+  link), mandatory data opt-in functionality, and a public disclaimer
+  that account linking makes player data public. Multi-week, two-stage
+  process with real product/legal decisions (opt-in UX, disclaimer
+  copy) — not something to build blind. Revisit once the production
+  key lands.
+
+- **URF/rotating-mode live status** — researched a third time
+  (2026-08-06, prompted by Deniz asking why URF isn't shown). Same
+  conclusion as ADR-017/ADR-020, now with exhaustive evidence: every
+  field `queues.json` exposes was enumerated (`id`, `name`,
+  `shortName`, `description`, `detailedDescription`,
+  `gameSelectModeGroup`, `gameSelectCategory`, `gameSelectPriority`,
+  `isSkillTreeQueue`, `isLimitedTimeQueue`, `isBotHonoringAllowed`,
+  `hidePlayerPosition`, `viableChampionRoster`, `pickMode`) — none of
+  them carry a date or "active now" signal, not even an unreliable
+  one. Also found `isurfback.com`, a third-party site dedicated
+  entirely to this question — confirms it's a widely-recognized hard
+  problem, but they don't disclose their methodology/API publicly, so
+  it's not a source ModeAlert can depend on. Explicitly **not**
+  solved by hardcoding a static "URF: Ended" row — that would never
+  update on its own (nothing would ever sync it) and is the same
+  fabricated-data anti-pattern already removed elsewhere (see
+  lib/events.ts deletion). Stays absent until Riot/CommunityDragon
+  exposes a real signal.
+
 - Event popularity heatmap
 
 - Personalized recommendations

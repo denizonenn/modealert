@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, ArrowUpRight } from "lucide-react"
 
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
@@ -14,6 +14,7 @@ import { eventQueryService } from "@/lib/services/event-query.service"
 import { eventStatisticsService } from "@/lib/services/event-statistics.service"
 import { eventPredictionService } from "@/lib/services/event-prediction.service"
 import { formatDuration } from "@/lib/utils"
+import { EXTERNAL_RESOURCES } from "@/lib/constants/external-resources"
 
 type EventStatus = "LIVE" | "UPCOMING" | "TRACKING" | "ENDED"
 
@@ -115,6 +116,23 @@ export default async function GameDetailPage({ params }: Props) {
           we&apos;ve seen it complete at least once) an estimate of
           when it&apos;ll end.
         </p>
+
+        {EXTERNAL_RESOURCES[game.id] && (
+          <div className="mt-6 flex flex-wrap gap-3">
+            {EXTERNAL_RESOURCES[game.id]!.map((resource) => (
+              <a
+                key={resource.url}
+                href={resource.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm text-zinc-300 hover:border-white/20 hover:text-white"
+              >
+                {resource.label}
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </a>
+            ))}
+          </div>
+        )}
 
         <div className="mt-10 space-y-3">
           {eventsWithInsights.length === 0 ? (
