@@ -6,13 +6,11 @@ import { useOnboardingStore } from "@/stores/onboarding-store";
 
 import { useEvents } from "@/hooks/use-events";
 import { Skeleton } from "@/components/shared/skeleton";
-import { cn } from "@/lib/utils";
+import { CategoryFilterBar } from "@/components/shared/category-filter-bar";
 
 import {
-  EVENT_CATEGORY_EXAMPLES,
-  EVENT_CATEGORY_LABELS,
-  EVENT_CATEGORY_ORDER,
   categorySortKey,
+  EVENT_CATEGORIES,
   type EventCategory,
 } from "@/lib/constants/event-category";
 
@@ -25,42 +23,13 @@ const STATUS_PRIORITY: Record<string, number> = {
   ENDED: 3,
 };
 
-function CategoryFilterBar({
-  selected,
-  onToggle,
-}: {
-  selected: Set<EventCategory>;
-  onToggle: (category: EventCategory) => void;
-}) {
-  return (
-    <div className="mt-8 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-      {EVENT_CATEGORY_ORDER.map((category) => {
-        const active = selected.has(category);
-
-        return (
-          <button
-            key={category}
-            type="button"
-            onClick={() => onToggle(category)}
-            className={cn(
-              "rounded-2xl border px-4 py-3 text-left transition-colors",
-              active
-                ? "border-white/20 bg-white/10 text-white"
-                : "border-white/10 bg-white/5 text-zinc-500 hover:border-white/20 hover:text-zinc-300"
-            )}
-          >
-            <p className="text-sm font-semibold">
-              {EVENT_CATEGORY_LABELS[category]}
-            </p>
-            <p className="mt-1 text-xs text-zinc-500">
-              {EVENT_CATEGORY_EXAMPLES[category]}
-            </p>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
+// Default to just the "real played thing" category — everything else
+// (season passes, platform status, rotation milestones, shop
+// rotations) is opt-in via the filter bar, not opt-out. Fixes the
+// "list full of dummy events nobody plays" complaint at the source.
+const DEFAULT_CATEGORIES: Set<EventCategory> = new Set([
+  EVENT_CATEGORIES.PLAYABLE,
+]);
 
 export default function EventSelector() {
   const {
@@ -77,7 +46,7 @@ export default function EventSelector() {
 
   const [selectedCategories, setSelectedCategories] = useState<
     Set<EventCategory>
-  >(new Set(EVENT_CATEGORY_ORDER));
+  >(DEFAULT_CATEGORIES);
 
   function toggleCategory(category: EventCategory) {
     setSelectedCategories((current) => {
@@ -91,7 +60,7 @@ export default function EventSelector() {
 
       // Never allow an empty filter — that would just show "no events"
       // with no obvious way back for the user.
-      return next.size === 0 ? new Set(EVENT_CATEGORY_ORDER) : next;
+      return next.size === 0 ? new Set([EVENT_CATEGORIES.PLAYABLE]) : next;
     });
   }
 
@@ -131,10 +100,12 @@ export default function EventSelector() {
 
   return (
     <div>
-      <CategoryFilterBar
-        selected={selectedCategories}
-        onToggle={toggleCategory}
-      />
+      <div className="mt-8">
+        <CategoryFilterBar
+          selected={selectedCategories}
+          onToggle={toggleCategory}
+        />
+      </div>
 
       {filteredEvents.length === 0 ? (
         <p className="mt-10 text-center text-zinc-500">

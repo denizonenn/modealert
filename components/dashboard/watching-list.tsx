@@ -14,7 +14,13 @@ import { Skeleton } from "@/components/shared/skeleton"
 import type { EventWithGame } from "@/lib/repositories/event.repository"
 import type { EventStatus } from "@/types/status"
 
-import { categorySortKey } from "@/lib/constants/event-category"
+import { CategoryFilterBar } from "@/components/shared/category-filter-bar"
+
+import {
+  categorySortKey,
+  EVENT_CATEGORIES,
+  type EventCategory,
+} from "@/lib/constants/event-category"
 
 interface GameOption {
   id: string
@@ -84,6 +90,12 @@ const SECTIONS: {
 
 const ENDED_DISPLAY_LIMIT = 6
 
+// Default "All Events" to just the real played category — everything
+// else is opt-in via the filter bar. Matches onboarding's default.
+const DEFAULT_CATEGORIES: Set<EventCategory> = new Set([
+  EVENT_CATEGORIES.PLAYABLE,
+])
+
 function EventSections({
   events,
   watchlistedIds,
@@ -146,6 +158,7 @@ function EventSections({
                   event={event.title}
                   description={event.description}
                   category={event.category}
+                  slug={event.slug}
                   status={
                     event.status as EventStatus
                   }
@@ -188,6 +201,24 @@ export default function WatchingList() {
 
   const [selectedGameId, setSelectedGameId] =
     useState<string | null>(null)
+
+  const [selectedCategories, setSelectedCategories] = useState<
+    Set<EventCategory>
+  >(DEFAULT_CATEGORIES)
+
+  function toggleCategory(category: EventCategory) {
+    setSelectedCategories((current) => {
+      const next = new Set(current)
+
+      if (next.has(category)) {
+        next.delete(category)
+      } else {
+        next.add(category)
+      }
+
+      return next.size === 0 ? new Set([EVENT_CATEGORIES.PLAYABLE]) : next
+    })
+  }
 
   const isLoading = eventsLoading || watchlistLoading
 
@@ -234,8 +265,15 @@ export default function WatchingList() {
       )
     : events
 
+  // "Your Watchlist" shows everything the user already chose to track,
+  // regardless of category — the filter only narrows the "All Events"
+  // browse list below it.
   const watchedEvents = filteredEvents.filter((event) =>
     watchlistedIds.has(event.id)
+  )
+
+  const browsableEvents = filteredEvents.filter((event) =>
+    selectedCategories.has(event.category as EventCategory)
   )
 
   return (
@@ -269,14 +307,21 @@ export default function WatchingList() {
             All Events
           </h2>
 
+          <div className="mb-6">
+            <CategoryFilterBar
+              selected={selectedCategories}
+              onToggle={toggleCategory}
+            />
+          </div>
+
           <EventSections
-            events={filteredEvents}
+            events={browsableEvents}
             watchlistedIds={watchlistedIds}
             onToggleWatch={toggle}
             emptyMessage={
               selectedGameId
-                ? "No events tracked yet for this game."
-                : "No events tracked yet."
+                ? "No events in the selected categories for this game."
+                : "No events in the selected categories."
             }
           />
         </div>

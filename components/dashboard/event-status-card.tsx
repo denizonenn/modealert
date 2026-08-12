@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { motion } from "framer-motion"
+import Link from "next/link"
 import { Star } from "lucide-react"
 
 import { GameIcon } from "@/components/shared/game-icon"
@@ -26,6 +27,7 @@ interface Props {
   event: string
   description?: string | null
   category?: string
+  slug?: string | null
   status: EventStatus
   updatedAt: string
   index?: number
@@ -38,6 +40,7 @@ export default function EventStatusCard({
   event,
   description,
   category,
+  slug,
   status,
   updatedAt,
   index = 0,
@@ -84,12 +87,22 @@ export default function EventStatusCard({
           </p>
 
           <div className="flex items-center gap-2">
-            <h3
-              className="truncate font-semibold"
-              title={description ?? undefined}
-            >
-              {event}
-            </h3>
+            {slug ? (
+              <Link
+                href={`/events/${slug}`}
+                className="truncate font-semibold hover:text-zinc-300"
+                title={description ?? undefined}
+              >
+                {event}
+              </Link>
+            ) : (
+              <h3
+                className="truncate font-semibold"
+                title={description ?? undefined}
+              >
+                {event}
+              </h3>
+            )}
 
             {category && (
               <span className="hidden shrink-0 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-zinc-500 sm:inline-block">

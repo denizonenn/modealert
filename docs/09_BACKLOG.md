@@ -445,9 +445,23 @@ Completed
   no-signal problem (`cherry-lobby.json` has no dates either) and
   could get the same treatment if wanted — not added yet, out of
   scope of what was asked.
+- **Same provider extended (2026-08-12, ADR-025)** with Summoner's
+  Rift and ARAM as permanent `LIVE`/`PLAYABLE` rows — structurally
+  always-queueable modes, not something requiring live verification.
+  Gives the "all playable modes" baseline Deniz asked for after
+  sharing a screenshot of LoL's mode-select screen.
+- **Default category filter flipped to `PLAYABLE`-only** (was: all 5
+  categories shown by default) in both onboarding's event selector
+  and the dashboard's "All Events" list (not "Your Watchlist", which
+  always shows everything already tracked). Filter bar extracted to
+  `components/shared/category-filter-bar.tsx`, shared by both.
+- Dashboard event cards now link their title to `/events/[slug]` —
+  the per-event stats page (timeline, average duration, first/last
+  seen) already existed but wasn't reachable from the dashboard,
+  only from `/games/[slug]`.
 
 Full rationale, the URF-specific reasoning, and the per-provider
-category mapping: docs/06_DECISIONS.md ADR-023/ADR-024.
+category mapping: docs/06_DECISIONS.md ADR-023/ADR-024/ADR-025.
 
 Future
 

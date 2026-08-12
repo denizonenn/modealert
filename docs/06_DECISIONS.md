@@ -1963,3 +1963,88 @@ icat edilmemeli.
 - Arena'nın da URF ile aynı durumda olduğu (cherry-lobby.json'da tarih
   yok) not edildi ama Deniz'in isteği kapsamına girmediği için
   eklenmedi — istenirse aynı provider'a tek satır eklemek yeterli.
+
+---
+
+# ADR-025: Kalıcı Modlar (Sihirdar Vadisi, ARAM) + Varsayılan Filtre PLAYABLE'a Çekildi
+
+Status: Accepted
+
+Date: 2026-08-12
+
+## Bağlam
+
+Deniz, LoL client'ının mod seçim ekranının (Sihirdar Vadisi, ARAM,
+Arena, Classic Vadi, TFT — bazıları kilitli/limited-time ikonuyla)
+ekran görüntüsünü attı: asıl istediği, oyuncunun oynayabileceği TÜM
+modların (sadece rotasyonlu/event olanların değil) görünmesi —
+"aram sihirdar vadisi vb. tüm oynanabilirler arasından hangisi açık
+hangisi limited time." Ayrıca: onboarding'de varsayılan olarak
+`EVENT_CATEGORY_ORDER`'daki 5 kategorinin hepsi seçili geliyordu
+(ADR-023'te öyle kurulmuştu) — Deniz'in asıl istediği "başta sadece
+playable görülsün, istersen sen genişlet" idi, tersi değil.
+
+## Karar
+
+1. **`lib/providers/rotating-modes/provider.ts` genişletildi** —
+   artık sadece "bilinen ama sinyali olmayan" modları değil, "bilinen
+   ve yapısal olarak her zaman açık" modları da tutuyor
+   (`KnownMode.status` artık sabit `ENDED` değil, her girdi kendi
+   status'unu taşıyor):
+   - **Summoner's Rift** ve **ARAM** — `status: LIVE`, kalıcı, yıllardır
+     kesintisiz oynanabilir modlar. Bu bir "şu an aktif mi" iddiası
+     değil, oyunun yapısal bir gerçeği (Warframe'in Sortie'sinin her
+     gün var olması gibi bir sınıf) — canlı doğrulama gerektirmiyor.
+   - **URF** — `status: ENDED`, ADR-024'teki gibi, değişmedi.
+   - Arena eklenmedi — Deniz bu mesajda özellikle adını vermedi,
+     ayrıca kalıcı mı rotasyonlu mu olduğu (cherry-lobby.json'da tarih
+     yok) net değil; yanlış "her zaman açık" iddiası riskli olurdu.
+2. **`lib/providers/communitydragon/normalizer.ts`** — `kDemaciaPass`
+   açıklaması "League Classic'in battle pass'i, aynı zamanda League
+   Classic modunun ne zaman oynanabilir olduğuna dair elimizdeki en
+   iyi gerçek sinyal" diye netleştirildi (önceden sadece "Classic-mode
+   battle pass" diyordu, hangi gerçek moda karşılık geldiği
+   belirsizdi).
+3. **Varsayılan kategori filtresi `PLAYABLE`'a çekildi** — hem
+   `components/onboarding/event-selector.tsx` hem
+   `components/dashboard/watching-list.tsx`'in "All Events"
+   bölümünde. "Your Watchlist" bölümü bundan etkilenmiyor — kullanıcı
+   zaten ne izlemeyi seçtiyse kategoriden bağımsız hep gösteriliyor,
+   filtre sadece keşif/gözat listesini daraltıyor.
+4. Filtre kartları tekrar kullanılabilir hale getirildi:
+   `components/shared/category-filter-bar.tsx` (önceden
+   `event-selector.tsx` içine gömülüydü), artık iki yerde de aynı
+   bileşen.
+5. Dashboard event kartlarına (`EventStatusCard`) `slug` eklendi,
+   başlık artık `/events/[slug]`'a linkleniyor — Deniz'in istediği
+   "her event için ayrı bir statistics sayfası" zaten var
+   (`app/events/[slug]/page.tsx`: first tracked, times seen, average
+   duration, tahmini bitiş/son görülme, ve her occurrence'ın
+   start→end + süresini gösteren tam timeline) ama dashboard'dan
+   ulaşılamıyordu, sadece `/games/[slug]`'dan linkliydi.
+
+## Gerekçe
+
+"Hangi modlar şu an client'ta seçilebilir/kilitli/countdown'lu"
+sorusunun tam cevabı (ekran görüntüsündeki gibi) hâlâ mümkün değil —
+bu veri LCU'dan geliyor (bkz. ADR-001, kişiselleştirme dışı kullanımı
+yasak) ve hiçbir public API'de karşılığı yok (bu oturumda
+event-passes.json/cherry-lobby.json/regalia.json + WebSearch ile bir
+kez daha arandı, bulunamadı). Ama bunun ortasında gerçekten
+söylenebilecek bir gerçek var: Sihirdar Vadisi ve ARAM'ın yıllardır
+kesintisiz açık olduğu — bu, her istekte doğrulanması gereken bir şey
+değil, oyunun bilinen yapısı. Bunu eklemek "gerçek veri" ilkesini
+ihlal etmiyor, tam tersi tamamlıyor: kullanıcının "tüm oynanabilirler"
+listesi artık gerçekten anlamlı bir taban içeriyor.
+
+## Sonuçlar
+
+- Gerçek sync ile doğrulandı: LoL'ün `PLAYABLE` kategorisi artık
+  Summoner's Rift (LIVE), ARAM (LIVE), URF (ENDED) + gerçek
+  event-hub'dan gelen tek seferlik event'leri (Hall of Legends,
+  Arcane Anniversary, Swain's Hot Chicken — hepsi ENDED) içeriyor.
+  Varsayılan filtreyle bir kullanıcı artık önce LIVE iki kalıcı modu,
+  sonra URF'ü, sonra geçmiş event'leri görüyor — Platform
+  Status/Champion Rotation/Season Pass gürültüsü tamamen filtre
+  dışında (istenirse tek tıkla açılabiliyor).
+- 71/71 test, `tsc --noEmit`, `npm run build` temiz.

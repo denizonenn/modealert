@@ -24,7 +24,8 @@ const EVENT_HUB_TYPE_LABELS: Record<string, string> = {
   kActivityCenterMilestones:
     "Limited-time milestone event with special rewards.",
   kHallOfLegends: "Hall of Legends celebration event.",
-  kDemaciaPass: "Classic-mode battle pass.",
+  kDemaciaPass:
+    "League Classic's battle pass — earn track rewards. Its active window is also the best real signal ModeAlert has for when League Classic (the old-school alternate client) is actually queueable.",
 };
 
 // Same eventHubType lookup used for descriptions, mapped to a
