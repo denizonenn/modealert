@@ -13,6 +13,7 @@ function event(
     gameId: "lol",
     title: "Arcane Anniversary",
     status: "LIVE",
+    category: "PLAYABLE",
     trackedUsers: 0,
     checkedAt: new Date(),
     ...overrides,

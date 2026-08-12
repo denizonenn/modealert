@@ -1,6 +1,7 @@
 import type { ProviderEvent, ProviderEventStatus } from "../core/provider";
 
 import { GAME_IDS } from "@/lib/constants/games";
+import { EVENT_CATEGORIES } from "@/lib/constants/event-category";
 
 import type { WarframeWorldstate } from "./types";
 
@@ -35,6 +36,7 @@ function mapVoidTrader(
       title,
       description,
       status,
+      category: EVENT_CATEGORIES.ROTATION_MILESTONE,
       trackedUsers: 0,
       checkedAt: now,
     },
@@ -62,6 +64,7 @@ function mapNightwave(
         ? `Season ${nightwave.season} of Nightwave is active — complete weekly/daily acts for Wolf Creds and rewards.`
         : `Nightwave Season ${nightwave.season} is between seasons (intermission) — no active acts right now.`,
       status,
+      category: EVENT_CATEGORIES.SEASON_PASS,
       trackedUsers: 0,
       checkedAt: now,
     },
@@ -83,6 +86,7 @@ function mapSortie(
       title: `Sortie — ${sortie.boss}`,
       description: `Today's 3-mission Sortie chain ends with a boss fight against ${sortie.boss}. Resets daily.`,
       status: "LIVE",
+      category: EVENT_CATEGORIES.ROTATION_MILESTONE,
       trackedUsers: 0,
       checkedAt: now,
     },
@@ -104,6 +108,7 @@ function mapArchonHunt(
       title: `Archon Hunt — ${archonHunt.boss}`,
       description: `This week's 3-mission Archon Hunt chain (no life support, no revives) ends with a fight against ${archonHunt.boss}. Resets weekly.`,
       status: "LIVE",
+      category: EVENT_CATEGORIES.ROTATION_MILESTONE,
       trackedUsers: 0,
       checkedAt: now,
     },

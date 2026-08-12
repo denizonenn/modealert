@@ -178,6 +178,8 @@ export async function upsertEvent(
 
     status: event.status,
 
+    category: event.category,
+
     trackedUsers:
       event.trackedUsers,
 

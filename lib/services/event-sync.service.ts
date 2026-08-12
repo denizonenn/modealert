@@ -99,6 +99,8 @@ async function expireStaleEvents(
 
           status: EVENT_STATUS.ENDED,
 
+          category: event.category as ProviderEvent["category"],
+
           trackedUsers:
             event.trackedUsers,
 

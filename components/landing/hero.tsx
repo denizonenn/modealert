@@ -8,12 +8,21 @@ import { ModeRotator } from "./mode-rotator"
 
 import { eventQueryService } from "@/lib/services/event-query.service"
 import { GAMES_WITH_PROVIDER } from "@/lib/constants/games"
+import { categorySortKey } from "@/lib/constants/event-category"
 
 const STATUS_ORDER: Record<string, number> = {
   LIVE: 0,
   UPCOMING: 1,
   TRACKING: 2,
   ENDED: 3,
+}
+
+// Category dominates the pick — a real played event (URF/Arena's
+// battle-pass window, a PoE league, ...) represents the game better
+// than an always-on "Platform Status"/"Champion Rotation" row, even
+// if the real event has since ended and the noise row is live.
+function previewRank(event: { status: string; category: string }): number {
+  return categorySortKey(event.category, STATUS_ORDER[event.status] ?? 9)
 }
 
 async function getPreviewData(): Promise<{
@@ -26,22 +35,15 @@ async function getPreviewData(): Promise<{
   const bestPerGame = new Map<string, (typeof events)[number]>()
 
   for (const event of events) {
-    if (event.status === "ENDED") {
-      continue
-    }
-
     const existing = bestPerGame.get(event.gameId)
 
-    if (
-      !existing ||
-      STATUS_ORDER[event.status] < STATUS_ORDER[existing.status]
-    ) {
+    if (!existing || previewRank(event) < previewRank(existing)) {
       bestPerGame.set(event.gameId, event)
     }
   }
 
   const previewEvents: PreviewEvent[] = Array.from(bestPerGame.values())
-    .sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status])
+    .sort((a, b) => previewRank(a) - previewRank(b))
     .slice(0, 3)
     .map((event) => ({
       gameId: event.gameId,

@@ -160,10 +160,13 @@ Remaining
   ama bu yanlıştı — Mayhem'in ~4 aylık battle-pass penceresi orada
   gerçekten var, sadece jenerik "Season pass" etiketi altında
   gizlenmişti ve LIVE gösteriliyordu (yanıltıcı — "mod açık" değil
-  "pass penceresi açık" anlamına geliyor). Artık normalizer'da
-  filtreleniyor, event kaydı otomatik ENDED oluyor. Asıl sonuç
-  değişmedi: "şu an rotasyonda mı" sorusuna hâlâ cevap yok. Riot/
-  CommunityDragon ileride böyle bir endpoint sunarsa yeniden
+  "pass penceresi açık" anlamına geliyor). O oturumda normalizer'dan
+  tamamen filtrelenmişti. **Karar değişti (2026-08-12, ADR-023):**
+  Deniz'in isteğiyle artık tamamen gizlenmiyor — `SEASON_PASS`
+  kategorisiyle, "bu sadece battle-pass penceresi, modun kendisi şu an
+  rotasyonda mı bilinmiyor" notuyla dürüstçe geri geldi. Asıl teknik
+  sonuç hâlâ değişmedi: "şu an rotasyonda mı" sorusuna hâlâ cevap yok,
+  Riot/CommunityDragon ileride böyle bir endpoint sunarsa yeniden
   değerlendirilmeli.
 - arena metadata (cherry-lobby.json henüz kullanılmıyor)
 - event-passes.json entegrasyonu
@@ -406,6 +409,41 @@ Future
 
 - Follow by Game/Queue/Champion (currently only Event-level)
 - Custom filters
+
+---
+
+# P1 — Event Categories
+
+Status: 🟢 (2026-08-12)
+
+Completed
+
+- **`Event.category`** — every event now tagged as one of `PLAYABLE`,
+  `SEASON_PASS`, `ROTATION_MILESTONE`, `COSMETIC_SHOP`,
+  `PLATFORM_STATUS` (`lib/constants/event-category.ts`). Fixes Deniz's
+  complaint that the tracked-events list was cluttered with "dummy"
+  entries (Platform Status, Champion Rotation) nobody actually plays,
+  drowning out real events.
+- A single `categorySortKey(category, statusPriority)` helper drives
+  sorting everywhere events are listed (onboarding, dashboard,
+  homepage, `/games/[slug]`) — category dominates the sort, so a real
+  played event that has ended still outranks a live infrastructure
+  row. This is also how URF/Arena/Mayhem is surfaced again after being
+  fully hidden by ADR-020 — see ADR-023.
+- Onboarding's event-selection step now has a category filter (5
+  cards, each with example event names) instead of one flat list.
+- Category badges added to event cards on onboarding, dashboard, and
+  `/games/[slug]`.
+
+Full rationale, the URF-specific reasoning, and the per-provider
+category mapping: docs/06_DECISIONS.md ADR-023.
+
+Future
+
+- A few CommunityDragon event-hub sub-types (e.g. "Classic Pass Token
+  Bank") fall through to the `PLAYABLE` default rather than a more
+  specific category — fine for now, but worth a real hubType-to-
+  category mapping if more of these show up.
 
 ---
 
@@ -1044,7 +1082,7 @@ No open bugs.
   copy) — not something to build blind. Revisit once the production
   key lands.
 
-- **URF/rotating-mode live status** — researched a third time
+- ~~**URF/rotating-mode live status**~~ — researched a third time
   (2026-08-06, prompted by Deniz asking why URF isn't shown). Same
   conclusion as ADR-017/ADR-020, now with exhaustive evidence: every
   field `queues.json` exposes was enumerated (`id`, `name`,
@@ -1056,12 +1094,15 @@ No open bugs.
   one. Also found `isurfback.com`, a third-party site dedicated
   entirely to this question — confirms it's a widely-recognized hard
   problem, but they don't disclose their methodology/API publicly, so
-  it's not a source ModeAlert can depend on. Explicitly **not**
-  solved by hardcoding a static "URF: Ended" row — that would never
-  update on its own (nothing would ever sync it) and is the same
-  fabricated-data anti-pattern already removed elsewhere (see
-  lib/events.ts deletion). Stays absent until Riot/CommunityDragon
-  exposes a real signal.
+  it's not a source ModeAlert can depend on. **Handling changed
+  (2026-08-12, ADR-023):** the "is it in rotation right now" signal is
+  still genuinely unavailable — that hasn't changed and hardcoding a
+  static row is still rejected for the same fabricated-data reason.
+  But per Deniz, URF/Arena/Mayhem's real event-hub entry (the
+  battle-pass window) is too important to hide entirely — it's now
+  synced and trackable under the new `SEASON_PASS` category, with an
+  honest description that it's the pass window only, not a "mode is
+  live" claim. See the new Event Categories section below.
 
 - Event popularity heatmap
 

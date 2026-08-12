@@ -1,6 +1,7 @@
 import type { ProviderEvent, ProviderEventStatus } from "../core/provider";
 
 import { GAME_IDS } from "@/lib/constants/games";
+import { EVENT_CATEGORIES } from "@/lib/constants/event-category";
 
 import type { FoxholeWarState } from "./types";
 
@@ -33,6 +34,7 @@ export function mapCurrentWar(war: FoxholeWarState): ProviderEvent[] {
       title: `War #${war.warNumber}`,
       description: description[status],
       status,
+      category: EVENT_CATEGORIES.PLAYABLE,
       trackedUsers: 0,
       checkedAt: now,
     },

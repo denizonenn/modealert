@@ -14,6 +14,8 @@ import { Skeleton } from "@/components/shared/skeleton"
 import type { EventWithGame } from "@/lib/repositories/event.repository"
 import type { EventStatus } from "@/types/status"
 
+import { categorySortKey } from "@/lib/constants/event-category"
+
 interface GameOption {
   id: string
   name: string
@@ -104,9 +106,13 @@ function EventSections({
   return (
     <div className="space-y-10">
       {SECTIONS.map(({ status, label }) => {
-        const items = events.filter(
-          (event) => event.status === status
-        )
+        const items = events
+          .filter((event) => event.status === status)
+          .sort(
+            (a, b) =>
+              categorySortKey(a.category, 0) -
+              categorySortKey(b.category, 0)
+          )
 
         if (items.length === 0) {
           return null
@@ -139,6 +145,7 @@ function EventSections({
                   game={event.game}
                   event={event.title}
                   description={event.description}
+                  category={event.category}
                   status={
                     event.status as EventStatus
                   }

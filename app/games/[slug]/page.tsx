@@ -15,6 +15,11 @@ import { eventStatisticsService } from "@/lib/services/event-statistics.service"
 import { eventPredictionService } from "@/lib/services/event-prediction.service"
 import { formatDuration } from "@/lib/utils"
 import { EXTERNAL_RESOURCES } from "@/lib/constants/external-resources"
+import {
+  categorySortKey,
+  EVENT_CATEGORY_LABELS,
+  type EventCategory,
+} from "@/lib/constants/event-category"
 
 type EventStatus = "LIVE" | "UPCOMING" | "TRACKING" | "ENDED"
 
@@ -76,8 +81,14 @@ export default async function GameDetailPage({ params }: Props) {
 
   eventsWithInsights.sort(
     (a, b) =>
-      STATUS_ORDER[a.event.status as EventStatus] -
-      STATUS_ORDER[b.event.status as EventStatus]
+      categorySortKey(
+        a.event.category,
+        STATUS_ORDER[a.event.status as EventStatus]
+      ) -
+      categorySortKey(
+        b.event.category,
+        STATUS_ORDER[b.event.status as EventStatus]
+      )
   )
 
   return (
@@ -160,9 +171,16 @@ export default async function GameDetailPage({ params }: Props) {
                         event.title
                       )}
                     </h3>
-                    <EventStatusBadge
-                      status={event.status as EventStatus}
-                    />
+                    <div className="flex shrink-0 items-center gap-2">
+                      <span className="hidden rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-zinc-500 sm:inline-block">
+                        {EVENT_CATEGORY_LABELS[
+                          event.category as EventCategory
+                        ] ?? event.category}
+                      </span>
+                      <EventStatusBadge
+                        status={event.status as EventStatus}
+                      />
+                    </div>
                   </div>
 
                   {event.description && (

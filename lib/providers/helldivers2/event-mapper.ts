@@ -1,6 +1,7 @@
 import type { ProviderEvent } from "../core/provider";
 
 import { GAME_IDS } from "@/lib/constants/games";
+import { EVENT_CATEGORIES } from "@/lib/constants/event-category";
 
 import type { Helldivers2AssignmentsResponse } from "./types";
 
@@ -21,6 +22,7 @@ export function mapAssignments(
       title: assignment.title ?? "Major Order",
       description: assignment.briefing || undefined,
       status: "LIVE" as const,
+      category: EVENT_CATEGORIES.PLAYABLE,
       trackedUsers: 0,
       checkedAt: now,
     }));

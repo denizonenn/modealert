@@ -3,6 +3,7 @@ import type {
 } from "../core/provider";
 
 import { GAME_IDS } from "@/lib/constants/games";
+import { EVENT_CATEGORIES } from "@/lib/constants/event-category";
 
 import type {
   FortniteShopData,
@@ -42,6 +43,8 @@ export function mapItemShop(
       description: describeShop(shop),
 
       status: "LIVE",
+
+      category: EVENT_CATEGORIES.COSMETIC_SHOP,
 
       trackedUsers: 0,
 

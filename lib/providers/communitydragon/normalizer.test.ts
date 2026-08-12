@@ -114,14 +114,17 @@ describe("normalizeEventHub", () => {
     expect(events[0].id).toBe("communitydragon-event-real");
   });
 
-  it("drops rotating-mode season-pass wrappers (Mayhem/URF/Arena) — no reliable in-rotation signal exists", () => {
+  it("keeps rotating-mode season-pass wrappers (Mayhem/URF/Arena) but categorizes them honestly as SEASON_PASS, not PLAYABLE", () => {
     const events = normalizeEventHub(
       [
         entry(
           "mayhem",
           "2026-06-10T00:00:00.000Z",
           "2026-10-06T00:00:00.000Z",
-          { localizedShortName: "Mayhem Set 2" }
+          {
+            localizedShortName: "Mayhem Set 2",
+            eventHubType: "kSeasonPass",
+          }
         ),
         entry(
           "real",
@@ -132,8 +135,27 @@ describe("normalizeEventHub", () => {
       now
     );
 
-    expect(events).toHaveLength(1);
-    expect(events[0].id).toBe("communitydragon-event-real");
+    expect(events).toHaveLength(2);
+
+    const mayhem = events.find((e) => e.id === "communitydragon-event-mayhem");
+
+    expect(mayhem?.category).toBe("SEASON_PASS");
+    expect(mayhem?.description).toContain("battle-pass window only");
+  });
+
+  it("categorizes a regular event-hub entry as PLAYABLE by default", () => {
+    const [event] = normalizeEventHub(
+      [
+        entry(
+          "real",
+          "2026-08-01T00:00:00.000Z",
+          "2026-08-10T00:00:00.000Z"
+        ),
+      ],
+      now
+    );
+
+    expect(event.category).toBe("PLAYABLE");
   });
 });
 

@@ -1,3 +1,5 @@
+import type { EventCategory } from "@/lib/constants/event-category";
+
 export type ProviderEventStatus =
   | "LIVE"
   | "UPCOMING"
@@ -14,6 +16,8 @@ export interface ProviderEvent {
   description?: string;
 
   status: ProviderEventStatus;
+
+  category: EventCategory;
 
   trackedUsers: number;
 

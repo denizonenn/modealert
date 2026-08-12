@@ -88,6 +88,7 @@ model Event {
   description   String?
   slug          String?        @unique
   status        String
+  category      String         @default("PLAYABLE")
 
   trackedUsers  Int
   lastChecked   String

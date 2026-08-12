@@ -11,6 +11,11 @@ import type {
 
 import { GAME_IDS } from "@/lib/constants/games";
 
+import {
+  EVENT_CATEGORIES,
+  type EventCategory,
+} from "@/lib/constants/event-category";
+
 // The event-hub feed has no free-text description field — only image
 // URLs and this type code — so descriptions are built from a small,
 // fixed lookup rather than invented per event.
@@ -22,16 +27,72 @@ const EVENT_HUB_TYPE_LABELS: Record<string, string> = {
   kDemaciaPass: "Classic-mode battle pass.",
 };
 
+// Same eventHubType lookup used for descriptions, mapped to a
+// category instead. Unknown hub types default to PLAYABLE — the
+// event-hub feed's entries are, overwhelmingly, real time-boxed
+// events tied to something players actually do in-client.
+const EVENT_HUB_TYPE_CATEGORIES: Record<string, EventCategory> = {
+  kSeasonPass: EVENT_CATEGORIES.SEASON_PASS,
+  kDemaciaPass: EVENT_CATEGORIES.SEASON_PASS,
+  kActivityCenterMilestones: EVENT_CATEGORIES.PLAYABLE,
+  kHallOfLegends: EVENT_CATEGORIES.PLAYABLE,
+};
+
+// Rotating featured modes (ARAM Mayhem, URF, Arena) publish their
+// season-long progression-track entry under kSeasonPass, same as any
+// other battle pass. There's still no reliable "is the mode actually
+// in rotation right now" signal (see docs/06_DECISIONS.md ADR-017/
+// ADR-020) — but per Deniz, these are too important to hide entirely.
+// They're categorized/described honestly as a battle-pass window
+// instead: visible and trackable, never claimed to mean the mode
+// itself is live.
+const ROTATING_MODE_TITLE_MATCHES = ["Mayhem", "URF", "Arena"];
+
+function isRotatingModeWrapper(
+  title: string
+): boolean {
+  return ROTATING_MODE_TITLE_MATCHES.some((match) =>
+    title.includes(match)
+  );
+}
+
 function describeEvent(
-  event: CommunityDragonEventHubEntry["event"]
+  event: CommunityDragonEventHubEntry["event"],
+  title: string
 ): string {
   const base =
     EVENT_HUB_TYPE_LABELS[event.eventHubType] ??
     "League of Legends event.";
 
-  return event.localizedEventSubtitle
+  const description = event.localizedEventSubtitle
     ? `${event.localizedEventSubtitle} — ${base}`
     : base;
+
+  if (
+    event.eventHubType === "kSeasonPass" &&
+    isRotatingModeWrapper(title)
+  ) {
+    return `${description} This is the battle-pass window only — whether the mode itself is in rotation today isn't something Riot exposes a reliable signal for yet.`;
+  }
+
+  return description;
+}
+
+function categorizeEvent(
+  event: CommunityDragonEventHubEntry["event"],
+  title: string
+): EventCategory {
+  if (
+    event.eventHubType === "kSeasonPass" &&
+    isRotatingModeWrapper(title)
+  ) {
+    return EVENT_CATEGORIES.SEASON_PASS;
+  }
+
+  return (
+    EVENT_HUB_TYPE_CATEGORIES[event.eventHubType] ??
+    EVENT_CATEGORIES.PLAYABLE
+  );
 }
 
 function computeStatus(
@@ -59,16 +120,6 @@ function computeStatus(
 // otherwise show as permanently LIVE — not a real time-boxed event.
 const PERMANENT_FEATURE_SENTINEL_YEAR = 2090;
 
-// Rotating featured modes (ARAM Mayhem, URF, Arena) publish a
-// season-long progression-track entry here, but that only means the
-// track is available — not that the mode is actually in rotation
-// today. There's no reliable "is it in rotation right now" signal
-// (see docs/06_DECISIONS.md ADR-017), so showing this as LIVE would
-// misleadingly imply the mode is currently playable. Named exclusion
-// list rather than a heuristic, matching this file's existing
-// eventHubType lookup style.
-const ROTATING_MODE_TITLE_MATCHES = ["Mayhem", "URF", "Arena"];
-
 function isTrackableEntry(
   entry: CommunityDragonEventHubEntry
 ): boolean {
@@ -82,18 +133,6 @@ function isTrackableEntry(
     return false;
   }
 
-  const title =
-    event.localizedShortName ||
-    event.localizedName;
-
-  if (
-    ROTATING_MODE_TITLE_MATCHES.some(
-      (match) => title.includes(match)
-    )
-  ) {
-    return false;
-  }
-
   return true;
 }
 
@@ -103,22 +142,26 @@ function toProviderEvent(
 ): ProviderEvent {
   const { event } = entry;
 
+  const title =
+    event.localizedShortName ||
+    event.localizedName;
+
   return {
     id: `communitydragon-event-${event.eventId}`,
 
     gameId: GAME_IDS.LEAGUE_OF_LEGENDS,
 
-    title:
-      event.localizedShortName ||
-      event.localizedName,
+    title,
 
-    description: describeEvent(event),
+    description: describeEvent(event, title),
 
     status: computeStatus(
       event.startDate,
       event.endDate,
       now
     ),
+
+    category: categorizeEvent(event, title),
 
     trackedUsers: 0,
 

@@ -1,6 +1,7 @@
 import type { ProviderEvent, ProviderEventStatus } from "../core/provider";
 
 import { GAME_IDS } from "@/lib/constants/games";
+import { EVENT_CATEGORIES } from "@/lib/constants/event-category";
 
 import type { PoeLeaguesResponse } from "./types";
 
@@ -40,6 +41,7 @@ export function mapCurrentLeague(
       title: `${current.id} League`,
       description: current.description || undefined,
       status,
+      category: EVENT_CATEGORIES.PLAYABLE,
       trackedUsers: 0,
       checkedAt: now,
     },

@@ -1,5 +1,6 @@
 import type { ProviderEvent, ProviderEventStatus } from "../core/provider";
 import { GAME_IDS } from "@/lib/constants/games";
+import { EVENT_CATEGORIES } from "@/lib/constants/event-category";
 import type {
   DestinyMilestoneDefinitionTable,
   DestinyPublicMilestonesResponse,
@@ -22,6 +23,7 @@ export function mapPlatformStatus(
         ? "Destiny 2 servers are operating normally, no maintenance scheduled."
         : "Destiny 2 has an active maintenance window — the game may be unreachable.",
       status,
+      category: EVENT_CATEGORIES.PLATFORM_STATUS,
       trackedUsers: 0,
       checkedAt: new Date(),
     },
@@ -51,6 +53,7 @@ export function mapActiveMilestones(
         title: name,
         description: displayProperties?.description || undefined,
         status: "LIVE",
+        category: EVENT_CATEGORIES.ROTATION_MILESTONE,
         trackedUsers: 0,
         checkedAt: now,
       };

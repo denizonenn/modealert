@@ -4,6 +4,7 @@ import type {
 } from "../core/provider";
 
 import { GAME_IDS } from "@/lib/constants/games";
+import { EVENT_CATEGORIES } from "@/lib/constants/event-category";
 
 import type {
   ValorantAct,
@@ -41,6 +42,8 @@ export function mapPlatformStatus(
 
       status: providerStatus,
 
+      category: EVENT_CATEGORIES.PLATFORM_STATUS,
+
       trackedUsers: 0,
 
       checkedAt: new Date(),
@@ -74,6 +77,8 @@ export function mapActiveActs(
       description: `${actTitle(act)} is the current competitive act — new act rank rewards and battle pass content are active.`,
 
       status: "LIVE" as const,
+
+      category: EVENT_CATEGORIES.SEASON_PASS,
 
       trackedUsers: 0,
 

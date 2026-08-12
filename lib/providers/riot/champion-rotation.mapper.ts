@@ -7,6 +7,7 @@ import type {
 } from "./types";
 
 import { GAME_IDS } from "@/lib/constants/games";
+import { EVENT_CATEGORIES } from "@/lib/constants/event-category";
 
 export function mapChampionRotation(
   rotation: RiotChampionRotationResponse
@@ -22,6 +23,8 @@ export function mapChampionRotation(
       description: `${rotation.sr.length} champions are free to play this week, plus ${rotation.newplayer.length} additional champions for accounts under level 11.`,
 
       status: "LIVE",
+
+      category: EVENT_CATEGORIES.ROTATION_MILESTONE,
 
       trackedUsers: 0,
 

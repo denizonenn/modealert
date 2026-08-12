@@ -4,6 +4,7 @@ import type {
 } from "../core/provider";
 
 import { GAME_IDS } from "@/lib/constants/games";
+import { EVENT_CATEGORIES } from "@/lib/constants/event-category";
 
 interface RiotPlatformStatus {
   id: string;
@@ -34,6 +35,8 @@ export function mapPlatformStatus(
           : `${status.id} server is operating normally, no maintenance scheduled.`,
 
       status: providerStatus,
+
+      category: EVENT_CATEGORIES.PLATFORM_STATUS,
 
       trackedUsers: 0,
 

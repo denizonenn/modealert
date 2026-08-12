@@ -9,6 +9,11 @@ import { EventStatusBadge } from "@/components/shared/event-status-badge"
 
 import { cn, formatRelativeTime } from "@/lib/utils"
 
+import {
+  EVENT_CATEGORY_LABELS,
+  type EventCategory,
+} from "@/lib/constants/event-category"
+
 import type { EventStatus } from "@/types/status"
 
 interface Props {
@@ -20,6 +25,7 @@ interface Props {
   }
   event: string
   description?: string | null
+  category?: string
   status: EventStatus
   updatedAt: string
   index?: number
@@ -31,6 +37,7 @@ export default function EventStatusCard({
   game,
   event,
   description,
+  category,
   status,
   updatedAt,
   index = 0,
@@ -76,12 +83,20 @@ export default function EventStatusCard({
             {game.name}
           </p>
 
-          <h3
-            className="truncate font-semibold"
-            title={description ?? undefined}
-          >
-            {event}
-          </h3>
+          <div className="flex items-center gap-2">
+            <h3
+              className="truncate font-semibold"
+              title={description ?? undefined}
+            >
+              {event}
+            </h3>
+
+            {category && (
+              <span className="hidden shrink-0 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-zinc-500 sm:inline-block">
+                {EVENT_CATEGORY_LABELS[category as EventCategory] ?? category}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 

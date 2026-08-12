@@ -1736,3 +1736,128 @@ uyguluyoruz.
 - Deniz'e gerçek bir Neon shadow database/branch kurması hâlâ önerilir
   — kurulursa `migrate diff` güvenle tekrar kullanılabilir hale gelir;
   o zamana kadar elle SQL yazmak tek yöntem.
+
+---
+
+# ADR-023: Event.category Alanı — Gerçekten Oynanan Event'i Gürültüden Ayırmak, URF'ü Dürüstçe Geri Getirmek
+
+Status: Accepted
+
+Date: 2026-08-12
+
+## Bağlam
+
+Deniz'in geri bildirimi: takip edilen event listesinde kimsenin
+oynamadığı bir sürü "salak" event var (Platform Status, Champion
+Rotation gibi her zaman LIVE görünen, oyuncu için anlamsız satırlar);
+her event'in bir kategorisi olmalı (playable, season vb.); onboarding'de
+kullanıcı bunları kategoriye göre filtreleyebilmeli, örnekleriyle
+birlikte; ve gerçekten oynanan event'ler ended olsa bile listenin
+başında görünmeli — hem onboarding'de hem anasayfada.
+
+Ayrıca özel olarak: LoL seçildiğinde URF'ün en başta görünebilmesi
+gerektiğini belirtti. Bu, ADR-017/ADR-020'nin vardığı sonuçla doğrudan
+çelişiyordu — URF/Arena/Mayhem'in şu an rotasyonda olup olmadığına dair
+hiçbir güvenilir API sinyali yok, bu yüzden bu üç modun event-hub'daki
+season-pass-penceresi girdisi (`kSeasonPass`, başlıkta "Mayhem"/"URF"/
+"Arena" geçen) normalizer'da tamamen filtreleniyordu. Deniz'e bu çelişki
+soruldu (bkz. bu oturumun başındaki AskUserQuestion): cevap — "URF her
+türlü görünebilmeli, en önemli parçalardan biri bu." Önerilen çözüm
+(dürüst "Season/Battle Pass" kategorisi, LIVE/oynanabilir iddiası değil)
+onaylandı.
+
+## Karar
+
+1. **`lib/constants/event-category.ts`** (yeni) — 5 sabit kategori:
+   `PLAYABLE`, `SEASON_PASS`, `ROTATION_MILESTONE`, `COSMETIC_SHOP`,
+   `PLATFORM_STATUS`. Her biri için öncelik sırası
+   (`EVENT_CATEGORY_PRIORITY`), etiket ve örnek metni, ve tek bir
+   `categorySortKey(category, statusPriority)` fonksiyonu — kategori
+   önceliği status'u her zaman domine edecek şekilde ağırlıklandırılmış
+   (`categoryPriority * 10 + statusPriority`). Bu, "gerçekten oynanan
+   event ended olsa bile önce gelsin" kuralını tek bir yerde kodluyor.
+2. **`Event.category` sütunu** — additive migration
+   (`20260812063724_add_event_category`, `ADD COLUMN ... DEFAULT
+   'PLAYABLE'`), CLAUDE.md'nin elle-SQL sürecine göre uygulandı; deploy
+   öncesi/sonrası 4 ana tablonun satır sayısı doğrulandı (51 event, 4
+   user, 23 watchlist, 36 history — birebir aynı).
+3. **`ProviderEvent.category` zorunlu alan** oldu — 10 provider'ın
+   `event-mapper`/`normalizer` dosyalarının hepsi güncellendi:
+   - `PLAYABLE`: CommunityDragon'ın bilinmeyen/varsayılan event-hub
+     girdileri, Hall of Legends, Activity Center Milestones, PoE lig,
+     Helldivers 2 Major Order, Foxhole savaşı — oyuncunun fiilen
+     içinde olduğu şeyler.
+   - `SEASON_PASS`: kSeasonPass/kDemaciaPass event-hub girdileri
+     (gerçek sezon geçişleri: Season 1-3, Spirit Blossom, Welcome to
+     Noxus — gerçek sync'te doğrulandı), Valorant Act, Warframe
+     Nightwave.
+   - `ROTATION_MILESTONE`: Champion Rotation, Destiny haftalık
+     milestone'lar, Warframe Void Trader/Sortie/Archon Hunt.
+   - `COSMETIC_SHOP`: Fortnite Item Shop.
+   - `PLATFORM_STATUS`: Riot/Valorant/TFT/Destiny platform status.
+4. **URF/Arena/Mayhem artık gizlenmiyor.**
+   `lib/providers/communitydragon/normalizer.ts`'teki
+   `ROTATING_MODE_TITLE_MATCHES` filtresi kaldırıldı (sentinel-tarih
+   filtresi — 2099 gibi kalıcı özellikler için — kaldı). Bu üç modun
+   season-pass girdisi artık `SEASON_PASS` kategorisiyle, açıklamasında
+   dürüstçe "This is the battle-pass window only — whether the mode
+   itself is in rotation today isn't something Riot exposes a reliable
+   signal for yet" notuyla geri geldi. ADR-017'nin asıl teknik sonucu
+   değişmedi (hâlâ "şu an rotasyonda mı" sinyali yok) — değişen, bunu
+   nasıl sunduğumuz: tamamen gizlemek yerine, doğru kategori ve dürüst
+   açıklamayla göstermek.
+5. **Onboarding** (`components/onboarding/event-selector.tsx`) — üstte
+   5 kategori filtre kartı, her biri örnek event isimleriyle;
+   varsayılan tüm kategoriler seçili; event listesi `categorySortKey`
+   ile sıralanıyor (ended bir PLAYABLE/SEASON_PASS event, LIVE bir
+   PLATFORM_STATUS'un önüne geçiyor).
+6. **Dashboard** (`watching-list.tsx`) — mevcut LIVE/UPCOMING/TRACKING/
+   ENDED bölümleme korundu, her bölüm içinde artık kategoriye göre de
+   sıralanıyor.
+7. **Homepage** (`components/landing/hero.tsx`) — oyun başına "en iyi"
+   event seçimi artık salt status'a değil `categorySortKey`'e göre
+   yapılıyor; ended bir PLAYABLE event artık LIVE bir Platform
+   Status'u geçebiliyor (önceden ENDED event'ler bu seçimden tamamen
+   hariç tutuluyordu).
+8. **`app/games/[slug]/page.tsx`** — aynı `categorySortKey` sıralaması,
+   artı her event satırında kategori rozeti.
+9. Kart bileşenlerine (`EventCard`, `EventStatusCard`) kategori rozeti
+   eklendi — her event'in kategorisi artık her zaman görünür.
+
+## Yan temizlik
+
+`lib/providers/riot/normalizer.ts` + testi silindi — sıfır çağıran,
+"yazılmış ama bağlanmamış" kalıbının bir örneği daha (bkz.
+docs/09_BACKLOG.md Technical Debt), yeni zorunlu `category` alanıyla
+uyumlu hale getirmek yerine kaldırıldı. `RiotEventResponse`/
+`RiotEventsResponse` tipleri de aynı sebeple `types.ts`'ten kaldırıldı.
+
+## Gerekçe
+
+Sahte/yanıltıcı veri göstermektense dürüstçe göstermek — ADR-012/
+ADR-017/ADR-020 ile aynı ilke — ama bu sefer "gizle" değil "doğru
+etiketle göster" kararı verildi, çünkü Deniz bu event'lerin ürün için
+gerçekten önemli olduğunu belirtti. Kategori sistemi hem bu isteği hem
+"gürültüyü azalt" isteğini tek bir mekanizmayla çözüyor: aynı öncelik
+sıralaması hem "önemli event'i öne çıkar" hem "önemsiz event'i geriye
+it" sonucunu veriyor.
+
+## Sonuçlar
+
+- 70/70 test geçti (`npx vitest run`), `npx tsc --noEmit` ve `npm run
+  build` temiz.
+- Gerçek sync ile doğrulandı: LoL'de "Mayhem Set 2" artık LIVE +
+  SEASON_PASS olarak görünüyor (önceden tamamen filtreleniyordu),
+  gerçek sezon geçişleri (Season 1-3, Spirit Blossom Beyond, Welcome to
+  Noxus) doğru şekilde SEASON_PASS, Hall of Legends/Swain's Hot Chicken
+  gibi tek seferlik gerçek event'ler PLAYABLE.
+- **Bilinen sınırlama:** senkronizasyon sırasında Riot dev key expire
+  olmuştu (401) — Riot/Valorant/TFT provider'ları bu sync'te
+  çalışmadı, o yüzden LoL'ün "Platform Status"/"Champion Rotation" ve
+  Valorant/TFT platform-status satırları migration'ın varsayılan
+  `PLAYABLE` etiketiyle kalmaya devam ediyor (kod doğru
+  `PLATFORM_STATUS`/`ROTATION_MILESTONE` atıyor, testlerle doğrulandı —
+  sadece bu satırlar bir sonraki başarılı Riot sync'ine kadar
+  güncellenmeyecek). Key yenilenince (veya bekleyen production key
+  onaylanınca) bir sonraki sync'te kendiliğinden düzelir, ekstra işlem
+  gerekmiyor.
