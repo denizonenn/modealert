@@ -542,15 +542,22 @@ Completed (2026-08-12, ADR-030)
   tracking only started 2026-08-04 and no event has 2+ *completed*
   occurrences yet.
 
-Known limitation
+Completed (2026-08-12, ADR-031)
 
-- Only works within a single event id's history. CommunityDragon's
-  LoL season-pass entries (Mayhem Set 1, Set 2, ...) get a fresh Riot
-  UUID each season, so cross-season recurrence isn't tracked yet —
-  providers with a stable id across real-world recurrences (PoE
-  league, Warframe Nightwave, Foxhole war) aren't affected. A
-  cross-season "series" grouping key would be a separate, bigger
-  feature if wanted.
+- ~~Only works within a single event id's history~~ — solved.
+  `Event.seriesKey` groups CommunityDragon rows that are real,
+  successive occurrences of the same recurring thing (Mayhem's pass
+  windows, the ranked season pass across years, Hall of Legends across
+  years) using Riot's own event-hub data, which already reports years
+  of real history in one fetch — no external research needed.
+  `eventStatisticsService`/`eventPredictionService` gained
+  `*BySeriesKey` variants; `/events/[slug]` uses them automatically
+  when the event is part of a series. One-off narrative campaigns
+  (Welcome to Noxus, Spirit Blossom Beyond, etc.) are deliberately NOT
+  grouped — different content each time, not real recurrences.
+- Providers with a stable id across real-world recurrences (PoE
+  league, Warframe Nightwave, Foxhole war) never needed this — they
+  already accumulate cross-occurrence history under one id naturally.
 
 Completed
 

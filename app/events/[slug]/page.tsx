@@ -49,12 +49,28 @@ export default async function EventDetailPage({ params }: Props) {
     notFound()
   }
 
-  const [history, statistics, prediction, nextArrival] = await Promise.all([
-    eventHistoryService.getByEvent(event.id),
-    eventStatisticsService.getByEvent(event.id),
-    eventPredictionService.predict(event.id),
-    eventPredictionService.predictNextArrival(event.id),
-  ])
+  // Some events (e.g. every "Mayhem Set N" pass window, every "Season
+  // N: Act X" battle pass) are real, successive occurrences of the
+  // same recurring thing under different event ids — see
+  // docs/06_DECISIONS.md ADR-031. When that's the case, stats/history/
+  // predictions look at the whole series instead of just this one
+  // occurrence's row, so "times seen"/"typically returns after" mean
+  // what they say.
+  const [history, statistics, prediction, nextArrival] = event.seriesKey
+    ? await Promise.all([
+        eventHistoryService.getBySeriesKey(event.seriesKey),
+        eventStatisticsService.getBySeriesKey(event.seriesKey),
+        eventPredictionService.predictBySeriesKey(event.seriesKey),
+        eventPredictionService.predictNextArrivalBySeriesKey(
+          event.seriesKey
+        ),
+      ])
+    : await Promise.all([
+        eventHistoryService.getByEvent(event.id),
+        eventStatisticsService.getByEvent(event.id),
+        eventPredictionService.predict(event.id),
+        eventPredictionService.predictNextArrival(event.id),
+      ])
 
   const predictedEndAt =
     "predictedEndAt" in prediction ? prediction.predictedEndAt : undefined
@@ -113,6 +129,14 @@ export default async function EventDetailPage({ params }: Props) {
         {event.description && (
           <p className="mt-4 max-w-2xl text-sm text-zinc-400">
             {event.description}
+          </p>
+        )}
+
+        {event.seriesKey && (
+          <p className="mt-2 max-w-2xl text-xs text-zinc-500">
+            Part of a recurring series — the stats and timeline below
+            span every occurrence we&apos;ve tracked, not just this
+            one.
           </p>
         )}
 
@@ -226,6 +250,12 @@ export default async function EventDetailPage({ params }: Props) {
                       <EventStatusBadge
                         status={entry.status as EventStatus}
                       />
+                      {event.seriesKey &&
+                        entry.event.title !== event.title && (
+                          <span className="text-zinc-500">
+                            {entry.event.title}
+                          </span>
+                        )}
                       <span className="text-zinc-300">
                         {entry.startedAt.toLocaleString()}
                       </span>

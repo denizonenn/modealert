@@ -2427,3 +2427,101 @@ bu oturumda eklenmedi, istenirse ayrı bir iş.
   event yok (en yakın adaylar hâlâ aktif/ongoing). Mantık saf
   fonksiyon testleriyle doğrulandı; gerçek tahminler zaman geçtikçe
   doğal olarak dolacak.
+
+---
+
+# ADR-031: Event.seriesKey — Gerçek Riot Verisiyle Sezonlar Arası Gruplama (İnternet Araştırması Yerine)
+
+Status: Accepted
+
+Date: 2026-08-12
+
+## Bağlam
+
+Deniz'in isteği: "seri gruplama doğru ise ekle, istatistik için ise
+internette bunun hakkında bulunan tüm verilere tüm oyun modları için
+bak." Yani hem (1) ADR-030'da bahsedilen "seri gruplama" fikrini
+onayladı hem de (2) geçmiş istatistikleri zenginleştirmek için harici
+web araştırması istedi.
+
+Ama event-hub feed'i tekrar (canlı) çekilince ortaya çıktı ki: **buna
+hiç gerek yok** — CommunityDragon'ın kendi event-hub.json'u zaten
+2024-06-12'ye kadar giden GERÇEK geçmiş pas pencerelerini
+döndürüyor, tek bir istekte:
+
+- "Season 3: Act I" hem 2025-08-27 hem 2026-07-29 tarihli iki ayrı
+  girdi olarak var — aynı ismin gerçekten tekrarlandığının kanıtı.
+- "Hall of Legends" (2024) ve "Hall of Legends 2025" — aynı yıllık
+  event'in iki gerçek görünüşü.
+- "Mayhem Progression Track" (Şubat 2026) → "Mayhem Set 2" (Haziran
+  2026) — aynı pas sisteminin ardışık iki gerçek seti.
+
+Bunların hepsi zaten ayrı Event satırları olarak DB'ye senkronize
+oluyordu (her biri kendi Riot UUID'sine sahip) — sadece "bunlar aynı
+tekrarlayan şeyin farklı occurrence'ları" diye gruplanmıyorlardı.
+Yani ihtiyaç duyulan şey harici/internet verisi değil, zaten elde
+olan gerçek Riot verisinin doğru gruplanmasıydı — bu hem daha doğru
+hem "sadece gerçek veri" ilkesine tam uyumlu (harici, doğrulaması
+zor kaynaklar eklemeden).
+
+## Karar
+
+1. **`Event.seriesKey` sütunu** eklendi (additive migration,
+   `20260812093000_add_event_series_key`, nullable — satır sayıları
+   deploy öncesi/sonrası doğrulandı: 61 event/4 user/25 watchlist/47
+   history, birebir aynı). `ProviderEvent.seriesKey?: string`
+   opsiyonel alan (çoğu provider hiç set etmiyor, sadece
+   CommunityDragon normalizer'ı).
+2. **`deriveSeriesKey()`** (`lib/providers/communitydragon/
+   normalizer.ts`) — sadece gerçekten aynı tekrarlayan şeyin
+   parçası olan kalıplar gruplanıyor:
+   - `kHallOfLegends` tipi → `lol-hall-of-legends`
+   - `kDemaciaPass` (Classic Pass) → `lol-classic-pass`
+   - Başlığında "Mayhem" geçen `kSeasonPass` → `lol-mayhem-pass`
+   - "Season N: Act X" kalıbı → `lol-ranked-season-pass`
+   - "URF"/"Arena" geçenler → `lol-urf-pass`/`lol-arena-pass`
+     (şu an hiç girdi olmasa da, ileride biri çıkarsa hazır olsun diye)
+
+   **Bilinçli olarak gruplanmayan:** "Welcome to Noxus", "Spirit
+   Blossom Beyond", "Swain's Hot Chicken", "Arcane Anniversary" gibi
+   tek seferlik anlatı kampanyaları — bunlar her seferinde FARKLI
+   içerik, aynı şeyin tekrarı değil. Gruplamak "bunlar tekrarlayan
+   bir şey" gibi yanlış bir izlenim verirdi.
+3. **Repository/servis katmanı seri-farkında hale getirildi**:
+   `getHistoryBySeriesKey()`, `eventStatisticsService.getBySeriesKey()`,
+   `eventPredictionService.predictBySeriesKey()`/
+   `predictNextArrivalBySeriesKey()` — hepsi mevcut tek-event
+   fonksiyonlarıyla aynı saf hesaplama mantığını (`computeStatistics`,
+   `computeRecurrence`) paylaşıyor, sadece veri kaynağı farklı
+   (tek event'in geçmişi yerine, seriesKey paylaşan tüm event'lerin
+   birleşik geçmişi).
+4. **`/events/[slug]`** artık `event.seriesKey` varsa seri-genelinde
+   istatistik/tahmin/timeline gösteriyor, yoksa eskisi gibi tek
+   event'e özel. Timeline'da her occurrence'ın kendi başlığı da
+   gösteriliyor (örn. "Season 1: Act I", "Season 2: Act I" farklı
+   satırlar olduğu için).
+
+## Gerekçe
+
+Riot'un kendi feed'i zaten yıllarca geriye giden gerçek tarihli veri
+sağlıyorken harici/internet kaynağına başvurmak hem gereksiz hem daha
+riskli olurdu (doğrulaması zor, güncelliği belirsiz üçüncü taraf
+veri). Bu proje boyunca tekrarlanan ilke aynı kaldı: gerçek, birinci
+elden veri varsa onu kullan.
+
+## Sonuçlar
+
+- 83/83 test (4 yeni `seriesKey` testi: Mayhem gruplama, yıllar
+  arası Season gruplama, yıllar arası Hall of Legends gruplama, tek
+  seferlik kampanyaların gruplanmadığının doğrulanması), `tsc
+  --noEmit`, `npm run build` temiz.
+- Gerçek sync ile doğrulandı: `lol-ranked-season-pass` serisinde 8
+  satır (2025 + 2026, Season 1-3, Act I-II hepsi), `lol-mayhem-pass`
+  2 satır, `lol-hall-of-legends` 2 satır — hepsi gerçek Riot
+  verisinden, uydurma yok.
+- İstatistikler hâlâ dürüst: `getBySeriesKey("lol-ranked-season-pass")`
+  şu an `appearanceCount: 1` dönüyor çünkü ModeAlert'in kendi geçmiş
+  takibi 2026-08-04'te başladı — geçmiş yıllardaki occurrence'lar
+  Event satırı olarak var ama EventHistory'de değil (ModeAlert o
+  zaman henüz onları gözlemlemiyordu). Zaman geçtikçe gerçek veri
+  doğal olarak birikecek.

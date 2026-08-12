@@ -90,6 +90,7 @@ model Event {
   status        String
   category      String         @default("PLAYABLE")
   isLimitedTime Boolean        @default(true)
+  seriesKey     String?
 
   trackedUsers  Int
   lastChecked   String
@@ -102,6 +103,7 @@ model Event {
   history       EventHistory[]
 
   @@index([source])
+  @@index([seriesKey])
 }
 
 model EventHistory {

@@ -297,6 +297,115 @@ describe("mapPbeCandidates", () => {
   });
 });
 
+describe("seriesKey grouping", () => {
+  it("groups Mayhem's pass windows under one series key", () => {
+    const [event] = normalizeEventHub(
+      [
+        entry(
+          "mayhem",
+          "2026-06-10T00:00:00.000Z",
+          "2026-10-06T00:00:00.000Z",
+          {
+            localizedShortName: "Mayhem Set 2",
+            eventHubType: "kSeasonPass",
+          }
+        ),
+      ],
+      now
+    );
+
+    expect(event.seriesKey).toBe("lol-mayhem-pass");
+  });
+
+  it("groups ranked season passes ('Season N: Act X') under one series key regardless of year", () => {
+    const events = normalizeEventHub(
+      [
+        entry(
+          "s3-2025",
+          "2025-08-27T00:00:00.000Z",
+          "2025-10-22T00:00:00.000Z",
+          {
+            localizedShortName: "Season 3: Act I",
+            eventHubType: "kSeasonPass",
+          }
+        ),
+        entry(
+          "s3-2026",
+          "2026-07-29T00:00:00.000Z",
+          "2026-10-07T00:00:00.000Z",
+          {
+            localizedShortName: "Season 3: Act I",
+            eventHubType: "kSeasonPass",
+          }
+        ),
+      ],
+      now
+    );
+
+    expect(events.every((e) => e.seriesKey === "lol-ranked-season-pass")).toBe(
+      true
+    );
+  });
+
+  it("groups Hall of Legends across years under one series key", () => {
+    const events = normalizeEventHub(
+      [
+        entry(
+          "hol-2024",
+          "2024-06-12T00:00:00.000Z",
+          "2024-07-15T00:00:00.000Z",
+          {
+            localizedShortName: "Hall of Legends",
+            eventHubType: "kHallOfLegends",
+          }
+        ),
+        entry(
+          "hol-2025",
+          "2025-06-11T00:00:00.000Z",
+          "2025-07-30T00:00:00.000Z",
+          {
+            localizedShortName: "Hall of Legends 2025",
+            eventHubType: "kHallOfLegends",
+          }
+        ),
+      ],
+      now
+    );
+
+    expect(events.every((e) => e.seriesKey === "lol-hall-of-legends")).toBe(
+      true
+    );
+  });
+
+  it("does NOT group one-off narrative campaigns — they aren't the same recurring thing", () => {
+    const events = normalizeEventHub(
+      [
+        entry(
+          "noxus",
+          "2025-01-09T00:00:00.000Z",
+          "2025-03-05T00:00:00.000Z",
+          {
+            localizedShortName: "Welcome to Noxus: Act 1",
+            eventHubType: "kSeasonPass",
+          }
+        ),
+        entry(
+          "spirit-blossom",
+          "2025-04-30T00:00:00.000Z",
+          "2025-06-25T00:00:00.000Z",
+          {
+            localizedShortName: "Spirit Blossom Beyond: Act 1",
+            eventHubType: "kSeasonPass",
+          }
+        ),
+      ],
+      now
+    );
+
+    expect(events.every((e) => e.seriesKey === undefined)).toBe(true);
+  });
+});
+
 describe("toDisplayEvents", () => {
   it("sorts by start date ascending", () => {
     const events = toDisplayEvents(

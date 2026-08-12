@@ -182,6 +182,8 @@ export async function upsertEvent(
 
     isLimitedTime: event.isLimitedTime,
 
+    seriesKey: event.seriesKey ?? null,
+
     trackedUsers:
       event.trackedUsers,
 

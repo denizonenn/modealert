@@ -103,6 +103,8 @@ async function expireStaleEvents(
 
           isLimitedTime: event.isLimitedTime,
 
+          seriesKey: event.seriesKey ?? undefined,
+
           trackedUsers:
             event.trackedUsers,
 

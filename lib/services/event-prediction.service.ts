@@ -3,8 +3,10 @@ import {
 } from "@/lib/services/event-history.service";
 
 import {
-  eventStatisticsService,
+  computeStatistics,
 } from "@/lib/services/event-statistics.service";
+
+type HistoryEntry = { startedAt: Date; endedAt: Date | null };
 
 // How long an event has typically been LIVE/TRACKING each time it's
 // appeared (existing "predict" below), vs how long it typically waits
@@ -14,7 +16,7 @@ import {
 // storage: the same EventHistory rows already used for
 // average-duration stats also carry the gaps between them.
 export function computeRecurrence(
-  history: Array<{ startedAt: Date; endedAt: Date | null }>
+  history: HistoryEntry[]
 ) {
   const completed = history.filter(
     (item) => item.endedAt !== null
@@ -52,6 +54,109 @@ export function computeRecurrence(
   };
 }
 
+function predictNextArrivalFromHistory(
+  history: HistoryEntry[]
+) {
+  const active = history.find(
+    (item) => item.endedAt === null
+  );
+
+  // Only meaningful for something that isn't currently happening — if
+  // it's live/tracking right now, "when does it come back" isn't the
+  // relevant question yet.
+  if (active) {
+    return { available: false as const };
+  }
+
+  const lastEnded = history
+    .filter(
+      (item): item is typeof item & { endedAt: Date } =>
+        item.endedAt !== null
+    )
+    .at(-1);
+
+  if (!lastEnded) {
+    return { available: false as const };
+  }
+
+  const { averageGapMs, gapCount } =
+    computeRecurrence(history);
+
+  if (averageGapMs === null) {
+    return {
+      available: true as const,
+      nextExpectedAt: null,
+      confidence: 0,
+    };
+  }
+
+  const nextExpectedAt = new Date(
+    lastEnded.endedAt.getTime() + averageGapMs
+  );
+
+  return {
+    available: true as const,
+    nextExpectedAt,
+    recurrenceIntervalMs: averageGapMs,
+    confidence: Math.min(100, gapCount * 20),
+  };
+}
+
+function predictFromHistory(
+  history: HistoryEntry[]
+) {
+  const statistics = computeStatistics(history);
+
+  const active =
+    history.find(
+      (item) =>
+        item.endedAt === null
+    );
+
+  if (!active) {
+    return {
+      active: false,
+    };
+  }
+
+  if (
+    statistics.averageDuration ===
+    0
+  ) {
+    return {
+      active: true,
+
+      prediction: null,
+
+      confidence: 0,
+    };
+  }
+
+  const predictedEndAt =
+    new Date(
+      active.startedAt.getTime() +
+        statistics.averageDuration
+    );
+
+  return {
+    active: true,
+
+    predictedEndAt,
+
+    remainingMs: Math.max(
+      0,
+      predictedEndAt.getTime() -
+        Date.now()
+    ),
+
+    confidence: Math.min(
+      100,
+      statistics.appearanceCount *
+        10
+    ),
+  };
+}
+
 export const eventPredictionService = {
   async predictNextArrival(
     eventId: string
@@ -61,113 +166,39 @@ export const eventPredictionService = {
         eventId
       );
 
-    const active = history.find(
-      (item) => item.endedAt === null
-    );
+    return predictNextArrivalFromHistory(history);
+  },
 
-    // Only meaningful for something that isn't currently happening —
-    // if it's live/tracking right now, "when does it come back" isn't
-    // the relevant question yet.
-    if (active) {
-      return { available: false as const };
-    }
+  async predictNextArrivalBySeriesKey(
+    seriesKey: string
+  ) {
+    const history =
+      await eventHistoryService.getBySeriesKey(
+        seriesKey
+      );
 
-    const lastEnded = history
-      .filter(
-        (item): item is typeof item & { endedAt: Date } =>
-          item.endedAt !== null
-      )
-      .at(-1);
-
-    if (!lastEnded) {
-      return { available: false as const };
-    }
-
-    const { averageGapMs, gapCount } =
-      computeRecurrence(history);
-
-    if (averageGapMs === null) {
-      return {
-        available: true as const,
-        nextExpectedAt: null,
-        confidence: 0,
-      };
-    }
-
-    const nextExpectedAt = new Date(
-      lastEnded.endedAt.getTime() + averageGapMs
-    );
-
-    return {
-      available: true as const,
-      nextExpectedAt,
-      recurrenceIntervalMs: averageGapMs,
-      confidence: Math.min(100, gapCount * 20),
-    };
+    return predictNextArrivalFromHistory(history);
   },
 
   async predict(
     eventId: string
   ) {
-    const [
-      history,
-      statistics,
-    ] = await Promise.all([
-      eventHistoryService.getByEvent(
+    const history =
+      await eventHistoryService.getByEvent(
         eventId
-      ),
-      eventStatisticsService.getByEvent(
-        eventId
-      ),
-    ]);
-
-    const active =
-      history.find(
-        (item) =>
-          item.endedAt === null
       );
 
-    if (!active) {
-      return {
-        active: false,
-      };
-    }
+    return predictFromHistory(history);
+  },
 
-    if (
-      statistics.averageDuration ===
-      0
-    ) {
-      return {
-        active: true,
-
-        prediction: null,
-
-        confidence: 0,
-      };
-    }
-
-    const predictedEndAt =
-      new Date(
-        active.startedAt.getTime() +
-          statistics.averageDuration
+  async predictBySeriesKey(
+    seriesKey: string
+  ) {
+    const history =
+      await eventHistoryService.getBySeriesKey(
+        seriesKey
       );
 
-    return {
-      active: true,
-
-      predictedEndAt,
-
-      remainingMs: Math.max(
-        0,
-        predictedEndAt.getTime() -
-          Date.now()
-      ),
-
-      confidence: Math.min(
-        100,
-        statistics.appearanceCount *
-          10
-      ),
-    };
+    return predictFromHistory(history);
   },
 };

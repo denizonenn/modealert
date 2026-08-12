@@ -140,6 +140,55 @@ function categorizeEvent(
   );
 }
 
+// Groups event-hub entries that are real, successive occurrences of
+// the same recurring thing under one series key — confirmed by
+// re-fetching the live feed 2026-08-12 and finding it already reports
+// multiple past occurrences of each of these by name (e.g. "Season 3:
+// Act I" appears twice, once in 2025 and once in 2026; "Hall of
+// Legends" and "Hall of Legends 2025" are the same annual event one
+// year apart). This is Riot's own real historical data, already
+// synced as separate rows — grouping them lets stats/predictions look
+// at the whole recurring pattern instead of just one occurrence.
+//
+// Deliberately NOT grouped: one-off narrative campaigns ("Welcome to
+// Noxus", "Spirit Blossom Beyond", "Swain's Hot Chicken", "Arcane
+// Anniversary") — these are different content each time, not
+// iterations of the same thing, so treating them as one series would
+// misrepresent them as recurring when they're each a distinct,
+// standalone collab/event.
+function deriveSeriesKey(
+  event: CommunityDragonEventHubEntry["event"],
+  title: string
+): string | undefined {
+  if (event.eventHubType === "kHallOfLegends") {
+    return "lol-hall-of-legends";
+  }
+
+  if (event.eventHubType === "kDemaciaPass") {
+    return "lol-classic-pass";
+  }
+
+  if (event.eventHubType === "kSeasonPass") {
+    if (title.includes("Mayhem")) {
+      return "lol-mayhem-pass";
+    }
+
+    if (title.includes("URF")) {
+      return "lol-urf-pass";
+    }
+
+    if (title.includes("Arena")) {
+      return "lol-arena-pass";
+    }
+
+    if (/^Season \d+: Act/.test(title)) {
+      return "lol-ranked-season-pass";
+    }
+  }
+
+  return undefined;
+}
+
 function computeStatus(
   startDate: string,
   endDate: string,
@@ -213,6 +262,8 @@ function toProviderEvent(
     // Every event-hub entry has a real start/end date — it's
     // structurally time-boxed content, never a permanent feature.
     isLimitedTime: true,
+
+    seriesKey: deriveSeriesKey(event, rawTitle),
 
     trackedUsers: 0,
 
