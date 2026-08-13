@@ -101,6 +101,7 @@ model Event {
   notifications Notification[]
 
   history       EventHistory[]
+  changes       EventChange[]
 
   @@index([source])
   @@index([seriesKey])
@@ -124,6 +125,26 @@ model EventHistory {
   @@index([eventId])
 
   @@index([startedAt])
+}
+
+model EventChange {
+  id        String   @id @default(cuid())
+
+  eventId   String
+
+  field     String
+
+  oldValue  String?
+
+  newValue  String?
+
+  changedAt DateTime @default(now())
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+
+  @@index([changedAt])
 }
 
 model ProviderHealthCheck {

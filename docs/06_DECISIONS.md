@@ -3066,3 +3066,55 @@ olmaktan çıkardık). `rotating-modes/provider.ts`'deki eski statik
 - 107/107 test (2 yeni: isLimitedTime:false'un ENDED durumda bile
   korunduğunu, diğer kuyrukların isLimitedTime:true varsayılanını
   doğrulayan testler), `tsc --noEmit`, `npm run build` temiz.
+
+---
+
+# ADR-039: `EventChange` — Alan Bazında Edit Log'u (docs/09_BACKLOG.md P1 Event History'nin Bekleyen "Need"i)
+
+Status: Accepted
+
+Date: 2026-08-13
+
+## Bağlam
+
+Deniz "sırada ne var, onları yapalım" dedi — backlog'daki gerçekten
+buildable, bir ürün kararı gerektirmeyen bir sonraki madde arandı.
+`EventHistory` sadece LIVE/TRACKING occurrence pencerelerini
+(başlangıç/bitiş) tutuyor; title/description/category/isLimitedTime
+gibi alanlardaki değişiklikler hiç loglanmıyordu — her sync'te
+sessizce üzerine yazılıyordu (`upsertEvent`).
+
+## Karar
+
+`prisma/schema.prisma`'ya `EventChange` modeli eklendi (id, eventId,
+field, oldValue, newValue, changedAt — `EventHistory` ile aynı desen,
+`onDelete: Cascade`). Migration SQL'i **elle yazıldı**
+(`prisma migrate diff` KULLANILMADI, CLAUDE.md kuralı gereği) —
+sadece `CREATE TABLE`/`CREATE INDEX`/`ADD CONSTRAINT`, deploy
+öncesi/sonrası satır sayıları (70 event/55 history/4 user/31
+watchlist/10 notification/9 game) birebir doğrulandı.
+
+`lib/services/event-change-detector.service.ts`'e `diffEventFields()`
+eklendi (pure, test edilebilir) — title/description/status/category/
+isLimitedTime'ı karşılaştırıp gerçek farkları döndürüyor.
+`eventChangeHandlerService` artık her sync'te bu farkları
+`eventChangeService` üzerinden kalıcı hale getiriyor — status
+değişikliği bildirim tetiklemese bile (örn. sadece description
+değiştiyse). `/events/[slug]`'a mevcut Timeline'ın altına yeni bir
+"Changes" bölümü eklendi.
+
+## Doğrulama
+
+- Gerçek DB'ye karşı uçtan uca doğrulandı: gerçek bir event'e
+  (`riot-champion-rotation`) `eventChangeHandlerService.handle()`
+  üzerinden gerçek bir description farkı geçirildi, doğru
+  `EventChange` satırının oluştuğu onaylandı, test artifact'ı hemen
+  silindi — asıl `Event` satırına dokunulmadığı da doğrulandı (`handle()`
+  upsert yapmıyor, sadece `event-sync.service.ts`'in kendisi yapıyor).
+- 114/114 test (7 yeni: `diffEventFields` pure-function coverage —
+  null/undefined description eşitliği, boolean stringification, çoklu
+  eşzamanlı alan değişikliği dahil), `tsc --noEmit`, `npm run build`
+  temiz.
+- Geriye dönük doldurulamaz (diğer "yeni enstrümantasyon" özellikleri
+  gibi) — 2026-08-13'ten itibaren gerçek edit'leri kaydetmeye
+  başlıyor.

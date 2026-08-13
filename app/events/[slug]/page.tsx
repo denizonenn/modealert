@@ -14,8 +14,37 @@ import { eventQueryService } from "@/lib/services/event-query.service"
 import { eventHistoryService } from "@/lib/services/event-history.service"
 import { eventStatisticsService } from "@/lib/services/event-statistics.service"
 import { eventPredictionService } from "@/lib/services/event-prediction.service"
+import { eventChangeService } from "@/lib/services/event-change.service"
 import { getProviderName } from "@/lib/providers/core/registry"
 import { formatDuration } from "@/lib/utils"
+import {
+  EVENT_CATEGORY_LABELS,
+  type EventCategory,
+} from "@/lib/constants/event-category"
+
+const FIELD_LABELS: Record<string, string> = {
+  title: "Title",
+  description: "Description",
+  status: "Status",
+  category: "Category",
+  isLimitedTime: "Permanence",
+}
+
+function formatChangeValue(field: string, value: string | null): string {
+  if (value === null) {
+    return "—"
+  }
+
+  if (field === "isLimitedTime") {
+    return value === "true" ? "Limited Time" : "Permanent"
+  }
+
+  if (field === "category") {
+    return EVENT_CATEGORY_LABELS[value as EventCategory] ?? value
+  }
+
+  return value
+}
 
 type EventStatus = "LIVE" | "UPCOMING" | "TRACKING" | "ENDED"
 
@@ -71,6 +100,13 @@ export default async function EventDetailPage({ params }: Props) {
         eventPredictionService.predict(event.id),
         eventPredictionService.predictNextArrival(event.id),
       ])
+
+  // Field-level edit log (title/description/status/category/permanence
+  // changing over time) — separate from the LIVE/TRACKING occurrence
+  // spans above, and scoped to this specific event row (not
+  // series-wide, since a series' other occurrences are different rows
+  // with their own independent edit history).
+  const changes = await eventChangeService.getByEvent(event.id)
 
   const predictedEndAt =
     "predictedEndAt" in prediction ? prediction.predictedEndAt : undefined
@@ -274,6 +310,45 @@ export default async function EventDetailPage({ params }: Props) {
                   </div>
                 )
               })
+            )}
+          </div>
+        </div>
+
+        <div className="mt-10">
+          <SectionEyebrow>Changes</SectionEyebrow>
+          <h2 className="mt-1 text-xl font-semibold tracking-tight">
+            What&apos;s changed about this event
+          </h2>
+
+          <div className="mt-6 space-y-2">
+            {changes.length === 0 ? (
+              <p className="text-sm text-zinc-500">
+                No edits recorded yet — ModeAlert only started tracking
+                this on 2026-08-13, and logs a change the next time this
+                event&apos;s title, description, status, category, or
+                permanence actually differs from what was last synced.
+              </p>
+            ) : (
+              changes.map((change) => (
+                <div
+                  key={change.id}
+                  className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="font-medium text-zinc-300">
+                      {FIELD_LABELS[change.field] ?? change.field}
+                    </span>
+                    <span className="text-xs text-zinc-500">
+                      {change.changedAt.toLocaleString()}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-zinc-400">
+                    {formatChangeValue(change.field, change.oldValue)}
+                    <span className="mx-2 text-zinc-600">→</span>
+                    {formatChangeValue(change.field, change.newValue)}
+                  </p>
+                </div>
+              ))
             )}
           </div>
         </div>

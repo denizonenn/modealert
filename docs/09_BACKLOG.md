@@ -603,11 +603,23 @@ Completed
   prediction/confidence from `eventPredictionService`. Linked from
   event titles on `/games/[slug]`, included in `app/sitemap.ts`.
 
-Need
+Done (2026-08-13, ADR-039)
 
-- Changes — a log of title/description/status edits over time, not
-  just LIVE/TRACKING start-end spans. `EventHistory` doesn't currently
-  capture field-level diffs, only status periods.
+- ~~Changes — a log of title/description/status edits over time, not
+  just LIVE/TRACKING start-end spans~~ — new `EventChange` table
+  (additive migration, hand-written SQL per CLAUDE.md's migration
+  rule, row counts verified identical before/after `migrate deploy`).
+  `eventChangeDetectorService.diffEventFields()` (pure, unit-tested)
+  compares title/description/status/category/isLimitedTime on every
+  sync; `eventChangeHandlerService` persists any real diffs via the
+  new `eventChangeService`, independent of whether the status change
+  itself triggers a notification. Shown as a new "Changes" section on
+  `/events/[slug]`, below the existing occurrence Timeline. Verified
+  end-to-end against the real DB (inserted a real diff through the
+  full detector→handler chain, confirmed it logged correctly, cleaned
+  up the test artifact — not backfillable, starts recording from
+  2026-08-13 forward same as every other "new instrumentation" feature
+  in this app).
 
 ---
 
