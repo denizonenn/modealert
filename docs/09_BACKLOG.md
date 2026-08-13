@@ -443,13 +443,18 @@ Completed
   LIVE, never invents dates — exists purely so it's selectable ahead
   of a real signal ever showing up. Arena had the identical no-signal
   problem (`cherry-lobby.json` has no dates either) — **added
-  2026-08-13, ADR-036.** Unlike URF, WebSearch found real, dated,
-  official evidence Arena is active right now (Riot's own Patch 26.16
-  notes, August 12, 2026, confirm ongoing balance changes + the
-  weekly "Bravery Arena" variant), so its entry is `LIVE`/`PLAYABLE`
-  rather than URF's honest `ENDED` — a live API signal still doesn't
-  exist for it (checked live + PBE again, zero entries), so this is a
-  manually-verified snapshot, not a live pipeline result.
+  2026-08-13, ADR-036.** First shipped as `status: "LIVE"` off a
+  WebSearch-verified Riot patch note (August 12, 2026), but Deniz
+  caught the real flaw same day: unlike Iron Banner (a formula
+  recomputed fresh every sync), that was a one-time snapshot frozen
+  into the code with nothing to ever walk it back if Arena leaves
+  rotation. Reverted to `ENDED`/`PLAYABLE` — same honest, no-live-
+  signal framing as URF. Confirmed there's no real automatable
+  alternative either: Riot's patch notes have no structured API, only
+  HTML, and keyword-scraping them ("does 'Arena' appear in the text")
+  can't tell "currently live" from "being removed" apart — same class
+  of unreliable source this project already rejects elsewhere (PoE's
+  fan-site league date, Overwatch 2/GW2's static calendars).
 - **Same provider extended (2026-08-12, ADR-025)** with Summoner's
   Rift and ARAM as permanent `LIVE`/`PLAYABLE` rows — structurally
   always-queueable modes, not something requiring live verification.

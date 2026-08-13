@@ -30,17 +30,24 @@ import { EVENT_CATEGORIES } from "@/lib/constants/event-category";
 // `status: "LIVE"` here.
 //
 // The one rule that must never be broken: `status` reflects a fact
-// this file's author can actually stand behind, never a guess.
+// this file's author can actually stand behind for as long as the
+// entry sits here unattended, never a one-time snapshot.
 // - "LIVE" — either structurally permanent (no live verification
-//   needed), or a rotating mode with a real, dated, official source
-//   confirming it's active right now (e.g. Riot's own patch notes —
-//   see Arena below). Always cites the source and verification date
-//   so staleness is visible, same as Destiny 2's Iron Banner
-//   (computed from Bungie's announced schedule rather than a live API
-//   signal, see docs/06_DECISIONS.md ADR-034).
-// - "ENDED" — known rotating mode, zero signal (live API or dated
-//   official source) confirming it's active right now. Never a
-//   fabricated LIVE claim, never an invented date.
+//   needed), or computed fresh from a real, fixed, official formula
+//   every time this runs (e.g. Destiny 2's Iron Banner — a deterministic
+//   date formula from Bungie's announced schedule, recomputed on every
+//   sync, see docs/06_DECISIONS.md ADR-034). Never a frozen "I checked
+//   once and it was live" snapshot — nothing here re-checks these
+//   entries automatically, so a snapshot claim would silently go stale
+//   the moment reality changes (see ADR-036's Arena correction: it was
+//   briefly shipped as a WebSearch-verified LIVE claim, then reverted
+//   to ENDED for exactly this reason — a one-time verification isn't a
+//   live signal, and there's no way for ModeAlert to notice if it stops
+//   being true).
+// - "ENDED" — known rotating mode, no self-updating signal (live API or
+//   computed formula) confirming it's active right now, even if a
+//   one-time manual check found it active recently. Never a fabricated
+//   or frozen-snapshot LIVE claim, never an invented date.
 //
 // If a mode listed here ever gets its own real, dated
 // communitydragon-sourced row (live or PBE), that row reports the
@@ -135,8 +142,8 @@ const KNOWN_MODES: KnownMode[] = [
     gameId: GAME_IDS.LEAGUE_OF_LEGENDS,
     title: "Arena",
     description:
-      "2v2v2v2v2v2v2v2 round-based combat with augments. Same no-API-signal problem as URF (checked both the live and PBE event-hub feeds directly — neither has an Arena entry), so this isn't from ModeAlert's usual live pipeline. Unlike URF though, there's real, current, official evidence it's active right now: Riot's own Patch 26.16 notes (published August 12, 2026, leagueoflegends.com) confirm ongoing Arena content — champion balance changes plus the weekly 'Bravery Arena' variant returning — for its run that's been going since June 25, 2025 (Patch 25.13). Marked LIVE from that dated official source, not a live API signal (verified via WebSearch 2026-08-13) — re-verify if this starts to look stale, since Arena still rotates and isn't confirmed permanent the way ARAM Mayhem/League Classic are.",
-    status: "LIVE",
+      "2v2v2v2v2v2v2v2 round-based combat with augments. Same no-signal problem as URF: Riot doesn't publish a schedule for rotating modes, so ModeAlert has no live signal for it right now (checked both the live and PBE event-hub feeds directly — neither has an Arena entry). Its current run started June 25, 2025 with Patch 25.13 and was still receiving active updates as of Patch 26.16 (August 12, 2026 — balance changes, the weekly 'Bravery Arena' variant returning), per Riot's own official patch notes (verified via WebSearch 2026-08-13) — but that's a one-time snapshot, not a live, self-updating signal like Destiny 2's Iron Banner (computed fresh from a fixed formula every sync). Nothing here would notice if Arena left rotation the next patch, so it's marked ENDED rather than a LIVE claim ModeAlert can't actually stand behind long-term. Tracked so you don't miss the next confirmed window — the moment Riot's data shows a real Arena entry, ModeAlert reports its actual status automatically.",
+    status: "ENDED",
     isLimitedTime: true,
   },
   // "ARAM: Mayhem Classic-ish" used to be a static always-ENDED entry

@@ -2878,10 +2878,48 @@ yorumu da güncellendi: artık `LIVE` sadece "yapısal olarak kalıcı"
 anlamına gelmiyor, "tarihli/resmi kaynaktan doğrulanmış rotasyonlu mod"
 durumunu da kapsıyor (Iron Banner ile aynı desen).
 
-## Sonuçlar (Arena)
+## Sonuçlar (Arena, ilk hali)
 
 - `tsc --noEmit`, `npm run build`, 98/98 test temiz (bu ekleme için ayrı
   test yazılmadı — dosyadaki diğer statik `KNOWN_MODES` girdileri de
   test edilmiyor, aynı "düz veri" sınırı).
 - `rotatingModesProvider.getEvents()` doğrudan çalıştırılıp gerçek
   çıktı doğrulandı (id, status, description).
+
+## Düzeltme — Deniz'in İtirazı: "yakalayamamışız, URF gelince de yakalamayabilir miyiz"
+
+Deniz haklı bir noktaya değindi: Arena'yı `LIVE` yapmak, Iron Banner ile
+aynı güven sınıfında değildi. Iron Banner'ın kodu (`mapIronBanner()`)
+Bungie'nin duyurduğu sabit formülü **her sync'te yeniden hesaplıyor** —
+kendi kendini güncelleyen gerçek bir sinyal. Arena'ya yazılan `status:
+"LIVE"` ise sabit bir string: bir kere WebSearch yapıldı, o anki gerçek
+koda donduruldu. Riot Arena'yı rotasyondan çıkarsa, hiçbir mekanizma bunu
+fark edip `ENDED`e çevirmeyecekti — tıpkı URF geri dönse bile hiçbir
+mekanizmanın onu `LIVE`e çevirmeyeceği gibi (mevcut event-hub sinyalsizliği
+aynen sürüyor). Bu, "iddia edilen şey her zaman doğrulanabilir bir
+gerçeğe dayanmalı" ilkesini bir kerelik anlık görüntüyü kalıcı iddiaya
+çevirerek ihlal ediyordu.
+
+Araştırıldı: gerçek, otomatikleştirilebilir bir alternatif var mı?
+Riot'un patch notları için yapılandırılmış (JSON/API) bir kaynak yok,
+sadece HTML sayfası — kazınsa bile "Arena" kelimesinin geçmesi "şu an
+oynanabilir" anlamına gelmiyor ("kaldırılıyor" cümlesiyle "canlı" cümlesini
+ayırt edemez), bu projenin PoE'nin fan-site tahminini veya Overwatch 2/
+GW2'nin statik takvimini reddettiği aynı gerekçeyle reddedilmesi gereken
+bir kaynak sınıfı.
+
+**Karar:** Arena `status: "LIVE"` → `status: "ENDED"`'e geri döndürüldü,
+URF'ün aynı honest çerçevesine (dürüst, sinyalsizliği kabul eden, ama
+takip edilebilir placeholder). Description, Patch 26.16 doğrulamasını
+hâlâ içeriyor ama artık "bu bir anlık görüntüydü, kalıcı bir canlı sinyal
+değil" diye açıkça belirtiyor. Dosyanın en üstündeki "tek kural" yorumu
+da düzeltildi: `LIVE` artık sadece yapısal kalıcılık VEYA her çalıştırmada
+yeniden hesaplanan gerçek bir formül (Iron Banner) için kullanılabilir —
+"bir kere doğruladım, canlıydı" türü donmuş anlık görüntüler asla LIVE
+gerekçesi olamaz.
+
+## Sonuçlar (düzeltme)
+
+- `tsc --noEmit`, `npm run build`, 98/98 test temiz.
+- `rotatingModesProvider.getEvents()` tekrar çalıştırılıp Arena'nın artık
+  `status: "ENDED"` döndürdüğü doğrulandı.
