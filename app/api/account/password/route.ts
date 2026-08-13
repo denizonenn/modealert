@@ -3,10 +3,11 @@ import bcrypt from "bcryptjs";
 
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db/prisma";
+import { withErrorHandling } from "@/lib/api/with-error-handling";
+import { parseJsonBody } from "@/lib/validation/parse-body";
+import { changePasswordSchema } from "@/lib/validation/schemas";
 
-const MIN_PASSWORD_LENGTH = 8;
-
-export async function PATCH(request: NextRequest) {
+export const PATCH = withErrorHandling(async (request: NextRequest) => {
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -16,24 +17,13 @@ export async function PATCH(request: NextRequest) {
     );
   }
 
-  const body = await request.json();
+  const parsed = await parseJsonBody(request, changePasswordSchema);
 
-  const currentPassword =
-    typeof body.currentPassword === "string"
-      ? body.currentPassword
-      : undefined;
-
-  const newPassword =
-    typeof body.newPassword === "string" ? body.newPassword : "";
-
-  if (newPassword.length < MIN_PASSWORD_LENGTH) {
-    return NextResponse.json(
-      {
-        error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`,
-      },
-      { status: 400 }
-    );
+  if (parsed.error) {
+    return parsed.error;
   }
+
+  const { currentPassword, newPassword } = parsed.data;
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
@@ -79,4 +69,4 @@ export async function PATCH(request: NextRequest) {
   });
 
   return NextResponse.json({ success: true });
-}
+});

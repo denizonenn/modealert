@@ -1,8 +1,11 @@
-import { gameService } from "@/lib/services/game.service";
+import { NextResponse } from "next/server";
 
-export async function GET() {
+import { gameService } from "@/lib/services/game.service";
+import { withErrorHandling } from "@/lib/api/with-error-handling";
+
+export const GET = withErrorHandling(async () => {
   const games =
     await gameService.getAllGames();
 
-  return Response.json(games);
-}
+  return NextResponse.json(games);
+});

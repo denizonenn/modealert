@@ -1163,6 +1163,19 @@ Current
 
 - Riot endpoint discovery
 
+- ~~No input validation, error handling, rate limiting, or security
+  headers~~ — **done (2026-08-13, ADR-045).** Full MVP-to-production
+  hardening pass: `zod` validation on every API route that accepts a
+  body, consistent `withErrorHandling()` wrapper, Postgres-backed IP
+  rate limiting on register/login, real security headers + CSP in
+  `next.config.ts`, missing DB indexes added, `npm audit` taken from
+  13 vulnerabilities (including 3 high-severity in Next.js itself) to
+  0 via a Next 16.2.10→16.3.0 bump, two unauthenticated debug API
+  routes deleted, `aria-label` added to every form input. Deliberately
+  left out: full WCAG audit, nonce-based CSP, Public API surface,
+  external error tracking — see ADR-045's "Yapılmayan" for why each
+  one is a real future item, not an oversight.
+
 - ~~Provider test coverage~~ — **done (2026-08-06).** `vitest` added
   (`npm test` / `npm run test:watch`), 51 tests across all 10
   registered providers' pure event-mapper/normalizer functions

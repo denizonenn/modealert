@@ -8,8 +8,11 @@ import {
   watchlistService,
   WatchlistLimitError,
 } from "@/lib/services/watchlist.service";
+import { withErrorHandling } from "@/lib/api/with-error-handling";
+import { parseJsonBody } from "@/lib/validation/parse-body";
+import { watchlistEventSchema } from "@/lib/validation/schemas";
 
-export async function GET() {
+export const GET = withErrorHandling(async () => {
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -27,11 +30,9 @@ export async function GET() {
   return NextResponse.json(
     watchlists
   );
-}
+});
 
-export async function POST(
-  request: NextRequest
-) {
+export const POST = withErrorHandling(async (request: NextRequest) => {
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -41,14 +42,17 @@ export async function POST(
     );
   }
 
-  const body =
-    await request.json();
+  const parsed = await parseJsonBody(request, watchlistEventSchema);
+
+  if (parsed.error) {
+    return parsed.error;
+  }
 
   try {
     const watchlist =
       await watchlistService.create(
         session.user.id,
-        body.eventId
+        parsed.data.eventId
       );
 
     return NextResponse.json(
@@ -67,11 +71,9 @@ export async function POST(
 
     throw error;
   }
-}
+});
 
-export async function DELETE(
-  request: NextRequest
-) {
+export const DELETE = withErrorHandling(async (request: NextRequest) => {
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -81,15 +83,18 @@ export async function DELETE(
     );
   }
 
-  const body =
-    await request.json();
+  const parsed = await parseJsonBody(request, watchlistEventSchema);
+
+  if (parsed.error) {
+    return parsed.error;
+  }
 
   await watchlistService.delete(
     session.user.id,
-    body.eventId
+    parsed.data.eventId
   );
 
   return NextResponse.json({
     success: true,
   });
-}
+});

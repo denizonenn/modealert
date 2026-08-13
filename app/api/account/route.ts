@@ -3,8 +3,9 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db/prisma";
 import { billingService } from "@/lib/services/billing.service";
+import { withErrorHandling } from "@/lib/api/with-error-handling";
 
-export async function GET() {
+export const GET = withErrorHandling(async () => {
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -48,9 +49,9 @@ export async function GET() {
       user.email
     ),
   });
-}
+});
 
-export async function DELETE() {
+export const DELETE = withErrorHandling(async () => {
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -70,4 +71,4 @@ export async function DELETE() {
   });
 
   return NextResponse.json({ success: true });
-}
+});

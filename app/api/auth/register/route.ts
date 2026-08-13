@@ -2,33 +2,41 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 
 import { prisma } from "@/lib/db/prisma";
+import { withErrorHandling } from "@/lib/api/with-error-handling";
+import { checkRateLimit, getClientIp } from "@/lib/security/rate-limit";
+import { parseJsonBody } from "@/lib/validation/parse-body";
+import { registerSchema } from "@/lib/validation/schemas";
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MIN_PASSWORD_LENGTH = 8;
+// Unauthenticated + creates a real DB row, so this is the most
+// abuse-prone route in the app (mass fake account creation, email
+// enumeration via the 409). 5/hour per IP is generous for a real
+// signer-upper, tight for a script.
+const REGISTER_LIMIT = 5;
+const REGISTER_WINDOW_MS = 60 * 60 * 1000;
 
-export async function POST(request: NextRequest) {
-  const body = await request.json();
+export const POST = withErrorHandling(async (request: NextRequest) => {
+  const ip = getClientIp(request);
 
-  const email =
-    typeof body.email === "string" ? body.email.toLowerCase().trim() : "";
+  const allowed = await checkRateLimit({
+    key: `register:${ip}`,
+    limit: REGISTER_LIMIT,
+    windowMs: REGISTER_WINDOW_MS,
+  });
 
-  const password = typeof body.password === "string" ? body.password : "";
-
-  if (!EMAIL_REGEX.test(email)) {
+  if (!allowed) {
     return NextResponse.json(
-      { error: "Enter a valid email address." },
-      { status: 400 }
+      { error: "Too many attempts. Please try again later." },
+      { status: 429 }
     );
   }
 
-  if (password.length < MIN_PASSWORD_LENGTH) {
-    return NextResponse.json(
-      {
-        error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`,
-      },
-      { status: 400 }
-    );
+  const parsed = await parseJsonBody(request, registerSchema);
+
+  if (parsed.error) {
+    return parsed.error;
   }
+
+  const { email, password } = parsed.data;
 
   const existing = await prisma.user.findUnique({ where: { email } });
 
@@ -52,4 +60,4 @@ export async function POST(request: NextRequest) {
   });
 
   return NextResponse.json({ success: true });
-}
+});

@@ -5,8 +5,14 @@ import {
 
 import { auth } from "@/auth";
 import { notificationService } from "@/lib/services/notification.service";
+import { withErrorHandling } from "@/lib/api/with-error-handling";
+import { parseJsonBody } from "@/lib/validation/parse-body";
+import {
+  notificationActionSchema,
+  notificationIdSchema,
+} from "@/lib/validation/schemas";
 
-export async function GET() {
+export const GET = withErrorHandling(async () => {
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -20,9 +26,9 @@ export async function GET() {
     await notificationService.getByUser(session.user.id);
 
   return NextResponse.json(notifications);
-}
+});
 
-export async function PATCH(request: NextRequest) {
+export const PATCH = withErrorHandling(async (request: NextRequest) => {
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -32,11 +38,17 @@ export async function PATCH(request: NextRequest) {
     );
   }
 
-  const body = await request.json();
+  const parsed = await parseJsonBody(request, notificationActionSchema);
 
-  if (body.id && body.falsePositive) {
+  if (parsed.error) {
+    return parsed.error;
+  }
+
+  const { id, falsePositive } = parsed.data;
+
+  if (id && falsePositive) {
     await notificationService.reportFalsePositive(
-      body.id,
+      id,
       session.user.id
     );
 
@@ -45,9 +57,9 @@ export async function PATCH(request: NextRequest) {
     });
   }
 
-  if (body.id) {
+  if (id) {
     await notificationService.markRead(
-      body.id,
+      id,
       session.user.id
     );
 
@@ -61,11 +73,9 @@ export async function PATCH(request: NextRequest) {
   return NextResponse.json({
     success: true,
   });
-}
+});
 
-export async function DELETE(
-  request: NextRequest
-) {
+export const DELETE = withErrorHandling(async (request: NextRequest) => {
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -75,14 +85,18 @@ export async function DELETE(
     );
   }
 
-  const body = await request.json();
+  const parsed = await parseJsonBody(request, notificationIdSchema);
+
+  if (parsed.error) {
+    return parsed.error;
+  }
 
   await notificationService.delete(
-    body.id,
+    parsed.data.id,
     session.user.id
   );
 
   return NextResponse.json({
     success: true,
   });
-}
+});

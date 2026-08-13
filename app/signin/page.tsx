@@ -133,6 +133,7 @@ function SignInForm() {
               type="email"
               required
               placeholder="you@example.com"
+              aria-label="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="h-10 w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"
@@ -161,6 +162,7 @@ function SignInForm() {
               type="email"
               required
               placeholder="you@example.com"
+              aria-label="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="h-10 w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"
@@ -174,6 +176,7 @@ function SignInForm() {
               type="password"
               required
               placeholder="Password"
+              aria-label="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="h-10 w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"

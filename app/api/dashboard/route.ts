@@ -4,8 +4,9 @@ import {
 
 import { auth } from "@/auth";
 import { getDashboardStats } from "@/lib/helpers/getDashboardStats";
+import { withErrorHandling } from "@/lib/api/with-error-handling";
 
-export async function GET() {
+export const GET = withErrorHandling(async () => {
   const session = await auth();
 
   if (!session?.user?.id) {
@@ -18,4 +19,4 @@ export async function GET() {
   const stats = await getDashboardStats(session.user.id);
 
   return NextResponse.json(stats);
-}
+});

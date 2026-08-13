@@ -8,9 +8,16 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 
 import { prisma } from "@/lib/db/prisma";
 import { env } from "@/lib/config/env";
+import { checkRateLimit, getClientIp } from "@/lib/security/rate-limit";
 
 const LOCKOUT_THRESHOLD = 5;
 const LOCKOUT_DURATION_MS = 15 * 60 * 1000;
+
+// Per-account lockout (below) stops brute-forcing one email. This
+// stops the other direction — one IP spraying many different emails,
+// which the per-account lockout alone wouldn't catch.
+const LOGIN_IP_LIMIT = 20;
+const LOGIN_IP_WINDOW_MS = 15 * 60 * 1000;
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -59,7 +66,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         email: {},
         password: {},
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         const email =
           typeof credentials?.email === "string"
             ? credentials.email.toLowerCase().trim()
@@ -71,6 +78,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             : undefined;
 
         if (!email || !password) {
+          return null;
+        }
+
+        const ip = getClientIp(request);
+
+        const allowed = await checkRateLimit({
+          key: `login:${ip}`,
+          limit: LOGIN_IP_LIMIT,
+          windowMs: LOGIN_IP_WINDOW_MS,
+        });
+
+        if (!allowed) {
           return null;
         }
 

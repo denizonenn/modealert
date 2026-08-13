@@ -6,10 +6,11 @@ import {
 import {
   eventHistoryService,
 } from "@/lib/services/event-history.service";
+import { withErrorHandling } from "@/lib/api/with-error-handling";
 
-export async function GET(
+export const GET = withErrorHandling(async (
   request: NextRequest
-) {
+) => {
   const eventId =
     request.nextUrl.searchParams.get(
       "eventId"
@@ -37,4 +38,4 @@ export async function GET(
     success: true,
     history,
   });
-}
+});

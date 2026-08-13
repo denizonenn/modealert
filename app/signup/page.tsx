@@ -97,6 +97,7 @@ function SignUpForm() {
             type="email"
             required
             placeholder="you@example.com"
+            aria-label="Email address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="h-10 w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"
@@ -110,6 +111,7 @@ function SignUpForm() {
             type="password"
             required
             placeholder="Password (min. 8 characters)"
+            aria-label="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="h-10 w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"
@@ -123,6 +125,7 @@ function SignUpForm() {
             type="password"
             required
             placeholder="Confirm password"
+            aria-label="Confirm password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             className="h-10 w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"

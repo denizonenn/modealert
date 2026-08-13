@@ -14,21 +14,12 @@ import {
   PLANS,
   type Plan,
 } from "@/lib/constants/plan";
+import type { z } from "zod";
+import type { lemonSqueezyWebhookSchema } from "@/lib/validation/schemas";
 
-interface LemonSqueezyWebhookPayload {
-  meta: {
-    event_name: string;
-    custom_data?: { user_id?: string };
-  };
-  data: {
-    id: string;
-    attributes: {
-      status: string;
-      customer_id: number;
-      renews_at: string | null;
-    };
-  };
-}
+type LemonSqueezyWebhookPayload = z.infer<
+  typeof lemonSqueezyWebhookSchema
+>;
 
 export const billingService = {
   async getPlan(

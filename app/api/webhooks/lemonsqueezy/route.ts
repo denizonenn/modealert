@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { verifyWebhookSignature } from "@/lib/billing/lemonsqueezy-client";
 import { billingService } from "@/lib/services/billing.service";
+import { withErrorHandling } from "@/lib/api/with-error-handling";
+import { lemonSqueezyWebhookSchema } from "@/lib/validation/schemas";
 
 const HANDLED_EVENTS = new Set([
   "subscription_created",
@@ -13,7 +15,7 @@ const HANDLED_EVENTS = new Set([
   "subscription_unpaused",
 ]);
 
-export async function POST(request: NextRequest) {
+export const POST = withErrorHandling(async (request: NextRequest) => {
   // Signature is computed over the exact raw bytes Lemon Squeezy sent —
   // must read as text before any JSON parsing, or the signature check
   // fails against a re-serialized body.
@@ -27,12 +29,33 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const payload = JSON.parse(rawBody);
-  const eventName = payload?.meta?.event_name;
+  let json: unknown;
 
-  if (HANDLED_EVENTS.has(eventName)) {
-    await billingService.syncSubscriptionFromWebhook(payload);
+  try {
+    json = JSON.parse(rawBody);
+  } catch {
+    return NextResponse.json(
+      { error: "Invalid JSON body" },
+      { status: 400 }
+    );
+  }
+
+  const parsed = lemonSqueezyWebhookSchema.safeParse(json);
+
+  if (!parsed.success) {
+    // Signed by Lemon Squeezy but a shape we don't recognize — ack it
+    // (so they don't retry forever) without acting on it.
+    console.error(
+      "[lemonsqueezy webhook] unrecognized payload shape",
+      parsed.error.issues
+    );
+
+    return NextResponse.json({ received: true });
+  }
+
+  if (HANDLED_EVENTS.has(parsed.data.meta.event_name)) {
+    await billingService.syncSubscriptionFromWebhook(parsed.data);
   }
 
   return NextResponse.json({ received: true });
-}
+});

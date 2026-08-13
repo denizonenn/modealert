@@ -5,8 +5,9 @@ import {
 import {
   getProviders,
 } from "@/lib/providers/core/registry";
+import { withErrorHandling } from "@/lib/api/with-error-handling";
 
-export async function GET() {
+export const GET = withErrorHandling(async () => {
   const providers =
     getProviders().map(
       (provider) => ({
@@ -24,4 +25,4 @@ export async function GET() {
 
     providers,
   });
-}
+});

@@ -207,6 +207,7 @@ function PasswordSection({
               type="password"
               required
               placeholder="Current password"
+              aria-label="Current password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               className="h-10 w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"
@@ -220,6 +221,7 @@ function PasswordSection({
             type="password"
             required
             placeholder="New password (min. 8 characters)"
+            aria-label="New password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             className="h-10 w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"
@@ -232,6 +234,7 @@ function PasswordSection({
             type="password"
             required
             placeholder="Confirm new password"
+            aria-label="Confirm new password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             className="h-10 w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"

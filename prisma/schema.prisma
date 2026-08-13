@@ -111,6 +111,8 @@ model Event {
 
   @@index([source])
   @@index([seriesKey])
+  @@index([gameId])
+  @@index([status])
 }
 
 model EventHistory {
@@ -188,6 +190,22 @@ model NotificationFailure {
   @@index([createdAt])
 }
 
+// Fixed-window rate limiting, Postgres-backed to match every other
+// piece of state in this app (no Redis/edge-KV dependency added just
+// for this). One row per attempt; `checkRateLimit` counts rows for a
+// `key` newer than the window start. Volume is low enough (auth
+// endpoints only) that this comfortably outperforms the cost of a new
+// piece of infrastructure — see docs/06_DECISIONS.md ADR-045.
+model RateLimitHit {
+  id        String   @id @default(cuid())
+
+  key       String
+
+  createdAt DateTime @default(now())
+
+  @@index([key, createdAt])
+}
+
 model Watchlist {
   id        String   @id @default(cuid())
 
@@ -198,6 +216,7 @@ model Watchlist {
   event     Event    @relation(fields: [eventId], references: [id])
 
   @@unique([userId, eventId])
+  @@index([eventId])
 }
 
 model Notification {
@@ -223,4 +242,6 @@ model Notification {
 
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   event      Event    @relation(fields: [eventId], references: [id])
+
+  @@index([userId, createdAt])
 }

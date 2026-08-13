@@ -180,6 +180,16 @@ kadar.**
   aren't live yet" gösteriyor, sistem kırılmıyor (Google OAuth'un
   ADR-005'teki rollout'uyla aynı desen). Detay: docs/06_DECISIONS.md
   ADR-041.
+- **Production hardening pass tamamlandı (2026-08-13, ADR-045).**
+  Her API route'ta `zod` validasyonu + tutarlı hata yönetimi, register/
+  login'de IP bazlı rate limiting (Postgres-backed, yeni
+  `RateLimitHit` tablosu), `next.config.ts`'e gerçek güvenlik
+  header'ları + CSP, eksik DB index'leri, `npm audit` 13 açıktan
+  (Next.js dahil 3 yüksek önemli) 0'a indirildi (`next@16.3.0`'a
+  yükseltme), 2 açıkta kalan kimlik doğrulamasız debug endpoint
+  silindi, form input'larına `aria-label`. Bilinçli olarak
+  yapılmayanlar (Public API, tam WCAG denetimi, nonce-tabanlı sıkı
+  CSP) ADR-045'te gerekçeli.
 - Detaylı karar geçmişi için **docs/06_DECISIONS.md** her zaman en
   güncel ve en güvenilir kaynak — yeni bir oturuma başlarken önce
   orayı oku.

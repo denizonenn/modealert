@@ -3570,3 +3570,140 @@ gruplanıyor.
   toplulukları mantıklı ama Deniz'in Türkiye'den erişimi yok (ADR-003)
   — VPN'e geçince ya da başkasının eliyle değerlendirilebilir. Henüz
   kod/altyapı gerektirmiyor, bir sonraki oturumda ayrıca ele alınabilir.
+
+---
+
+# ADR-045: MVP → Final Product — Bir Sertleştirme Turu (Güvenlik, Doğrulama, Rate Limiting)
+
+Status: Accepted
+
+Date: 2026-08-13
+
+## Bağlam
+
+Deniz "şuankilerle devam, ürünü geliştir, her yönüyle MVP'den final
+product haline getir, açık kapı bırakma, büyük bir şirket profesyonel
+şekilde kurmuş gibi olsun" dedi. Bu, tek bir özellik değil, tüm
+uygulamanın güvenlik/sağlamlık taban çizgisini gözden geçirme isteği
+— bu yüzden önce sistematik bir tarama yapıldı (her API route,
+`next.config.ts`, şema index'leri, `npm audit`), sonra bulunan gerçek
+eksikler kapatıldı. "Never over-engineer" ilkesiyle çelişmemesi için
+kapsam bilinçli olarak sınırlandı — bkz. "Yapılmayan" bölümü.
+
+## Bulunan gerçek eksikler ve kapatılmaları
+
+1. **`npm audit`: 13 güvenlik açığı, next.js dahil (SSRF, DoS, cache
+   confusion, unauthenticated internal endpoint disclosure).**
+   `npm audit fix` ile çoğu (hono/brace-expansion/fast-uri/js-yaml/
+   ip-address/effect) düzeldi; kalan 3 yüksek önemli açık
+   `next@16.2.10 → 16.3.0` (minor sürüm, breaking değil) gerektiriyordu
+   — yükseltildi, `npm audit` artık **0 açık**. Build+test'ler yükseltme
+   sonrası da temiz.
+
+2. **Hiçbir API route'unda schema validasyonu yoktu** — `body.x`
+   alanları ad-hoc `typeof` kontrolleriyle güveniliyordu, bazı
+   route'lar (örn. `/api/notifications` DELETE, `/api/watchlists`)
+   hiç kontrol bile yapmıyordu. `zod` eklendi
+   (`lib/validation/schemas.ts` + paylaşılan `parseJsonBody()`
+   helper'ı, `lib/validation/parse-body.ts`) — her body kabul eden
+   route artık gerçek bir şemaya karşı doğrulanıyor, hatalı istek
+   tutarlı bir 400 + alan bazlı hata mesajı dönüyor.
+
+3. **Çoğu mutating route'ta try/catch yoktu** — sadece `cron/sync` ve
+   `admin/sync`'te vardı. Paylaşılan `withErrorHandling()` wrapper'ı
+   (`lib/api/with-error-handling.ts`) her route'a eklendi — beklenmedik
+   bir hata artık kontrolsüz bir exception yerine temiz bir JSON 500
+   dönüyor, `console.error` ile loglanıyor. `cron`/`admin` sync
+   route'ları kendi mevcut try/catch'lerini (admin panelinin beklediği
+   özel response şekli yüzünden) korudu, dokunulmadı.
+
+4. **Hiçbir yerde rate limiting yoktu.** `/api/auth/register`
+   (unauthenticated + gerçek DB satırı oluşturan, en istismara açık
+   route) ve `auth.ts`'in credentials `authorize()`'ı (var olan
+   hesap-bazlı lockout'un — 5 başarısız denemede 15 dk kilit —
+   yakalayamadığı, bir IP'nin birçok farklı email'i denemesi
+   senaryosu) artık IP bazlı, Postgres'e yazılan sabit-pencere rate
+   limit'e sahip (`lib/security/rate-limit.ts` +
+   `lib/repositories/rate-limit.repository.ts`, yeni `RateLimitHit`
+   tablosu). Redis/edge-KV eklenmedi — hacim düşük (sadece auth
+   endpoint'leri), mevcut "her şey Postgres'te" altyapı tercihiyle
+   tutarlı.
+
+5. **`next.config.ts` tamamen boştu — hiçbir güvenlik header'ı yok.**
+   `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`,
+   `Permissions-Policy`, `Strict-Transport-Security`, ve gerçek bir
+   `Content-Security-Policy` eklendi. CSP nispeten sıkı olabildi çünkü
+   bu uygulamada üçüncü parti hiçbir çağrı tarayıcıdan yapılmıyor
+   (Riot/Bungie/Resend/Lemon Squeezy hep server-side), fontlar
+   `next/font` ile build-time self-host ediliyor, hiç uzak görsel
+   yüklenmiyor. `script-src`/`style-src`'te `'unsafe-inline'` bilinçli
+   bir orta yol (ana sayfanın JSON-LD script'i + inline `style`
+   prop'ları için) — tam nonce-tabanlı sıkı CSP, bu uygulamanın
+   karışık static/dynamic render yapısıyla daha derin bir entegrasyon
+   isterdi, gerçek bir gelecek iyileştirmesi ama "hiç CSP yok"
+   boşluğunu kapatmak için şart değildi.
+
+6. **İki gerçek, kimlik doğrulaması olmayan debug endpoint'i bulundu
+   ve silindi:** `/api/providers/riot` ve `/api/providers/
+   communitydragon` (`communityDragonService.debug()` — ham upstream
+   yanıtlarını `console.log`'layan, anahtar kelime arayan, açıkça
+   hiç production için yazılmamış bir geliştirme aracı). İkisi de
+   frontend'de hiçbir yerden çağrılmıyordu (grep ile doğrulandı) —
+   "yazılmış ama bağlanmamış" değil, "yazılmış, asla bağlanmaması
+   gerekirken açıkta bırakılmış" örneği. `/api/providers/
+   communitydragon/current` (gerçekten `/live` sayfasından
+   kullanılıyor) dokunulmadan kaldı.
+
+7. **Eksik veritabanı index'leri.** `Event.gameId`/`Event.status`,
+   `Watchlist.eventId`, `Notification.userId+createdAt` hiç index'li
+   değildi — sık sorgulanan alanlar, küçük veri hacminde fark
+   etmiyor ama "ölçeklenebilir, profesyonel" hedefiyle şimdi
+   eklenmesi ucuz, sonra eklenmesi (tablo büyüdükçe) daha pahalı.
+   Ek, geriye dönük veri değişikliği olmayan migration.
+
+8. **Erişilebilirlik: her `<input>`'da `aria-label` eksikti**
+   (sadece `placeholder`'a güveniliyordu — placeholder odaklanınca
+   kaybolduğu ve tüm ekran okuyucular tarafından güvenilir
+   duyurulmadığı için bilinen bir WCAG hatası). signin/signup/
+   settings şifre formlarındaki tüm input'lara eklendi. İkon-only
+   buton taraması yapıldı (yıldız toggle, bildirim zili, hamburger
+   menü) — hepsinde zaten doğru `aria-label`/`aria-pressed` vardı,
+   ek düzeltme gerekmedi.
+
+9. **`opengraph-image.tsx`'in `runtime = "edge"`'i deprecated
+   uyarısı veriyordu** (Next 16.3.0 upgrade'iyle fark edildi) —
+   kaldırıldı, sayfa artık static (○) olarak prerender ediliyor,
+   önceden dynamic (ƒ) idi — bonus bir iyileştirme.
+
+## Doğrulama
+
+- Gerçek dev server'a karşı canlı test edildi: güvenlik header'ları
+  gerçek bir response'ta doğrulandı; `/api/auth/register`'a bozuk
+  body gönderilince alan bazlı 400 hatası döndü; art arda 7 istek
+  atılınca rate limit tam beklenen noktada (4 başarılı + öncesindeki
+  1 geçersiz-ama-sayılan deneme = 5, sonrası 429) devreye girdi —
+  geçersiz denemelerin de limite sayılması bilinçli (aksi halde
+  limit, çöp veri göndererek atlatılabilirdi); test için oluşan
+  sahte kullanıcılar ve rate-limit kayıtları temizlendi.
+- 129/129 test, `tsc --noEmit`, `npm run build`, `npm audit` (0 açık)
+  temiz. Migration'lar (index'ler + `RateLimitHit` tablosu) satır
+  sayısı doğrulamasıyla deploy edildi.
+
+## Yapılmayan (bilinçli sınır — "Never over-engineer" ilkesi)
+
+- **Public API (REST/API key/rate limiting/dokümantasyon)** —
+  docs/09_BACKLOG.md'de zaten "P2 — Public API" olarak duruyor,
+  tamamen ayrı bir ürün yüzeyi, Deniz'den açık bir istek gelmeden
+  inşa edilmedi.
+- **Tam WCAG denetimi / renk kontrastı taraması** — icon-only
+  butonlar ve form label'ları (en yüksek etkili, en ucuz kazanımlar)
+  kapatıldı; kapsamlı bir denetim (ekran okuyucu testi, klavye
+  navigasyonu uçtan uca, renk kontrast oranları) ayrı, daha büyük bir
+  iş.
+- **Nonce-tabanlı sıkı CSP** — yukarıda gerekçelendirildi, mevcut
+  `'unsafe-inline'`'lı CSP zaten hiç CSP olmamasından büyük bir
+  iyileştirme.
+- **Redis/edge-KV, harici hata izleme (Sentry vb.), yeni
+  altyapı/hesap gerektiren hiçbir şey eklenmedi** — mevcut Postgres
+  altyapısıyla çözülebilen her şey öyle çözüldü, "low maintenance"
+  ilkesiyle tutarlı.
