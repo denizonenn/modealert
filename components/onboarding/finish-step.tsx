@@ -4,10 +4,13 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { CheckCircle2, Loader2 } from "lucide-react"
 
+import Link from "next/link"
+
 import { useOnboardingStore } from "@/stores/onboarding-store"
 import { useEvents } from "@/hooks/use-events"
 
 import { Button } from "@/components/ui/button"
+import { FREE_WATCHLIST_LIMIT } from "@/lib/constants/plan"
 
 export default function FinishStep() {
   const router = useRouter()
@@ -17,6 +20,7 @@ export default function FinishStep() {
 
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [limitReached, setLimitReached] = useState(false)
 
   const watchedEvents = events.filter((event) =>
     selectedEvents.includes(event.id)
@@ -25,6 +29,7 @@ export default function FinishStep() {
   async function handleFinish() {
     setSubmitting(true)
     setError(null)
+    setLimitReached(false)
 
     try {
       const results = await Promise.all(
@@ -41,6 +46,13 @@ export default function FinishStep() {
         )
       )
 
+      if (results.some((response) => response.status === 402)) {
+        // Whatever fit under the free limit is already saved — this
+        // just stops here instead of claiming full success.
+        setLimitReached(true)
+        return
+      }
+
       if (results.some((response) => !response.ok)) {
         throw new Error("One or more events failed to save.")
       }
@@ -54,6 +66,11 @@ export default function FinishStep() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  function handleContinueAnyway() {
+    clear()
+    router.push("/dashboard")
   }
 
   return (
@@ -99,18 +116,42 @@ export default function FinishStep() {
         <p className="mt-4 text-sm text-red-400">{error}</p>
       )}
 
-      <Button
-        size="lg"
-        onClick={handleFinish}
-        disabled={submitting || watchedEvents.length === 0}
-        className="mt-8 h-12 rounded-full bg-gradient-brand px-10 text-white shadow-[0_0_30px_rgba(168,85,247,0.35)] transition-shadow hover:shadow-[0_0_40px_rgba(168,85,247,0.5)]"
-      >
-        {submitting ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          "Start Tracking"
-        )}
-      </Button>
+      {limitReached ? (
+        <div className="mt-8 space-y-4">
+          <p className="text-sm text-zinc-400">
+            The free plan tracks up to {FREE_WATCHLIST_LIMIT} events —
+            we saved as many of your picks as fit.{" "}
+            <Link
+              href="/pricing"
+              className="font-medium text-white hover:underline"
+            >
+              Upgrade to Premium
+            </Link>{" "}
+            for unlimited tracking, or continue with what fit.
+          </p>
+
+          <Button
+            size="lg"
+            onClick={handleContinueAnyway}
+            className="h-12 rounded-full bg-gradient-brand px-10 text-white shadow-[0_0_30px_rgba(168,85,247,0.35)] transition-shadow hover:shadow-[0_0_40px_rgba(168,85,247,0.5)]"
+          >
+            Continue to dashboard
+          </Button>
+        </div>
+      ) : (
+        <Button
+          size="lg"
+          onClick={handleFinish}
+          disabled={submitting || watchedEvents.length === 0}
+          className="mt-8 h-12 rounded-full bg-gradient-brand px-10 text-white shadow-[0_0_30px_rgba(168,85,247,0.35)] transition-shadow hover:shadow-[0_0_40px_rgba(168,85,247,0.5)]"
+        >
+          {submitting ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            "Start Tracking"
+          )}
+        </Button>
+      )}
     </div>
   )
 }

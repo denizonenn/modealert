@@ -28,7 +28,7 @@ export function Cta() {
           </h2>
 
           <p className="mx-auto mt-4 max-w-xl text-lg text-zinc-400">
-            Free during early access. Set up your first alert in under a minute.
+            Free to start. Set up your first alert in under a minute.
           </p>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">

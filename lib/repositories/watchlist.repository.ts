@@ -68,6 +68,16 @@ export async function getTrackedUserCountsByGame(): Promise<
   return counts;
 }
 
+export async function countWatchlistsByUser(
+  userId: string
+): Promise<number> {
+  return prisma.watchlist.count({
+    where: {
+      userId,
+    },
+  });
+}
+
 export async function createWatchlist(
   userId: string,
   eventId: string

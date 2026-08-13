@@ -12,7 +12,7 @@ export const FAQS = [
   {
     question: "Is ModeAlert free?",
     answer:
-      "Yes. ModeAlert is free during early access — no credit card required to start tracking.",
+      "Yes — the Free plan tracks up to 5 events with email alerts, no credit card required. Premium ($4.99/mo) adds unlimited tracked events and per-event predictions.",
   },
   {
     question: "How do you detect events before Riot announces them?",

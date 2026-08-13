@@ -1022,19 +1022,42 @@ Future
 
 # P2 — Monetization
 
-Free
+Status: 🟡 (2026-08-13, ADR-041)
 
-Basic notifications
+Completed
 
-Premium
+- **Free/Premium paywall shipped** — Free: 5-event watchlist limit +
+  email notifications. Premium ($4.99/mo): unlimited watchlist +
+  per-event predictions/statistics (average duration, estimated end,
+  "typically returns after"). Payment provider: **Lemon Squeezy**
+  (Merchant of Record), not Stripe — Stripe doesn't support
+  Turkey-based sellers directly, verified via WebSearch. `/pricing`
+  page, `/dashboard/settings` subscription section,
+  `/api/webhooks/lemonsqueezy` handler, watchlist-limit enforcement
+  (`WatchlistLimitError` → 402, handled in onboarding + dashboard UI),
+  `PremiumTeaser` blur-gate on `/events/[slug]`/`/games/[slug]`. See
+  docs/06_DECISIONS.md ADR-041 for the full design and status → plan
+  mapping.
 
-Unlimited watchlists
+Blocked on Deniz's action
 
-Priority notifications
+- **Lemon Squeezy store not created yet** — needs an account +
+  product/variant at lemonsqueezy.com, then
+  `LEMONSQUEEZY_API_KEY`/`LEMONSQUEEZY_STORE_SUBDOMAIN`/
+  `LEMONSQUEEZY_VARIANT_ID`/`LEMONSQUEEZY_WEBHOOK_SECRET` in both
+  local `.env` and Vercel production (same pattern as Google OAuth's
+  ADR-005 rollout). Until then `/pricing`'s upgrade button shows
+  "Upgrades aren't live yet" — hidden gracefully, not broken.
 
-Prediction features
+Future
 
-Advanced statistics
+- Discord notifications as a Premium perk, once Discord itself is
+  built (still blocked on Deniz's Turkey/VPN access, see ADR-003).
+- Yearly/lifetime pricing tiers (deliberately deferred — Deniz chose
+  monthly-only for launch simplicity).
+- First-user acquisition strategy — separate conversation from the
+  paywall itself, not yet actioned. See ADR-041's closing note for the
+  Reddit/SEO direction discussed.
 
 ---
 

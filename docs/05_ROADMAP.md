@@ -336,35 +336,25 @@ Users own personalized data. ✅
 
 # Phase 8 — Premium
 
+Status: 🟡 Shipped (2026-08-13, ADR-041) — blocked on Deniz creating
+the Lemon Squeezy store (see docs/09_BACKLOG.md P2 Monetization).
+
 Goal
 
 Monetization.
 
-Possible Features
+Shipped
 
-Unlimited watchlists
+Free plan (5-event watchlist limit + email) / Premium plan ($4.99/mo
+— unlimited watchlists + prediction engine/advanced statistics) —
+`/pricing`, Lemon Squeezy checkout + webhooks, `/dashboard/settings`
+subscription management.
 
-Prediction engine
+Deferred
 
-Advanced filters
-
-Priority notifications
-
-Discord integration
-
-Multiple devices
-
-Analytics
-
-Premium API
-
-Pricing
-
-Monthly
-
-Yearly
-
-Lifetime
+Priority notifications, Discord integration (blocked on Discord
+access itself, ADR-003), multiple devices, analytics, Premium API,
+yearly/lifetime pricing tiers.
 
 ---
 

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db/prisma";
+import { billingService } from "@/lib/services/billing.service";
 
 export async function GET() {
   const session = await auth();
@@ -13,15 +14,18 @@ export async function GET() {
     );
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: {
-      email: true,
-      name: true,
-      password: true,
-      emailOptOut: true,
-    },
-  });
+  const [user, billing] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        email: true,
+        name: true,
+        password: true,
+        emailOptOut: true,
+      },
+    }),
+    billingService.getBillingInfo(session.user.id),
+  ]);
 
   if (!user) {
     return NextResponse.json(
@@ -35,6 +39,14 @@ export async function GET() {
     name: user.name,
     hasPassword: Boolean(user.password),
     emailOptOut: user.emailOptOut,
+    plan: billing?.plan ?? "FREE",
+    subscriptionStatus: billing?.subscriptionStatus ?? null,
+    subscriptionRenewsAt: billing?.subscriptionRenewsAt ?? null,
+    manageSubscriptionUrl: billing?.manageUrl ?? null,
+    checkoutUrl: billingService.getCheckoutUrl(
+      session.user.id,
+      user.email
+    ),
   });
 }
 

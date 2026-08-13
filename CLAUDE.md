@@ -153,6 +153,18 @@ kadar.**
   hazır). `AUTH_SECRET`/`AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET` hem
   local `.env` hem Vercel production'da set edilmiş durumda.
   Detay: docs/06_DECISIONS.md ADR-005.
+- **Monetization var (2026-08-13), ama ödeme sağlayıcısı henüz canlı
+  değil.** Free (5-event watchlist limiti + email) / Premium
+  ($4.99/ay — sınırsız watchlist + per-event prediction/statistics)
+  paywall'ı kod tarafında tam; ödeme sağlayıcısı **Lemon Squeezy**
+  (Stripe DEĞİL — Stripe Türkiye merkezli satıcıları desteklemiyor,
+  bkz. ADR-041). Deniz henüz lemonsqueezy.com'da mağaza açmadı —
+  `LEMONSQUEEZY_API_KEY`/`LEMONSQUEEZY_STORE_SUBDOMAIN`/
+  `LEMONSQUEEZY_VARIANT_ID`/`LEMONSQUEEZY_WEBHOOK_SECRET` set
+  edilene kadar `/pricing`'deki "Upgrade" butonu zarifçe "Upgrades
+  aren't live yet" gösteriyor, sistem kırılmıyor (Google OAuth'un
+  ADR-005'teki rollout'uyla aynı desen). Detay: docs/06_DECISIONS.md
+  ADR-041.
 - Detaylı karar geçmişi için **docs/06_DECISIONS.md** her zaman en
   güncel ve en güvenilir kaynak — yeni bir oturuma başlarken önce
   orayı oku.

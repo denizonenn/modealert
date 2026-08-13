@@ -17,6 +17,7 @@ import { NotificationBell } from "@/components/layout/notification-bell";
 const NAV_LINKS = [
   { href: "/features", label: "Features" },
   { href: "/games", label: "Games" },
+  { href: "/pricing", label: "Pricing" },
   { href: "/#faq", label: "FAQ" },
   { href: "/live", label: "Live" },
   { href: "/dashboard", label: "Dashboard" },

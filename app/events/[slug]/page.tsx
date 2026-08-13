@@ -8,15 +8,19 @@ import { Footer } from "@/components/layout/footer"
 import { GameIcon } from "@/components/shared/game-icon"
 import { EventStatusBadge } from "@/components/shared/event-status-badge"
 import { SectionEyebrow } from "@/components/shared/section-eyebrow"
+import { PremiumTeaser } from "@/components/shared/premium-teaser"
 import { Badge } from "@/components/ui/badge"
 
+import { auth } from "@/auth"
 import { eventQueryService } from "@/lib/services/event-query.service"
 import { eventHistoryService } from "@/lib/services/event-history.service"
 import { eventStatisticsService } from "@/lib/services/event-statistics.service"
 import { eventPredictionService } from "@/lib/services/event-prediction.service"
 import { eventChangeService } from "@/lib/services/event-change.service"
+import { billingService } from "@/lib/services/billing.service"
 import { getProviderName } from "@/lib/providers/core/registry"
 import { formatDuration } from "@/lib/utils"
+import { PLANS } from "@/lib/constants/plan"
 import {
   EVENT_CATEGORY_LABELS,
   type EventCategory,
@@ -108,6 +112,13 @@ export default async function EventDetailPage({ params }: Props) {
   // with their own independent edit history).
   const changes = await eventChangeService.getByEvent(event.id)
 
+  // Average duration / estimated-end / next-expected-arrival are the
+  // Premium-gated "deep insight" tier — see docs/06_DECISIONS.md
+  // ADR-041. First tracked/times seen/raw timeline/changes stay free.
+  const session = await auth()
+  const plan = await billingService.getPlan(session?.user?.id)
+  const isPremium = plan === PLANS.PREMIUM
+
   const predictedEndAt =
     "predictedEndAt" in prediction ? prediction.predictedEndAt : undefined
 
@@ -197,56 +208,98 @@ export default async function EventDetailPage({ params }: Props) {
             </p>
           </div>
 
-          <div>
-            <p className="text-xs uppercase tracking-wide text-zinc-600">
-              Average duration
-            </p>
-            <p className="mt-0.5 text-zinc-300">
-              {statistics.averageDuration > 0
-                ? formatDuration(statistics.averageDuration)
-                : "—"}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-xs uppercase tracking-wide text-zinc-600">
-              {prediction.active ? "Estimated to end" : "Last seen"}
-            </p>
-            <p className="mt-0.5 text-zinc-300">
-              {prediction.active
-                ? predictedEndAt
-                  ? new Date(predictedEndAt).toLocaleDateString()
-                  : "Not enough history yet"
-                : statistics.lastSeen
-                  ? new Date(statistics.lastSeen).toLocaleDateString()
-                  : "—"}
-            </p>
-            {prediction.active && predictedEndAt && (
-              <p className="mt-0.5 text-xs text-zinc-600">
-                ~{prediction.confidence}% confidence
-              </p>
-            )}
-          </div>
-
-          {!prediction.active && nextExpectedAt && (
+          {isPremium ? (
             <div>
               <p className="text-xs uppercase tracking-wide text-zinc-600">
-                Typically returns after
+                Average duration
               </p>
               <p className="mt-0.5 text-zinc-300">
-                {recurrenceIntervalMs
-                  ? formatDuration(recurrenceIntervalMs)
+                {statistics.averageDuration > 0
+                  ? formatDuration(statistics.averageDuration)
                   : "—"}
               </p>
-              <p className="mt-0.5 text-xs text-zinc-600">
-                next expected around{" "}
-                {nextExpectedAt.toLocaleDateString()}
-                {nextArrival.available &&
-                  "confidence" in nextArrival && (
-                    <> (~{nextArrival.confidence}% confidence)</>
-                  )}
+            </div>
+          ) : (
+            <PremiumTeaser>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-zinc-600">
+                  Average duration
+                </p>
+                <p className="mt-0.5 text-zinc-300">12h 34m</p>
+              </div>
+            </PremiumTeaser>
+          )}
+
+          {prediction.active ? (
+            isPremium ? (
+              <div>
+                <p className="text-xs uppercase tracking-wide text-zinc-600">
+                  Estimated to end
+                </p>
+                <p className="mt-0.5 text-zinc-300">
+                  {predictedEndAt
+                    ? new Date(predictedEndAt).toLocaleDateString()
+                    : "Not enough history yet"}
+                </p>
+                {predictedEndAt && (
+                  <p className="mt-0.5 text-xs text-zinc-600">
+                    ~{prediction.confidence}% confidence
+                  </p>
+                )}
+              </div>
+            ) : (
+              <PremiumTeaser>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-zinc-600">
+                    Estimated to end
+                  </p>
+                  <p className="mt-0.5 text-zinc-300">Jan 1, 2027</p>
+                </div>
+              </PremiumTeaser>
+            )
+          ) : (
+            <div>
+              <p className="text-xs uppercase tracking-wide text-zinc-600">
+                Last seen
+              </p>
+              <p className="mt-0.5 text-zinc-300">
+                {statistics.lastSeen
+                  ? new Date(statistics.lastSeen).toLocaleDateString()
+                  : "—"}
               </p>
             </div>
+          )}
+
+          {!prediction.active && nextExpectedAt && (
+            isPremium ? (
+              <div>
+                <p className="text-xs uppercase tracking-wide text-zinc-600">
+                  Typically returns after
+                </p>
+                <p className="mt-0.5 text-zinc-300">
+                  {recurrenceIntervalMs
+                    ? formatDuration(recurrenceIntervalMs)
+                    : "—"}
+                </p>
+                <p className="mt-0.5 text-xs text-zinc-600">
+                  next expected around{" "}
+                  {nextExpectedAt.toLocaleDateString()}
+                  {nextArrival.available &&
+                    "confidence" in nextArrival && (
+                      <> (~{nextArrival.confidence}% confidence)</>
+                    )}
+                </p>
+              </div>
+            ) : (
+              <PremiumTeaser>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-zinc-600">
+                    Typically returns after
+                  </p>
+                  <p className="mt-0.5 text-zinc-300">14 days</p>
+                </div>
+              </PremiumTeaser>
+            )
           )}
         </div>
 

@@ -1,3 +1,4 @@
+import { useState } from "react"
 import useSWR, { mutate as globalMutate } from "swr"
 import { useSession } from "next-auth/react"
 
@@ -32,6 +33,8 @@ export function useWatchlist() {
     entries.map((entry) => entry.eventId)
   )
 
+  const [limitReached, setLimitReached] = useState(false)
+
   async function mutateWatchlist(
     eventId: string,
     add: boolean
@@ -45,15 +48,24 @@ export function useWatchlist() {
           (entry) => entry.eventId !== eventId
         )
 
+    let hitLimit = false
+
     await mutate(
       async () => {
-        await fetch("/api/watchlists", {
+        const response = await fetch("/api/watchlists", {
           method: add ? "POST" : "DELETE",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ eventId }),
         })
+
+        // Re-fetching the real watchlist below already "rolls back"
+        // the optimistic add when this happens — the failed row just
+        // isn't in the real response.
+        if (add && response.status === 402) {
+          hitLimit = true
+        }
 
         return fetcher("/api/watchlists")
       },
@@ -63,6 +75,8 @@ export function useWatchlist() {
         revalidate: false,
       }
     )
+
+    setLimitReached(hitLimit)
 
     void globalMutate("/api/dashboard")
   }
@@ -78,6 +92,7 @@ export function useWatchlist() {
     watchlistedIds,
     isLoading,
     error,
+    limitReached,
     toggle,
   }
 }

@@ -3172,3 +3172,137 @@ falsePositiveReportedAt IS NULL` ile).
   test yazılmadı — mevcut `read`/`markRead` toggle'ı da test
   edilmiyor, aynı "CRUD plumbing, pure function değil" sınırı
   (gerçek DB'ye karşı end-to-end doğrulama ile telafi edildi).
+
+---
+
+# ADR-041: Monetization — Free/Premium Paywall, Lemon Squeezy (Stripe Değil)
+
+Status: Accepted
+
+Date: 2026-08-13
+
+## Bağlam
+
+Deniz monetization stratejisini konuşmak istedi — docs/08_BUSINESS_MODEL.md
+hâlâ boştu ve son karar (ADR-009, 2026-08-05) parayı şimdilik erteleyip
+oyun/event sayısını artırmayı seçmişti. Uygulamada hiçbir ücret
+duvarı yoktu: watchlist sınırsız, prediction/statistics herkese açık,
+ödeme sağlayıcısı hiç entegre değildi.
+
+## Ödeme sağlayıcısı araştırması — Stripe reddedildi
+
+Varsayılan seçim Stripe olurdu, ama WebSearch ile doğrulandı: **Stripe,
+Türkiye merkezli işletmeler için resmi olarak desteklenmiyor** — ABD'de
+şirket kurup EIN almadan doğrudan kullanılamıyor. Discord/RSO'daki
+"Türkiye'den VPN'siz erişilemez" kısıtına benzer bir engel (bkz.
+ADR-003/ADR-005), bu kez ödeme tarafında. Alternatif olarak **Merchant
+of Record** modeli (Lemon Squeezy/Paddle) araştırıldı — bunlar
+Deniz'in yerine "satıcı" gibi davranıp KDV/vergi işini üstleniyor,
+Türkiye'den kayıt/ödeme almakta bir kısıt yok. **Lemon Squeezy**
+seçildi (Paddle'a göre tek kişilik/indie projeler için daha hızlı
+kurulum, "low maintenance" prensibiyle daha uyumlu).
+
+## Paywall yapısı (Deniz'in kararı)
+
+- **Free:** watchlist'te en fazla 5 event (`FREE_WATCHLIST_LIMIT`),
+  email bildirimleri sınırsız.
+- **Premium ($4.99/ay, sadece aylık plan):** sınırsız watchlist +
+  per-event "derin içgörü" bloğu (ortalama süre, tahmini bitiş,
+  "typically returns after" — `eventStatisticsService`/
+  `eventPredictionService`'in ürettiği her şey). "First tracked"/
+  "Times seen" ve ham Timeline/Changes logu herkese açık kalıyor
+  (SEO/indexability için de önemli — `/events/[slug]` ve
+  `/games/[slug]` sitemap'te).
+- **Discord bildirimleri premium'a dahil değil** — henüz inşa
+  edilmedi (ADR-003'teki Türkiye erişim engeli hâlâ geçerli), var
+  olmayan bir özelliği satmamak için.
+
+## Uygulama
+
+- `prisma/schema.prisma`: `User`'a `plan` (String, default `"FREE"` —
+  projedeki `category` alanıyla aynı "Prisma enum değil, TS const"
+  deseni, bkz. `lib/constants/event-category.ts`),
+  `lemonSqueezyCustomerId`, `lemonSqueezySubscriptionId` (unique),
+  `subscriptionStatus`, `subscriptionRenewsAt`. Migration SQL'i **elle
+  yazıldı** (CLAUDE.md kuralı gereği `prisma migrate diff`
+  KULLANILMADI), deploy öncesi/sonrası satır sayıları (70 event/55
+  history/4 user/35 watchlist/10 notification/9 game) birebir
+  doğrulandı.
+- `lib/constants/plan.ts`: `PLANS`, `FREE_WATCHLIST_LIMIT` (5),
+  `ACTIVE_SUBSCRIPTION_STATUSES` (Lemon Squeezy'nin `cancelled`
+  durumu hâlâ erişimi koruyor — kullanıcı iptal etti ama dönem sonuna
+  kadar Premium kalıyor, `expired` olunca gerçekten düşüyor).
+- `lib/repositories/user.repository.ts` (yeni) — plan/subscription
+  alanlarına erişim, mimari kuralın gereği (Prisma sadece repository
+  katmanında).
+- `lib/services/watchlist.service.ts`: `create()` artık plan+count
+  kontrolü yapıyor, limit aşılırsa `WatchlistLimitError` fırlatıyor →
+  `POST /api/watchlists` bunu 402'ye çeviriyor. Mevcut watchlist'i
+  5'in üzerinde olan kullanıcılar (varsa) **korunuyor** — sadece yeni
+  ekleme engelleniyor, geriye dönük silme yok.
+- `lib/billing/lemonsqueezy-client.ts` — hosted checkout URL
+  oluşturma (`checkout[custom][user_id]` ile ModeAlert user id'si
+  gömülü, her webhook event'inde geri geliyor), webhook imza
+  doğrulama (`unsubscribe-token.ts`'teki aynı HMAC+`timingSafeEqual`
+  deseni), customer portal URL'i (Lemon Squeezy API). `LEMONSQUEEZY_*`
+  env var'ları boşsa hepsi zarifçe devre dışı kalıyor — Resend/Google
+  OAuth'taki "key yoksa sessizce disabled" deseninin aynısı (Deniz
+  henüz gerçek bir Lemon Squeezy mağazası açmadı).
+- `POST /api/webhooks/lemonsqueezy` — imza doğrulanmadan hiçbir şey
+  işlemiyor, `subscription_*` event'lerinde `User.plan`/
+  `subscriptionStatus`/`subscriptionRenewsAt`'ı günceller.
+- `/pricing` (yeni, public, sitemap'e eklendi) — Free/Premium
+  karşılaştırması, oturum durumuna göre doğru CTA (giriş yap / satın
+  al / "Premium'dasın").
+- `/dashboard/settings`'e "Subscription" bölümü + `/api/account`
+  yanıtına plan/checkout/manage-URL alanları eklendi.
+- `/events/[slug]` ve `/games/[slug]`: Premium olmayan kullanıcılara
+  ortalama süre/tahmini bitiş/"typically returns after" blokları
+  gerçek şekliyle ama bulanıklaştırılmış (`PremiumTeaser` — yeni
+  paylaşılan component) gösteriliyor, üstünde `/pricing`'e giden bir
+  kilit ikonu.
+- Onboarding'in `FinishStep`'i ve dashboard'ın `WatchingList`'i artık
+  402'yi özel olarak yakalayıp "free limite ulaştın, upgrade et"
+  mesajı gösteriyor — genel bir hata mesajı değil.
+
+## Doğrulama
+
+- Gerçek DB'ye karşı uçtan uca doğrulandı (seed/test amaçlı `demo`
+  kullanıcısıyla, gerçek kullanıcı verisine dokunulmadı): 5 gerçek
+  event eklendi, 6.'sı `WatchlistLimitError` ile doğru şekilde
+  reddedildi; kullanıcı `PREMIUM`'a çevrilince aynı 6. event sorunsuz
+  eklendi; sonunda watchlist temizlendi, plan `FREE`'ye geri alındı.
+- Checkout/webhook fonksiyonları env var'lar boşken doğru şekilde
+  `null`/`false` döndüğü doğrulandı (henüz mağaza kurulmadığı için
+  şu an production'daki gerçek davranış bu — buton gizli, hiçbir şey
+  kırık değil).
+- 114/114 test (mevcut, bu özellik CRUD/entegrasyon ağırlıklı olduğu
+  için yeni pure-function testi gerekmedi — ADR-040'taki aynı sınır),
+  `tsc --noEmit`, `npm run build` temiz.
+- Marketing kopyasında bir tutarsızlık bulundu ve düzeltildi: FAQ'daki
+  "Is ModeAlert free?" cevabı ile hero/features/games/CTA'daki "Free
+  during early access" ifadeleri artık gerçek dışı olurdu (paywall
+  var artık) — hepsi "Free to start" + FAQ'da gerçek Free/Premium
+  ayrımını anlatacak şekilde güncellendi. FAQ, ana sayfanın
+  `FAQPage` JSON-LD'sine de besleniyor — geçmişte "hourly"→"daily"
+  düzeltmesinde olduğu gibi, machine-readable yapılandırılmış veriye
+  yanlış bir iddia sızdırmak kozmetikten daha kötü olurdu.
+
+## Yapılmayan / Deniz'in aksiyonu bekleyen
+
+- **Lemon Squeezy mağazası henüz kurulmadı** — Deniz'in
+  lemonsqueezy.com'da hesap açıp bir ürün/variant oluşturması,
+  `LEMONSQUEEZY_API_KEY`/`LEMONSQUEEZY_STORE_SUBDOMAIN`/
+  `LEMONSQUEEZY_VARIANT_ID`/`LEMONSQUEEZY_WEBHOOK_SECRET`'i hem local
+  `.env`'e hem Vercel production'a girmesi gerekiyor — Google
+  OAuth'un ADR-005'te canlıya alınma şekliyle birebir aynı desen. O
+  zamana kadar `/pricing`'deki "Upgrade" butonu "Upgrades aren't live
+  yet" mesajına düşüyor, sistem kırılmıyor.
+- **İlk kullanıcı edinme stratejisi** — Deniz ayrıca konuşmak istedi,
+  ayrı bir konu (bu ADR sadece paywall/ödeme altyapısını kapsıyor).
+  Önerilen yön: oyun bazlı Reddit toplulukları (zaten desteklenen 10
+  oyunun her biri için var) + otantik "indie hacker showcase" tarzı
+  paylaşım, zaten yatırım yapılmış SEO altyapısının üstüne. Discord
+  toplulukları mantıklı ama Deniz'in Türkiye'den erişimi yok (ADR-003)
+  — VPN'e geçince ya da başkasının eliyle değerlendirilebilir. Henüz
+  kod/altyapı gerektirmiyor, bir sonraki oturumda ayrıca ele alınabilir.

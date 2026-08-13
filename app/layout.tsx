@@ -19,7 +19,7 @@ const spaceGrotesk = Space_Grotesk({
 })
 
 const DEFAULT_DESCRIPTION =
-  "ModeAlert tracks limited-time game events, modes, and battle passes across League of Legends, Valorant, Destiny 2, and Teamfight Tactics — and emails you the moment something changes. No client, no extension, free during early access."
+  "ModeAlert tracks limited-time game events, modes, and battle passes across League of Legends, Valorant, Destiny 2, and Teamfight Tactics — and emails you the moment something changes. No client, no extension, free to start."
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

@@ -4,7 +4,10 @@ import {
 } from "next/server";
 
 import { auth } from "@/auth";
-import { watchlistService } from "@/lib/services/watchlist.service";
+import {
+  watchlistService,
+  WatchlistLimitError,
+} from "@/lib/services/watchlist.service";
 
 export async function GET() {
   const session = await auth();
@@ -41,18 +44,29 @@ export async function POST(
   const body =
     await request.json();
 
-  const watchlist =
-    await watchlistService.create(
-      session.user.id,
-      body.eventId
-    );
+  try {
+    const watchlist =
+      await watchlistService.create(
+        session.user.id,
+        body.eventId
+      );
 
-  return NextResponse.json(
-    watchlist,
-    {
-      status: 201,
+    return NextResponse.json(
+      watchlist,
+      {
+        status: 201,
+      }
+    );
+  } catch (error) {
+    if (error instanceof WatchlistLimitError) {
+      return NextResponse.json(
+        { error: "WATCHLIST_LIMIT_REACHED" },
+        { status: 402 }
+      );
     }
-  );
+
+    throw error;
+  }
 }
 
 export async function DELETE(

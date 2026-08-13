@@ -54,4 +54,16 @@ export const env = {
 
   ADMIN_EMAILS:
     process.env.ADMIN_EMAILS ?? "",
+
+  LEMONSQUEEZY_API_KEY:
+    process.env.LEMONSQUEEZY_API_KEY ?? "",
+
+  LEMONSQUEEZY_STORE_SUBDOMAIN:
+    process.env.LEMONSQUEEZY_STORE_SUBDOMAIN ?? "",
+
+  LEMONSQUEEZY_VARIANT_ID:
+    process.env.LEMONSQUEEZY_VARIANT_ID ?? "",
+
+  LEMONSQUEEZY_WEBHOOK_SECRET:
+    process.env.LEMONSQUEEZY_WEBHOOK_SECRET ?? "",
 } as const;

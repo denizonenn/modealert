@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import Link from "next/link"
 
 import EventStatusCard from "./event-status-card"
 
@@ -26,6 +27,7 @@ import {
   type EventCategory,
   type RotationFilter,
 } from "@/lib/constants/event-category"
+import { FREE_WATCHLIST_LIMIT } from "@/lib/constants/plan"
 
 interface GameOption {
   id: string
@@ -190,6 +192,7 @@ export default function WatchingList() {
   const {
     watchlistedIds,
     isLoading: watchlistLoading,
+    limitReached,
     toggle,
   } = useWatchlist()
 
@@ -304,9 +307,23 @@ export default function WatchingList() {
 
       <div className="space-y-14">
         <div>
-          <h2 className="mb-6 text-lg font-semibold">
-            Your Watchlist
-          </h2>
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold">
+              Your Watchlist
+            </h2>
+
+            {limitReached && (
+              <div className="flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm text-zinc-400">
+                Free plan is limited to {FREE_WATCHLIST_LIMIT} events.
+                <Link
+                  href="/pricing"
+                  className="font-medium text-white hover:underline"
+                >
+                  Upgrade for unlimited
+                </Link>
+              </div>
+            )}
+          </div>
 
           <EventSections
             events={watchedEvents}

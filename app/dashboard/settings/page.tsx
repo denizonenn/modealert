@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
+import { useSearchParams } from "next/navigation"
 import { signOut } from "next-auth/react"
-import { Lock, Mail, Trash2 } from "lucide-react"
+import { Lock, Mail, Trash2, Sparkles } from "lucide-react"
 
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
@@ -11,6 +12,7 @@ import { Switch } from "@/components/ui/switch"
 import { Skeleton } from "@/components/shared/skeleton"
 
 import { useRequireAuth } from "@/hooks/use-require-auth"
+import { PLAN_LABELS, type Plan } from "@/lib/constants/plan"
 
 const MIN_PASSWORD_LENGTH = 8
 
@@ -19,6 +21,11 @@ interface Account {
   name: string | null
   hasPassword: boolean
   emailOptOut: boolean
+  plan: Plan
+  subscriptionStatus: string | null
+  subscriptionRenewsAt: string | null
+  manageSubscriptionUrl: string | null
+  checkoutUrl: string | null
 }
 
 function Section({
@@ -40,6 +47,83 @@ function Section({
 
       <div className="mt-5">{children}</div>
     </div>
+  )
+}
+
+function UpgradedBanner() {
+  const searchParams = useSearchParams()
+
+  if (searchParams.get("upgraded") !== "1") {
+    return null
+  }
+
+  return (
+    <p className="mt-6 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
+      Payment received — activating your Premium plan. This can take a
+      few seconds; refresh if your plan below doesn&apos;t update.
+    </p>
+  )
+}
+
+function SubscriptionSection({ account }: { account: Account }) {
+  const isPremium = account.plan === "PREMIUM"
+
+  return (
+    <Section
+      title="Subscription"
+      description={
+        isPremium
+          ? "Unlimited tracked events and per-event predictions."
+          : "Upgrade for unlimited tracked events and per-event predictions."
+      }
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-zinc-300">
+          <Sparkles className="h-3.5 w-3.5" />
+          {PLAN_LABELS[account.plan]}
+          {isPremium && account.subscriptionRenewsAt && (
+            <span className="text-zinc-500">
+              · renews{" "}
+              {new Date(
+                account.subscriptionRenewsAt
+              ).toLocaleDateString()}
+            </span>
+          )}
+        </span>
+
+        {isPremium ? (
+          account.manageSubscriptionUrl && (
+            <a
+              href={account.manageSubscriptionUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button
+                variant="outline"
+                className="border-white/15 bg-white/5 text-white hover:bg-white/10"
+              >
+                Manage subscription
+              </Button>
+            </a>
+          )
+        ) : account.checkoutUrl ? (
+          <a href={account.checkoutUrl}>
+            <Button className="bg-gradient-brand text-white">
+              Upgrade to Premium
+            </Button>
+          </a>
+        ) : (
+          <a href="/pricing">
+            <Button
+              variant="outline"
+              className="border-white/15 bg-white/5 text-white hover:bg-white/10"
+            >
+              See plans
+            </Button>
+          </a>
+        )}
+      </div>
+    </Section>
   )
 }
 
@@ -317,6 +401,10 @@ export default function SettingsPage() {
           Settings
         </h1>
 
+        <Suspense fallback={null}>
+          <UpgradedBanner />
+        </Suspense>
+
         {loading || !account ? (
           <div className="mt-8 space-y-4">
             <Skeleton className="h-32 w-full" />
@@ -331,6 +419,8 @@ export default function SettingsPage() {
                 {account.email}
               </div>
             </Section>
+
+            <SubscriptionSection account={account} />
 
             <PasswordSection
               account={account}

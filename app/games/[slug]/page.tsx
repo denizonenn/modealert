@@ -9,13 +9,17 @@ import { GameIcon } from "@/components/shared/game-icon"
 import { EventStatusBadge } from "@/components/shared/event-status-badge"
 import { SectionEyebrow } from "@/components/shared/section-eyebrow"
 import { RotationBadge } from "@/components/shared/rotation-badge"
+import { PremiumTeaser } from "@/components/shared/premium-teaser"
 
+import { auth } from "@/auth"
 import { gameService } from "@/lib/services/game.service"
 import { eventQueryService } from "@/lib/services/event-query.service"
 import { eventStatisticsService } from "@/lib/services/event-statistics.service"
 import { eventPredictionService } from "@/lib/services/event-prediction.service"
+import { billingService } from "@/lib/services/billing.service"
 import { formatDuration } from "@/lib/utils"
 import { EXTERNAL_RESOURCES } from "@/lib/constants/external-resources"
+import { PLANS } from "@/lib/constants/plan"
 import {
   categorySortKey,
   EVENT_CATEGORY_LABELS,
@@ -70,6 +74,10 @@ export default async function GameDetailPage({ params }: Props) {
   if (!game) {
     notFound()
   }
+
+  const session = await auth()
+  const plan = await billingService.getPlan(session?.user?.id)
+  const isPremium = plan === PLANS.PREMIUM
 
   const events = await eventQueryService.getByGame(game.id)
 
@@ -216,33 +224,68 @@ export default async function GameDetailPage({ params }: Props) {
                       </p>
                     </div>
 
-                    {statistics.averageDuration > 0 && (
-                      <div>
-                        <p className="text-xs uppercase tracking-wide text-zinc-600">
-                          Average duration
-                        </p>
-                        <p className="mt-0.5 text-zinc-300">
-                          {formatDuration(statistics.averageDuration)}
-                        </p>
-                      </div>
-                    )}
+                    {statistics.averageDuration > 0 &&
+                      (isPremium ? (
+                        <div>
+                          <p className="text-xs uppercase tracking-wide text-zinc-600">
+                            Average duration
+                          </p>
+                          <p className="mt-0.5 text-zinc-300">
+                            {formatDuration(statistics.averageDuration)}
+                          </p>
+                        </div>
+                      ) : (
+                        <PremiumTeaser>
+                          <div>
+                            <p className="text-xs uppercase tracking-wide text-zinc-600">
+                              Average duration
+                            </p>
+                            <p className="mt-0.5 text-zinc-300">
+                              12h 34m
+                            </p>
+                          </div>
+                        </PremiumTeaser>
+                      ))}
 
-                    {prediction.active && predictedEndAt && (
-                      <div className="sm:col-span-3">
-                        <p className="text-xs uppercase tracking-wide text-zinc-600">
-                          Estimated to end
-                        </p>
-                        <p className="mt-0.5 text-zinc-300">
-                          {new Date(predictedEndAt).toLocaleDateString()}{" "}
-                          <span className="text-xs text-zinc-500">
-                            (~{prediction.confidence}% confidence, based
-                            on {statistics.appearanceCount} past
-                            occurrence
-                            {statistics.appearanceCount === 1 ? "" : "s"})
-                          </span>
-                        </p>
-                      </div>
-                    )}
+                    {prediction.active &&
+                      predictedEndAt &&
+                      (isPremium ? (
+                        <div className="sm:col-span-3">
+                          <p className="text-xs uppercase tracking-wide text-zinc-600">
+                            Estimated to end
+                          </p>
+                          <p className="mt-0.5 text-zinc-300">
+                            {new Date(
+                              predictedEndAt
+                            ).toLocaleDateString()}{" "}
+                            <span className="text-xs text-zinc-500">
+                              (~{prediction.confidence}% confidence,
+                              based on {statistics.appearanceCount} past
+                              occurrence
+                              {statistics.appearanceCount === 1
+                                ? ""
+                                : "s"}
+                              )
+                            </span>
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="sm:col-span-3">
+                          <PremiumTeaser>
+                            <div>
+                              <p className="text-xs uppercase tracking-wide text-zinc-600">
+                                Estimated to end
+                              </p>
+                              <p className="mt-0.5 text-zinc-300">
+                                Jan 1, 2027{" "}
+                                <span className="text-xs text-zinc-500">
+                                  (~80% confidence)
+                                </span>
+                              </p>
+                            </div>
+                          </PremiumTeaser>
+                        </div>
+                      ))}
                   </div>
 
                   {prediction.active && !predictedEndAt && (

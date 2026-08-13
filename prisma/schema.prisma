@@ -21,6 +21,12 @@ model User {
 
   emailOptOut         Boolean        @default(false)
 
+  plan                       String    @default("FREE")
+  lemonSqueezyCustomerId     String?
+  lemonSqueezySubscriptionId String?   @unique
+  subscriptionStatus         String?
+  subscriptionRenewsAt       DateTime?
+
   accounts            Account[]
   sessions            Session[]
 
