@@ -839,9 +839,14 @@ Live providers
   June 30, 2026, every 4 weeks after), not a live API signal but a
   deterministic formula from a dated, official source. Verified
   against real sync: computed dates matched independently-found real
-  window dates exactly.
-- TFT ✅ (2026-08-05, Riot — platform status only for now, same
-  `RIOT_API_KEY`. See ADR-009.)
+  window dates exactly. **Xûr added (2026-08-13, ADR-042):** no live
+  vendor API exists (would need per-character OAuth), so his status
+  is computed from his long-standing Friday 17:00 UTC – Tuesday
+  17:00 UTC weekly schedule instead, recomputed every sync.
+- TFT ✅ (2026-08-05, Riot — platform status, same `RIOT_API_KEY`. See
+  ADR-009.) **Current Set added (2026-08-13, ADR-042):** derived from
+  CommunityDragon's live game-file mirror (highest set number
+  present) — Data Dragon's versioned data proved stale for this.
 - Fortnite ✅ (2026-08-05, `fortnite-api.com`, no key needed — Item
   Shop rotation only. LTM tracking deliberately excluded: the
   `/v1/playlists` endpoint returns every playlist the game has ever
@@ -964,11 +969,21 @@ Done (2026-08-05)
 
 Future — richer data per existing game (not just more games)
 
-- TFT: only platform status right now — no live-verified secondary
-  signal exists yet (e.g. "current Set") the way LoL has champion
-  rotation or Destiny has milestones.
-- Valorant: could expand beyond platform status + active acts.
-- Destiny: Vendor rotation (Xûr) not yet mapped.
+- ~~TFT: only platform status right now~~ — **done (2026-08-13,
+  ADR-042).** Real "current Set" signal added, derived from
+  CommunityDragon's live game-file mirror (the highest set number
+  present) — Data Dragon's versioned data proved stale (still showed
+  Set 17 after Set 18 had already launched). Groups successive sets
+  under `seriesKey: "tft-set"` for average-duration stats over time.
+- ~~Destiny: Vendor rotation (Xûr) not yet mapped~~ — **done
+  (2026-08-13, ADR-042).** No live API exists (Xûr isn't a Public
+  Milestone, and vendor inventory needs per-character OAuth, out of
+  scope). Computed instead from his long-standing Friday 17:00 UTC –
+  Tuesday 17:00 UTC weekly schedule, recomputed fresh every sync.
+- Valorant: could expand beyond platform status + active acts. —
+  **investigated 2026-08-13, no real signal found.** Night
+  Market/store rotation is account-scoped (needs OAuth), same
+  personalization-scope exclusion as LCU (ADR-001). Still open.
 
 ---
 

@@ -3326,6 +3326,90 @@ söyledi. Bunu beklerken iki gerçek boşluk fark edildi:
 Her ikisi de mağaza kurulmadan test edilebiliyor (env boşken
 zarifçe no-op) — `tsc --noEmit`, `npm run build` temiz.
 
+---
+
+# ADR-042: TFT "Current Set" ve Destiny 2 Xûr — Gerçek Sinyalle İki Yeni Zenginleştirme
+
+Status: Accepted
+
+Date: 2026-08-13
+
+## Bağlam
+
+Deniz "ürünü biraz daha geliştirelim" dedi, backlog'daki "mevcut
+oyunları zenginleştir" maddesini seçti. docs/09_BACKLOG.md'de üç aday
+vardı: TFT'nin gerçek "current Set" sinyali (hiç yoktu, sadece
+platform status), Destiny 2'de Xûr vendor rotasyonu (haritalanmamıştı),
+Valorant'ın genişletilmesi (belirsiz).
+
+## TFT: Set numarası, CommunityDragon'ın canlı ayna dosyasından
+
+Data Dragon'ın `tft-champion.json`'ı (versiyonlanmış, LoL patch'ine
+bağlı) denendi önce — en son versiyon (16.16.1) hâlâ Set 17'yi en
+yüksek set olarak gösteriyordu. Ama WebSearch, Set 18'in 2026-08-12'de
+çıktığını buldu. Çapraz kontrol: CommunityDragon'ın `/latest/cdragon/
+tft/en_us.json`'ı (`sets` objesi) gerçekten Set 18'i içeriyordu —
+Data Dragon'ın versiyonlanmış anlık görüntüsü CommunityDragon'ın
+sürekli güncellenen canlı aynasından daha eski çıktı (LoL'ün
+queues.json/event-hub.json'unda zaten güvenilen aynı kaynak sınıfı,
+bkz. ADR-037). Gerçek sınırlama: bu dosyanın küçük bir özeti yok, her
+locale ~26MB — günlük sync'e gerçek bir maliyet, ama tek çalışan
+kaynak old bulundu.
+
+`lib/providers/tft/`'a `mapCurrentSet()` eklendi — `sets` objesindeki
+en yüksek sayısal anahtarı "şu anki set" olarak alıyor, `tft-set-{N}`
+id'siyle (yeni bir set çıkınca eski otomatik ENDED olur, source-scoped
+expiry sayesinde — yeni set çıkışı gerçek, bildirilebilir bir
+değişiklik haline geliyor), `seriesKey: "tft-set"` ile (geçmiş
+set'lerin ortalama süresini/tahminini görebilmek için, ADR-031'deki
+aynı mekanizma). CDragon'ın gömülü `name` alanına güvenilmedi — Set
+18 için "Set10" gibi yanlış/placeholder bir değer döndürüyordu; sadece
+sayısal anahtardan "Set N" üretildi.
+
+## Destiny 2: Xûr, gerçek Bungie milestone verisi yok — resmi, yıllardır sabit takvimden hesaplandı
+
+`Destiny2/Milestones/` canlı olarak çekilip doğrulandı: 12 milestone
+var, hiçbiri Xûr değil (o bir vendor, milestone değil). Bungie'nin
+vendor-envanteri API'si karakter bazlı OAuth istiyor — bu, LCU'nun
+kişiselleştirme kapsamı dışında tutulma gerekçesiyle aynı sınırda
+(ADR-001), ModeAlert'in "login gerektirmeyen public veri" ilkesine
+aykırı. Ama Xûr'un takvimi (Cuma 17:00 UTC günlük reset'te gelir, Salı
+17:00 UTC haftalık reset'te gider) yıllardır sabit ve Destiny'nin
+sezon/set içeriğinden bağımsız bir çekirdek mekanik — Iron Banner'ın
+aksine (onun kadansı gerçekten değişmişti, ADR-033/034), bu asla
+"askıya alınmadı", o yüzden ayrı bir resmi duyuru anchor'ına gerek
+yok. WebSearch ile güncelliği doğrulandı (2026-08-13).
+
+`lib/providers/destiny/event-mapper.ts`'e `mapXur(now)` eklendi —
+`mapIronBanner`'ın yanına, aynı "her sync'te gerçek UTC zamanından
+yeniden hesapla" ilkesiyle. Haftanın günü + saatten en son Cuma
+17:00 UTC reset'i buluyor, +4 gün penceresiyle LIVE/ENDED
+hesaplıyor.
+
+## Doğrulama
+
+- **TFT:** gerçek CDragon fetch'i çalıştırıldı (RIOT_API_KEY o an yine
+  24 saatlik expire'a girmişti — platform-status çağrısı bundan
+  etkilendi, ilgisiz bir sorun; `tftClient.getSetData()` doğrudan
+  test edildi) — `sets` anahtarları `[1,3,4,5,7,13,14,15,16,17,18]`
+  döndü, `tft-set-18` LIVE olarak üretildi.
+- **Destiny:** gerçek `destinyService.getEvents()` çalıştırıldı —
+  bugün (2026-08-13, Perşembe) Xûr doğru şekilde ENDED, açıklamada
+  "Back Fri, 14 Aug 2026 17:00:00 GMT" (yarın) — gerçek takvimle
+  birebir örtüşüyor.
+- 122/122 test (8 yeni: `mapCurrentSet` için 3, `mapXur` için 5 —
+  hafta sınırlarındaki geçişler dahil), `tsc --noEmit`,
+  `npm run build` temiz.
+
+## Yapılmayan
+
+- **Valorant genişletmesi araştırıldı ama eklenmedi** — platform
+  status + act tespiti dışında gerçek, doğrulanmış, public bir sinyal
+  bulunamadı (Night Market/mağaza rotasyonu hesap bazlı, OAuth
+  gerektiriyor — aynı "kişiselleştirme kapsamı dışı" sınırı). Yarım
+  doğrulanmış bir şey eklemektense boş bırakmak, projenin "asla
+  tahmin/varsayım" ilkesiyle tutarlı. Backlog'da açık kaldı.
+
 - **İlk kullanıcı edinme stratejisi** — Deniz ayrıca konuşmak istedi,
   ayrı bir konu (bu ADR sadece paywall/ödeme altyapısını kapsıyor).
   Önerilen yön: oyun bazlı Reddit toplulukları (zaten desteklenen 10

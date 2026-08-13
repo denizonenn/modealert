@@ -127,6 +127,81 @@ export function mapIronBanner(now: Date): ProviderEvent[] {
   ];
 }
 
+// Xûr has no Public Milestones entry (he's a vendor, not a milestone —
+// confirmed 2026-08-13 by fetching the live endpoint directly: 12
+// milestones total, none of them Xûr) and Bungie's vendor-inventory
+// API requires per-character OAuth, which is out of scope the same
+// way LCU personalization is (bkz. ADR-001) — ModeAlert only reads
+// public, no-login data. What IS public and reliable: Xûr's schedule
+// has been Friday 17:00 UTC (daily reset) to Tuesday 17:00 UTC
+// (weekly reset) for years, independent of season/set content — a
+// core vendor loop, not something that lapsed with Destiny 2's live-
+// service wind-down (unlike Iron Banner's cadence above, which needed
+// a real announced anchor date). Verified current via WebSearch
+// 2026-08-13. Computed fresh every sync from real UTC time, not a
+// frozen snapshot.
+const XUR_VISIT_DURATION_DAYS = 4;
+const XUR_CYCLE_DAYS = 7;
+
+function mostRecentFridayReset(now: Date): Date {
+  const daysSinceFriday = (now.getUTCDay() - 5 + 7) % 7;
+
+  const candidate = new Date(
+    Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate() - daysSinceFriday,
+      17,
+      0,
+      0,
+      0
+    )
+  );
+
+  if (candidate.getTime() > now.getTime()) {
+    candidate.setUTCDate(candidate.getUTCDate() - 7);
+  }
+
+  return candidate;
+}
+
+export function mapXur(now: Date): ProviderEvent[] {
+  const arrivalStart = mostRecentFridayReset(now);
+  const departureEnd = new Date(
+    arrivalStart.getTime() + XUR_VISIT_DURATION_DAYS * DAY_MS
+  );
+
+  const isPresent = now.getTime() < departureEnd.getTime();
+
+  let status: ProviderEventStatus;
+  let description: string;
+
+  if (isPresent) {
+    status = "LIVE";
+    description = `Xûr is at his usual spot (the Tower Bazaar) until ${departureEnd.toUTCString()} — computed from his weekly Friday 17:00 UTC to Tuesday 17:00 UTC schedule, not a live inventory API (Bungie doesn't expose vendor stock without per-character auth).`;
+  } else {
+    const nextArrival = new Date(
+      arrivalStart.getTime() + XUR_CYCLE_DAYS * DAY_MS
+    );
+    status = "ENDED";
+    description = `Xûr has left for the week. Back ${nextArrival.toUTCString()}, per his weekly Friday 17:00 UTC schedule.`;
+  }
+
+  return [
+    {
+      id: "destiny-xur",
+      gameId: GAME_IDS.DESTINY_2,
+      title: "Xûr",
+      description,
+      status,
+      category: EVENT_CATEGORIES.ROTATION_MILESTONE,
+      isLimitedTime: true,
+      trackedUsers: 0,
+      checkedAt: now,
+    },
+  ];
+}
+
 export function mapDestinyEvents(
   settings: DestinySettingsResponse,
   milestones: DestinyPublicMilestonesResponse,
@@ -136,5 +211,6 @@ export function mapDestinyEvents(
     ...mapPlatformStatus(settings),
     ...mapActiveMilestones(milestones, definitions),
     ...mapIronBanner(new Date()),
+    ...mapXur(new Date()),
   ];
 }

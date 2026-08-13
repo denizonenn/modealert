@@ -4,6 +4,7 @@ import {
   mapActiveMilestones,
   mapIronBanner,
   mapPlatformStatus,
+  mapXur,
 } from "./event-mapper";
 
 describe("destiny mapPlatformStatus", () => {
@@ -86,5 +87,40 @@ describe("destiny mapIronBanner", () => {
     const [event] = mapIronBanner(new Date("2026-08-25T12:00:00.000Z"));
 
     expect(event.status).toBe("LIVE");
+  });
+});
+
+describe("destiny mapXur (Friday 17:00 UTC – Tuesday 17:00 UTC weekly)", () => {
+  it("is LIVE just after Friday's arrival", () => {
+    const [event] = mapXur(new Date("2026-08-14T20:00:00.000Z"));
+
+    expect(event.status).toBe("LIVE");
+    expect(event.id).toBe("destiny-xur");
+    expect(event.gameId).toBe("destiny");
+  });
+
+  it("is ENDED on Friday before the 17:00 UTC arrival", () => {
+    const [event] = mapXur(new Date("2026-08-14T10:00:00.000Z"));
+
+    expect(event.status).toBe("ENDED");
+  });
+
+  it("is LIVE on Tuesday before the 17:00 UTC departure", () => {
+    const [event] = mapXur(new Date("2026-08-18T10:00:00.000Z"));
+
+    expect(event.status).toBe("LIVE");
+  });
+
+  it("is ENDED on Tuesday after the 17:00 UTC departure", () => {
+    const [event] = mapXur(new Date("2026-08-18T20:00:00.000Z"));
+
+    expect(event.status).toBe("ENDED");
+  });
+
+  it("reports the next Friday arrival when away mid-week", () => {
+    const [event] = mapXur(new Date("2026-08-19T12:00:00.000Z"));
+
+    expect(event.status).toBe("ENDED");
+    expect(event.description).toContain("21 Aug 2026");
   });
 });

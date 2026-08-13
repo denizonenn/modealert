@@ -1,14 +1,20 @@
 import { tftClient } from "./client";
 import { TFT_PLATFORM_STATUS_ENDPOINT } from "./constants";
-import { mapPlatformStatus } from "./event-mapper";
+import { mapPlatformStatus, mapCurrentSet } from "./event-mapper";
 import type { TftPlatformStatusResponse } from "./types";
 
 export const tftService = {
   async getEvents() {
-    const status = await tftClient.get<TftPlatformStatusResponse>(
-      TFT_PLATFORM_STATUS_ENDPOINT
-    );
+    const [status, setData] = await Promise.all([
+      tftClient.get<TftPlatformStatusResponse>(
+        TFT_PLATFORM_STATUS_ENDPOINT
+      ),
+      tftClient.getSetData(),
+    ]);
 
-    return mapPlatformStatus(status);
+    return [
+      ...mapPlatformStatus(status),
+      ...mapCurrentSet(setData),
+    ];
   },
 };
