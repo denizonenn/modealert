@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils"
 import { useEvents } from "@/hooks/use-events"
 import { useWatchlist } from "@/hooks/use-watchlist"
 import { Skeleton } from "@/components/shared/skeleton"
+import { collapseSeriesToLatest } from "@/lib/utils/event-series"
 
 import type { EventWithGame } from "@/lib/repositories/event.repository"
 import type { EventStatus } from "@/types/status"
@@ -283,7 +284,11 @@ export default function WatchingList() {
     watchlistedIds.has(event.id)
   )
 
-  const browsableEvents = filteredEvents.filter(
+  // Collapsing to one row per seriesKey only applies to the "browse
+  // and pick" list — a user's existing watchlist entry (above) always
+  // shows exactly what they tracked, even if a newer occurrence of
+  // its series has since appeared.
+  const browsableEvents = collapseSeriesToLatest(filteredEvents).filter(
     (event) =>
       selectedCategories.has(event.category as EventCategory) &&
       matchesRotationFilter(event.isLimitedTime, selectedRotations)

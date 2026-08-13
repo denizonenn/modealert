@@ -518,12 +518,23 @@ Future
   event once real data exists, and PBE-preview rows are already
   timestamped from first sight, so the raw data this needs will
   already be there when it's time to build it.
-- **Known duplicate-title issue (ADR-027)** — "ARAM: Mayhem" now
-  appears twice in listings (once ENDED from the old pass window,
-  once LIVE from the current one) since both canonicalize to the same
-  display name. Not deduplicated yet; would need a "collapse to most
-  recent occurrence per canonical name" rule if this becomes annoying
-  enough to fix.
+- ~~Known duplicate-title issue (ADR-027)~~ — **resolved (2026-08-13,
+  ADR-036).** The specific "ARAM: Mayhem" case turned out to already
+  be fixed as a side effect of ADR-029 (same-day) — its pass window
+  stopped being renamed to the canonical mode name, so it never
+  actually duplicated after that; this note was just never updated.
+  The underlying mechanism (a recurring thing getting a fresh provider
+  id each occurrence) is still real and now confirmed live on a
+  different event ("Season 3: Act I", one ENDED row from 2025, one
+  LIVE from 2026) — `lib/utils/event-series.ts`'s
+  `collapseSeriesToLatest()` now collapses same-game, same-seriesKey,
+  **same-title** rows to the single most relevant occurrence in the
+  dashboard "All Events" and onboarding pick-lists only. Deliberately
+  keyed on title, not just seriesKey — an early version grouped by
+  seriesKey alone and wrongly collapsed genuinely distinct occurrences
+  ("Season 1: Act I" vs "Season 1: Act II") down to one. `/games/[slug]`,
+  `/events/[slug]`, and "Your Watchlist" still show every real
+  occurrence, untouched.
 
 ---
 

@@ -6,6 +6,7 @@ import { useOnboardingStore } from "@/stores/onboarding-store";
 
 import { useEvents } from "@/hooks/use-events";
 import { Skeleton } from "@/components/shared/skeleton";
+import { collapseSeriesToLatest } from "@/lib/utils/event-series";
 import { CategoryFilterBar } from "@/components/shared/category-filter-bar";
 import { RotationFilterBar } from "@/components/shared/rotation-filter-bar";
 
@@ -92,7 +93,7 @@ export default function EventSelector() {
 
   const filteredEvents = useMemo(
     () =>
-      events
+      collapseSeriesToLatest(events)
         .filter(
           (event) =>
             selectedGames.includes(event.gameId) &&

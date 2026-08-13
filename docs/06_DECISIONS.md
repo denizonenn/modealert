@@ -2777,3 +2777,70 @@ pencereyi paylaşıyor ve API'de güvenilir bir ayrım yapacak veri yok.
 - PoE/Helldivers 2/Foxhole için kod değişikliği yapılmadı — araştırma
   yapıldı, güven eşiğini geçen bir şey bulunmadı, bu bilinçli bir
   "eklenmedi" kararı, atlanmış bir araştırma değil.
+
+---
+
+# ADR-036: Bilinen Duplicate-Title Sınırı Çözüldü — (gameId, title) Bazlı Collapse, seriesKey Değil
+
+Status: Accepted
+
+Date: 2026-08-13
+
+## Bağlam
+
+ADR-027'nin "Bilinen sınır — kayıt tekrarı" notu ve docs/09_BACKLOG.md'nin
+"Known duplicate-title issue (ADR-027)" maddesi, "ARAM: Mayhem"ın
+listede iki kez (biri ENDED biri LIVE) göründüğünü, tekilleştirme
+yapılmadığını söylüyordu. Bu oturumda önce doğrulandı: ADR-029'un aynı
+gün içindeki kararı (Mayhem'in pas-penceresi başlığını artık yeniden
+adlandırmaması, kendi ayrı kalıcı satırına sahip olması) bu spesifik
+örneği zaten çözmüştü — gerçek canlı event-hub verisiyle doğrulandı,
+"ARAM: Mayhem" adı artık sadece `rotating-modes` provider'ından bir kez
+geliyor. Ama backlog/ADR notu hiç güncellenmemişti (stale doküman).
+
+Asıl mekanizma (aynı içeriğin her occurrence'ında yeni bir provider id
+alması) hâlâ canlı: gerçek DB'de `lol-ranked-season-pass` seriesKey'i
+altında "Season 3: Act I" 2025'te ENDED, 2026'da LIVE olarak iki ayrı
+satır olarak duruyor — aynı sorunun farklı bir event üzerinde tekrar
+görünen hali.
+
+## İlk Yaklaşım ve Neden Terk Edildi
+
+İlk denemede `collapseSeriesToLatest()` doğrudan `Event.seriesKey`'e
+göre gruplayıp her seriesKey'den sadece en güncel/en canlı satırı
+tutacak şekilde yazıldı. Gerçek DB verisiyle test edilince ciddi bir
+hata ortaya çıktı: `lol-ranked-season-pass` seriesKey'i "Season 1: Act
+I", "Season 1: Act II", "Season 2: Act I", "Season 2: Act II", "Season
+3: Act I" (x2) gibi 6 FARKLI başlığı kapsıyor — hepsi aynı seriesKey'i
+paylaşıyor ama her biri gerçekten farklı, ayırt edilebilir bir occurrence.
+Sadece seriesKey'e göre collapse etmek bu 6 satırı 1'e indirip 5 tanesini
+(gerçek, bilgilendirici, farklı başlıklı geçmiş satırlarını) sessizce
+kaybediyordu — bu ADR-031'in seriesKey'i var etme amacının (istatistik
+için gruplama, görüntüleme için silme değil) tam tersiydi.
+
+## Karar
+
+`lib/utils/event-series.ts` → `collapseSeriesToLatest()` (gameId,
+seriesKey) yerine **(gameId, seriesKey, title)** üçlüsüne göre grupluyor
+— yani sadece hem aynı seriesKey'i hem de BİREBİR AYNI başlığı paylaşan
+satırlar tekilleştiriliyor. "Season 1: Act I" vs "Season 1: Act II" gibi
+aynı seriesKey'li ama farklı başlıklı satırlar dokunulmadan kalıyor.
+Sadece dashboard "All Events" (`components/dashboard/watching-list.tsx`
+→ `browsableEvents`) ve onboarding event seçici
+(`components/onboarding/event-selector.tsx`) listelerine uygulandı —
+bunlar "seç/takip et" listeleri, aynı başlığın iki kez görünmesi gerçek
+bir bug gibi okunuyor. `/games/[slug]` ve `/events/[slug]` (tam geçmiş
+sayfaları) ve "Your Watchlist" bölümü (kullanıcının zaten seçtiği
+event'i asla listeden düşürmemeli) bilinçli olarak dokunulmadan
+bırakıldı.
+
+## Sonuçlar
+
+- Gerçek prod DB'ye (Neon) karşı doğrulandı (read-only sorgu): 12
+  seriesKey'li satırdan sadece 1 tanesi (duplicate "Season 3: Act I")
+  düşüyor, diğer 11'i (farklı başlıklı gerçek occurrence'lar dahil)
+  aynen kalıyor.
+- 98/98 test (7 yeni: `event-series.test.ts`, aynı-seriesKey-farklı-
+  başlık senaryosu dahil), `tsc --noEmit`, `npm run build` temiz.
+- docs/09_BACKLOG.md'deki stale "Known duplicate-title issue" notu
+  düzeltildi.
