@@ -128,24 +128,13 @@ const KNOWN_MODES: KnownMode[] = [
     status: "LIVE",
     isLimitedTime: false,
   },
-  {
-    id: "rotating-mode-urf",
-    gameId: GAME_IDS.LEAGUE_OF_LEGENDS,
-    title: "URF",
-    description:
-      "Ultra Rapid Fire — near-zero cooldowns, no mana, chaos. A rotating featured mode; Riot doesn't publish a schedule for when featured modes are in rotation, so ModeAlert has no live signal for it right now (checked both the live and PBE event-hub feeds directly — neither has a URF entry). Its last confirmed run (as ARURF) started January 22, 2026 with Patch 26.2, per Riot's own official patch notes (verified via WebSearch 2026-08-12) — no reliable end date found, so that's not seeded as history here (would be false precision). Tracked so you don't miss the next one — the moment Riot's data shows a real URF window, ModeAlert reports its actual status and starts building real history (how long it stays live, PBE-to-live lag) automatically.",
-    status: "ENDED",
-    isLimitedTime: true,
-  },
-  {
-    id: "rotating-mode-arena",
-    gameId: GAME_IDS.LEAGUE_OF_LEGENDS,
-    title: "Arena",
-    description:
-      "2v2v2v2v2v2v2v2 round-based combat with augments. Same no-signal problem as URF: Riot doesn't publish a schedule for rotating modes, so ModeAlert has no live signal for it right now (checked both the live and PBE event-hub feeds directly — neither has an Arena entry). Its current run started June 25, 2025 with Patch 25.13 and was still receiving active updates as of Patch 26.16 (August 12, 2026 — balance changes, the weekly 'Bravery Arena' variant returning), per Riot's own official patch notes (verified via WebSearch 2026-08-13) — but that's a one-time snapshot, not a live, self-updating signal like Destiny 2's Iron Banner (computed fresh from a fixed formula every sync). Nothing here would notice if Arena left rotation the next patch, so it's marked ENDED rather than a LIVE claim ModeAlert can't actually stand behind long-term. Tracked so you don't miss the next confirmed window — the moment Riot's data shows a real Arena entry, ModeAlert reports its actual status automatically.",
-    status: "ENDED",
-    isLimitedTime: true,
-  },
+  // URF and Arena used to be static ENDED-by-default placeholders here
+  // (no signal available anywhere, see the old ADR-024/ADR-036
+  // history) — replaced 2026-08-13 by real, live, self-updating rows
+  // from lib/providers/lol-client-config/, which queries Riot's own
+  // unauthenticated client config service (clientconfig.rpg.riotgames.com)
+  // for genuine per-region "is this queue enabled right now" data. See
+  // docs/06_DECISIONS.md ADR-037.
   // "ARAM: Mayhem Classic-ish" used to be a static always-ENDED entry
   // here. Moved to lib/providers/communitydragon/normalizer.ts —
   // it's now derived from League Classic's real pass-window dates

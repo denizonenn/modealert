@@ -2923,3 +2923,100 @@ gerekçesi olamaz.
 - `tsc --noEmit`, `npm run build`, 98/98 test temiz.
 - `rotatingModesProvider.getEvents()` tekrar çalıştırılıp Arena'nın artık
   `status: "ENDED"` döndürdüğü doğrulandı.
+
+---
+
+# ADR-037: Gerçek Canlı Sinyal Bulundu — `clientconfig.rpg.riotgames.com`, URF/Arena Artık Sahte Anlık Görüntü Değil Gerçek API
+
+Status: Accepted
+
+Date: 2026-08-13
+
+## Bağlam
+
+Deniz'in ADR-036'daki düzeltmeye tepkisi net bir soruydu: "URF gelince
+de yakalayamayabilir miyiz? Bu bizim en büyük USP'miz, web scraper ya da
+güvenli başka bir kaynak bulmaya çalışsak?" — yıllardır (ADR-017'den
+beri) "böyle bir sinyal yok" denen şeyin gerçekten var olup olmadığını
+son bir kez, ciddiyetle araştırmak için haklı bir itki.
+
+## Keşif
+
+`isurfback.com` (daha önce "metodolojisini açıklamıyor, güvenilemez"
+diye not düşülmüş 3. parti bir site) incelendi — sayfasının SSR HTML'ine
+gömülü **gerçek, bölge bazlı, `isActive` alanlı canlı veri** bulundu
+(örn. Arena EUW1/JP1/KR'de aktif, URF hiçbir yerde değil). Bu, sitenin
+gerçek bir arka ucu olduğunu kanıtladı. Onu takip ederek Riot'un kendi,
+**hiç API key gerektirmeyen, herkese açık**
+`clientconfig.rpg.riotgames.com` servisi bulundu — League Client'ın
+giriş ekranından ÖNCE Play menüsünü doldurmak için kullandığı config
+servisi. İçinde tam aranan alan var:
+`lol.<region>.operational.queues.queueConfigs[].{isEnabled,isVisibleInClient}`
+— her queueId için, bölge bazında, gerçek zamanlı (`Cache-Control:
+max-age=5`) bir "şu an açık mı" sinyali.
+
+## Sevkiyat Öncesi Yakalanan Ciddi Hata
+
+İlk implementasyon TEK bir istek atıp (region=NA1 parametresiyle) o
+tek response'un içindeki TÜM bölgelerin dotted-key'lerini okuyordu —
+çünkü response gerçekten de her bölgenin anahtarını içeriyordu. Ama
+isurfback.com'un verisiyle çapraz kontrol edilince (URF'ün hiçbir
+bölgede aktif olmaması gerekirken kodun 14 bölgede "LIVE" üretmesi)
+gerçek bir hata ortaya çıktı: **bir bölgenin `queueConfigs`'i SADECE o
+bölgenin kendi `region=` parametresiyle atılan istekte doğru** —
+başka bir bölge parametresiyle gelen response'daki aynı anahtar
+bayat/yanlış. Doğrudan doğrulandı: `region=NA1` ile atılan istekte
+EUW1 900 numaralı kuyruk (URF) `isEnabled:true` görünüyordu; aynı
+anda `region=EUW1` ile atılan istekte AYNI kuyruk `isEnabled:false`
+dönüyordu. **Düzeltme:** 15 bölgeye paralel, ayrı ayrı istek
+(`lib/providers/lol-client-config/client.ts` →
+`getAllRegions()`), her bölgenin durumu SADECE kendi isteğinin
+response'undan okunuyor. Bu regresyonu bir daha sessizce
+bozulmayacak şekilde `event-mapper.test.ts`'e özel bir test eklendi
+("only reads a region's status from that region's OWN response").
+
+## Karar
+
+`lib/providers/lol-client-config/` (yeni provider, `poe`/`warframe`
+ile aynı dosya deseni: `client.ts`/`constants.ts`/`event-mapper.ts`/
+`service.ts`/`provider.ts`/`types.ts`) eklendi ve registry'ye
+kaydedildi. 5 gerçek queue id'yi ayrı ayrı satır olarak takip ediyor
+(ADR-026'nın queue-level granularity ilkesiyle aynı): URF (900),
+Pick URF (1900), Arena (1700), Bravery Arena (1740), Arena 3x6
+(1750). Her biri "en az 1 bölgede enabled+visible ise LIVE" kuralıyla
+hesaplanıyor, description hangi bölgelerde canlı olduğunu gerçek
+isimleriyle listeliyor. `rotating-modes/provider.ts`'deki eski statik
+URF/Arena placeholder'ları (ADR-024/ADR-036) kaldırıldı — artık gerçek
+sinyal var, honest-ama-sinyalsiz bir varsayılana gerek yok.
+
+Bu, ADR-036'nın koyduğu kuralı ("LIVE sadece yapısal kalıcılık veya
+her sync'te yeniden hesaplanan gerçek formül") tam karşılıyor: her
+sync'te 15 gerçek HTTP isteğiyle yeniden hesaplanıyor, dondurulmuş bir
+anlık görüntü değil.
+
+## Doğrulama ve Dürüst Sınırlar
+
+- Gerçek canlı veriyle test edildi: URF/Pick URF artık her yerde
+  `ENDED` (isurfback'in "anyUrfLive:false"'uyla birebir eşleşiyor),
+  Bravery Arena NA1/LA1/LA2'de, Arena 3x6 geri kalan çoğu bölgede
+  `LIVE` — isurfback'in NA1/JP1/KR/OC1 verisiyle tam eşleşiyor.
+- Tam eşleşmeyen birkaç nokta da bulundu (RU/TR1 için isurfback
+  "hiçbir şey aktif değil" derken clientconfig Arena 3x6 + Mayhem
+  gösteriyor; EUW1'de hangi Arena alt-varyantının aktif olduğu iki
+  kaynak arasında birkaç dakikalık ölçüm farkıyla değişebiliyor).
+  Bu, isurfback'i sorgulamıyoruz — Riot'un kendi servisini
+  sorguluyoruz, isurfback sadece hatamızı yakalamak için bağımsız bir
+  çapraz kontrol aracı olarak kullanıldı. Kalan küçük uyuşmazlıklar
+  muhtemelen iki sistemin farklı anlarda ölçülmesinden veya
+  isurfback'in kendi (bilinmeyen) filtrelemesinden kaynaklanıyor —
+  ModeAlert'in kaynağı (Riot'un kendi client config servisi)
+  isurfback'ten daha doğrudan/otoriter.
+- Bu servis Riot Developer Portal'da dokümante edilmiş resmi bir
+  public API değil — League Client'ın kendi iç kullanımı için var,
+  key gerekmiyor, CDN üzerinden cache'li. Aynı "resmi olmayan ama
+  gerçek client verisi" güven sınıfında CommunityDragon da var; risk
+  burada Riot'un bunu bildirimsiz değiştirmesi/kısıtlaması — olursa
+  provider `ProviderHealthCheck`'te unhealthy görünür, sessizce
+  yanlış veri üretmez (retry/health-check pipeline'ı zaten var).
+- 105/105 test (6 yeni, region-izolasyon regresyon testi dahil),
+  `tsc --noEmit`, `npm run build` temiz.

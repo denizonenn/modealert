@@ -95,7 +95,7 @@ kadar.**
 - **Veritabanı:** Neon Postgres (Vercel Storage Marketplace üzerinden).
   Artık SQLite değil — `DATABASE_URL` (pooled) + `DATABASE_URL_UNPOOLED`
   (migration'lar için) kullanılıyor.
-- **Aktif provider'lar (10, hepsi gerçek veriyle doğrulandı):** Riot API
+- **Aktif provider'lar (11, hepsi gerçek veriyle doğrulandı):** Riot API
   (platform status + champion rotation), CommunityDragon (event-hub,
   live+pbe patchline), Valorant (platform status + act/episode),
   **Destiny 2** (Bungie API — platform status + haftalık aktif
@@ -109,7 +109,12 @@ kadar.**
   2026-08-06, bkz. ADR-014), **Helldivers 2** (`api.helldivers2.dev`,
   topluluk aynası, key gerektirmiyor — aktif Major Order'lar,
   2026-08-06, bkz. ADR-015), **Foxhole** (resmi geliştirici API'si,
-  key gerektirmiyor — güncel savaş durumu, 2026-08-06, bkz. ADR-016).
+  key gerektirmiyor — güncel savaş durumu, 2026-08-06, bkz. ADR-016),
+  **LoL Live Queue Status** (`clientconfig.rpg.riotgames.com`, Riot'un
+  League Client'ın giriş öncesi kullandığı key gerektirmeyen config
+  servisi — URF/Arena gibi yıllardır "sinyalsiz" denen rotasyonlu
+  modlar için gerçek, bölge bazlı, canlı `isEnabled` verisi,
+  2026-08-13, bkz. ADR-037).
   LCU sadece kişiselleştirme için — event keşfi için KULLANILMAZ
   (bkz. docs/06_DECISIONS.md ADR-001). Call of Duty değerlendirildi ve
   **reddedildi** — Activision'ın resmi bir API'si yok, gayri-resmi

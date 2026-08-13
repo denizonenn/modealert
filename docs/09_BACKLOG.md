@@ -150,24 +150,17 @@ Completed
 
 Remaining
 
-- ~~rotating modes~~ — **araştırıldı, çözülemedi (2026-08-06).** URF/
-  Arena/ARAM Mayhem gibi rotasyonlu "featured game mode"lar
-  `queues.json`'da tüm 420 kuyruğu (URF dahil) tarihsiz/aktiflik
-  bilgisi olmadan döndürüyor — OpenDota'nın "her zaman her şeyi döner,
-  aktif filtre yok" sorunuyla aynı sınıf. Keyless, güvenilir bir "şu an
-  rotasyonda olan mod" kaynağı bulunamadı. Bkz. ADR-017. **Düzeltme
-  (2026-08-06, ADR-020):** ADR-017 "event-hub.json'da hiç yok" demişti
-  ama bu yanlıştı — Mayhem'in ~4 aylık battle-pass penceresi orada
-  gerçekten var, sadece jenerik "Season pass" etiketi altında
-  gizlenmişti ve LIVE gösteriliyordu (yanıltıcı — "mod açık" değil
-  "pass penceresi açık" anlamına geliyor). O oturumda normalizer'dan
-  tamamen filtrelenmişti. **Karar değişti (2026-08-12, ADR-023):**
-  Deniz'in isteğiyle artık tamamen gizlenmiyor — `SEASON_PASS`
-  kategorisiyle, "bu sadece battle-pass penceresi, modun kendisi şu an
-  rotasyonda mı bilinmiyor" notuyla dürüstçe geri geldi. Asıl teknik
-  sonuç hâlâ değişmedi: "şu an rotasyonda mı" sorusuna hâlâ cevap yok,
-  Riot/CommunityDragon ileride böyle bir endpoint sunarsa yeniden
-  değerlendirilmeli.
+- ~~rotating modes~~ — **çözüldü (2026-08-13, ADR-037), önceki
+  çözülemedi kararları geçersiz.** `queues.json`/event-hub.json'un
+  gerçekten "şu an aktif mi" bilgisi yoktu (ADR-017/ADR-020/ADR-023
+  hepsi doğruydu, bu iki dosya için) — ama araştırma yanlış yere
+  bakıyordu. Gerçek sinyal `clientconfig.rpg.riotgames.com`'da
+  (Riot'un client'ın giriş öncesi kullandığı, key gerektirmeyen config
+  servisi) duruyormuş: `queueConfigs[].isEnabled`/`isVisibleInClient`,
+  bölge bazında, gerçek zamanlı. `lib/providers/lol-client-config/`
+  artık URF/Pick URF/Arena/Bravery Arena/Arena 3x6'yı bununla gerçek
+  canlı sinyalle takip ediyor. Detay ve sevkiyat öncesi yakalanan
+  ciddi bir bölge-parametresi hatası için ADR-037'ye bak.
 - arena metadata (cherry-lobby.json henüz kullanılmıyor)
 - event-passes.json entegrasyonu
 
@@ -435,26 +428,30 @@ Completed
 - Category badges added to event cards on onboarding, dashboard, and
   `/games/[slug]`.
 
-- **`lib/providers/rotating-modes/provider.ts`** (2026-08-12, ADR-024)
-  — a small hand-written provider (first non-fetch, non-live-data
-  provider in the codebase) that surfaces URF as a trackable
-  `ENDED`/`PLAYABLE` row even though Riot's feed currently has zero
-  signal for it (verified live + PBE, both checked). Never claims
-  LIVE, never invents dates — exists purely so it's selectable ahead
-  of a real signal ever showing up. Arena had the identical no-signal
-  problem (`cherry-lobby.json` has no dates either) — **added
-  2026-08-13, ADR-036.** First shipped as `status: "LIVE"` off a
-  WebSearch-verified Riot patch note (August 12, 2026), but Deniz
-  caught the real flaw same day: unlike Iron Banner (a formula
-  recomputed fresh every sync), that was a one-time snapshot frozen
-  into the code with nothing to ever walk it back if Arena leaves
-  rotation. Reverted to `ENDED`/`PLAYABLE` — same honest, no-live-
-  signal framing as URF. Confirmed there's no real automatable
-  alternative either: Riot's patch notes have no structured API, only
-  HTML, and keyword-scraping them ("does 'Arena' appear in the text")
-  can't tell "currently live" from "being removed" apart — same class
-  of unreliable source this project already rejects elsewhere (PoE's
-  fan-site league date, Overwatch 2/GW2's static calendars).
+- ~~`lib/providers/rotating-modes/provider.ts` URF/Arena placeholders~~
+  — **superseded 2026-08-13, ADR-037.** The static `ENDED`-by-default
+  URF/Arena rows (ADR-024, then ADR-036's Arena correction) were
+  ModeAlert's best available answer for years — genuinely no signal
+  existed. That changed: found `clientconfig.rpg.riotgames.com`,
+  Riot's own unauthenticated, keyless client-config service (the one
+  the League Client itself queries pre-login), which exposes real,
+  per-region, live `isEnabled`/`isVisibleInClient` flags per queue id
+  — literally the "is this queue open right now" signal that ADR-017
+  through ADR-036 all concluded didn't exist anywhere. New provider
+  `lib/providers/lol-client-config/` now tracks URF, Pick URF, Arena,
+  Bravery Arena, and Arena 3x6 as real, self-updating rows (LIVE if
+  enabled in ≥1 of 15 checked regions), recomputed fresh every sync —
+  not a frozen snapshot like ADR-036's mistake. Caught and fixed a
+  real bug before shipping this: a single request only returns
+  accurate data for the region named in its own `region` query
+  param — bundling all-region data from one request (the first
+  attempt) silently reported wrong statuses for every region except
+  the one requested. Found via cross-checking against isurfback.com's
+  independent live data. Not an officially documented public API, but
+  same "real, unauthenticated client data" trust class as
+  CommunityDragon; if Riot changes/restricts it, the existing
+  health-check pipeline surfaces it as unhealthy rather than silently
+  serving wrong data.
 - **Same provider extended (2026-08-12, ADR-025)** with Summoner's
   Rift and ARAM as permanent `LIVE`/`PLAYABLE` rows — structurally
   always-queueable modes, not something requiring live verification.
@@ -1262,7 +1259,16 @@ No open bugs.
   current rotation per third-party patch notes is Mayhem/Arena/League
   Classic). So the SEASON_PASS fix alone didn't make URF visible. Added
   a small honest placeholder instead — see ADR-024. See the new Event
-  Categories section below.
+  Categories section below. **Superseded (2026-08-13, ADR-037):** the
+  "genuinely unavailable" conclusion above turned out to be about the
+  wrong data source, not the wrong conclusion for CommunityDragon's
+  files specifically — `queues.json`/event-hub.json really don't have
+  it, but Riot's separate, unauthenticated `clientconfig.rpg.riotgames.com`
+  service does, with real per-region live `isEnabled` flags. The
+  isurfback.com lead mentioned above turned out to be the thread that
+  led there — inspecting its page source revealed it was already
+  querying this exact service. Placeholder rows retired in favor of
+  `lib/providers/lol-client-config/`.
 
 - Event popularity heatmap
 
