@@ -3801,3 +3801,83 @@ ModeAlert'in kendi değer önerisi.
   `tsc --noEmit`, `npm run build` temiz.
 - Yeni migration (`AnalyticsEvent` tablosu) satır sayısı
   doğrulamasıyla deploy edildi.
+
+---
+
+# ADR-047: Gerçek Popülerlik Sinyali + Öneri Motoru (fabrikasyon yok, LLM yok)
+
+Status: Accepted
+
+Date: 2026-08-13
+
+## Bağlam
+
+Deniz "devam et, geliştir, eksik ne varsa yap, AI'da geliştirebilirsin"
+dedi. docs/09_BACKLOG.md'nin "P2 — AI Features" bölümü uzun süredir
+"Popularity estimation" ve "Recommendation engine"'i inşa edilmemiş
+olarak listeliyordu.
+
+## Bulgu: `Event.trackedUsers` hep 0'dı — Game.activeUsers'ın (ADR-007)
+aynı hatası, farklı tabloda
+
+Kod taraması sırasında bulundu: her provider'ın event-mapper'ı
+`trackedUsers: 0`'ı sabit yazıyor (provider'lar gerçek watchlist
+sayısını bilemez, bu DB-çapında bir agregasyon), ve bu değer hiçbir
+yerde gerçek bir sayıyla ezilmiyordu — sütun DB'de duruyor ama hiçbir
+UI onu okumuyordu (grep ile doğrulandı: `components/`'ta sıfır
+kullanım). Tam olarak ADR-007'nin düzelttiği `Game.activeUsers`
+hatasının aynısı, farklı bir tabloda, hiç yakalanmamış.
+
+## Karar
+
+**Gerçek popülerlik:** `game.service.ts`'in zaten kurduğu deseni
+birebir taklit ederek — DB sütununa güvenme, okuma anında gerçek
+değerle ez. `watchlist.repository.ts`'e `getTrackedUserCountsByEvent()`
+(toplu) ve `getTrackedUserCount(eventId)` (tekil) eklendi;
+`eventQueryService`'in her metodu artık gerçek sayıyla dönüyor.
+`/events/[slug]`'da "`N` people tracking this" rozeti (0 iken hiç
+gösterilmiyor — sahte/boş bir "0 kişi" durumu göstermek yerine
+dürüst bir yokluk).
+
+**Gerçek öneri motoru:** LLM YOK — bir modele "bunu önerir misin" diye
+sormak, bu projenin "asla uydurma, sadece gerçek sinyal" ilkesine
+aykırı olurdu (LLM halüsinasyon riski taşır). Bunun yerine klasik,
+gerçek collaborative filtering: `getCommonlyTrackedEventIds(eventId)`
+— bu event'i izleyen kullanıcıların gerçekte başka hangi event'leri
+izlediğini, kaç kişinin ortak izlediğine göre sıralayarak döndürüyor.
+Saf agregasyon, tahmin değil. `/events/[slug]`'a "People tracking
+this also track" bölümü eklendi — sonuç boşsa (yeni bir event, ya da
+ortak izleyicisi olmayan bir event) bölüm hiç render edilmiyor.
+
+Aynı taramada bulunan, kullanılmayan ölü kod da temizlendi:
+`eventQueryService.getLive/getTracking/getUpcoming/getEnded()`
+(sıfır çağıran, grep ile doğrulandı) kaldırıldı. Ayrı bir
+`eventService` (farklı bir dosya, `dashboard.service.ts` tarafından
+gerçekten kullanılıyor) bulundu ama dokunulmadı — bu ADR'nin
+kapsamı dışında, gerçek bir kullanıcısı var.
+
+## Bilinçli olarak yapılmayan
+
+- Popülerlik/öneri Premium'a kilitlenmedi — şu an sadece 4 gerçek
+  kullanıcı varken bunu ücretli yapmak, kimsenin göremeyeceği bir
+  özellik inşa etmek olurdu. Daha fazla veri birikince yeniden
+  değerlendirilebilir.
+- Dashboard'daki kompakt event kartlarına (`EventStatusCard`) rozet
+  eklenmedi — zaten kategori/rotasyon/durum rozetleriyle dolu,
+  event detay sayfası bu sinyal için daha doğru yer.
+- Gerçek bir LLM özelliği (örn. Claude API ile doğal dilde özet)
+  kasıtlı olarak yapılmadı — yeni bir ücretli harici API key'i
+  (Deniz'in hesabı + fatura) gerektirirdi, bu turda ondan
+  bağımsız, ücretsiz/düşük bakımlı bir "AI" özelliği (gerçek
+  collaborative filtering) tercih edildi.
+
+## Doğrulama
+
+- Gerçek DB'ye karşı doğrulandı: `getAll()`/`getById()`/`getBySlug()`
+  üçü de aynı, gerçek `trackedUsers` değerini döndürdü (1, ham
+  `prisma.watchlist.count()` ile birebir eşleşti). En çok izlenen
+  gerçek event ("War #138") için gerçek öneriler üretildi (Allflame
+  League, Weekly Clan Engrams, ...) — hepsi gerçek ortak-izleyici
+  sayılarıyla.
+- 137/137 test, `tsc --noEmit`, `npm run build` temiz. Şema değişikliği
+  yok — sadece okuma-zamanı hesaplama, migration gerekmedi.

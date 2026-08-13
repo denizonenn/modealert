@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Users } from "lucide-react"
 
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
@@ -112,6 +112,12 @@ export default async function EventDetailPage({ params }: Props) {
   // with their own independent edit history).
   const changes = await eventChangeService.getByEvent(event.id)
 
+  // Real collaborative filtering — of the users tracking this event,
+  // what else do they track most. See docs/06_DECISIONS.md ADR-047.
+  const recommendations = await eventQueryService.getRecommendationsFor(
+    event.id
+  )
+
   // Average duration / estimated-end / next-expected-arrival are the
   // Premium-gated "deep insight" tier — see docs/06_DECISIONS.md
   // ADR-041. First tracked/times seen/raw timeline/changes stay free.
@@ -171,6 +177,17 @@ export default async function EventDetailPage({ params }: Props) {
           >
             {getProviderName(event.source)}
           </Badge>
+          {event.trackedUsers > 0 && (
+            <Badge
+              variant="outline"
+              className="border-white/10 bg-white/5 text-zinc-400"
+            >
+              <Users className="mr-1 h-3 w-3" />
+              {event.trackedUsers}{" "}
+              {event.trackedUsers === 1 ? "person" : "people"} tracking
+              this
+            </Badge>
+          )}
         </div>
 
         {event.description && (
@@ -405,6 +422,47 @@ export default async function EventDetailPage({ params }: Props) {
             )}
           </div>
         </div>
+
+        {recommendations.length > 0 && (
+          <div className="mt-10">
+            <SectionEyebrow>Also Tracked</SectionEyebrow>
+            <h2 className="mt-1 text-xl font-semibold tracking-tight">
+              People tracking this also track
+            </h2>
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              {recommendations.map(({ event: related, trackedTogetherCount }) => (
+                <Link
+                  key={related.id}
+                  href={
+                    related.slug
+                      ? `/events/${related.slug}`
+                      : `/games/${related.game.slug}`
+                  }
+                  className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm transition-colors hover:border-white/20"
+                >
+                  <GameIcon
+                    gameId={related.game.id}
+                    logo={related.game.logo}
+                    color={related.game.color}
+                    size="sm"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium">
+                      {related.title}
+                    </p>
+                    <p className="text-xs text-zinc-500">
+                      {related.game.name} · {trackedTogetherCount}{" "}
+                      {trackedTogetherCount === 1 ? "tracker" : "trackers"}{" "}
+                      in common
+                    </p>
+                  </div>
+                  <EventStatusBadge status={related.status as EventStatus} />
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </section>
 
       <Footer />

@@ -112,6 +112,24 @@ export async function getEventsByGame(
   });
 }
 
+export async function getEventsByIds(
+  ids: string[]
+): Promise<EventWithGame[]> {
+  if (ids.length === 0) {
+    return [];
+  }
+
+  return prisma.event.findMany({
+    where: {
+      id: { in: ids },
+    },
+
+    include: {
+      game: true,
+    },
+  });
+}
+
 export async function getEventsBySource(
   source: string
 ): Promise<EventWithGame[]> {

@@ -846,15 +846,32 @@ Future
 
 # P2 — AI Features
 
+Status: 🟡 (2026-08-13)
+
+Done
+
+- ~~Event prediction~~ / ~~Expected duration~~ — done earlier
+  (`eventPredictionService`, ADR-030), Premium-gated (ADR-041).
+- ~~Popularity estimation~~ — **done (2026-08-13, ADR-047).** Real
+  watchlist-count aggregation, not fabricated — turned out
+  `Event.trackedUsers` had been a hardcoded 0 from every provider
+  this whole time (same bug class as Game.activeUsers, ADR-007),
+  just never caught since nothing displayed it. Now shown on
+  `/events/[slug]`.
+- ~~Recommendation engine~~ — **done (2026-08-13, ADR-047).** Real
+  collaborative filtering ("people tracking this also track"),
+  computed from actual Watchlist co-occurrence — deliberately not an
+  LLM call, to stay inside the project's no-fabrication principle.
+
 Future
 
-Event prediction
-
-Popularity estimation
-
-Expected duration
-
-Recommendation engine
+- LLM-powered features (e.g. a natural-language digest summary) —
+  deliberately not pursued yet, would need a new paid external API
+  key (Anthropic) and real per-request cost, unlike everything else
+  in "AI Features" which turned out to be buildable for free from
+  data already in the DB.
+- Sorting onboarding's event picker by real popularity — a natural
+  follow-up now that the data exists, not done in this pass.
 
 ---
 
