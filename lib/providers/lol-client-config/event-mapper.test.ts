@@ -119,10 +119,36 @@ describe("mapQueueStatuses", () => {
       [
         "lol-live-arena",
         "lol-live-arena-3x6",
+        "lol-live-aram-mayhem",
         "lol-live-bravery-arena",
+        "lol-live-league-classic",
         "lol-live-pick-urf",
         "lol-live-urf",
       ].sort()
     );
+  });
+
+  it("marks ARAM Mayhem and League Classic isLimitedTime:false even when currently ENDED", () => {
+    // Structural permanence (confirmed by Riot's own dev updates,
+    // ADR-029) is a separate claim from the live-computed status —
+    // it must not flip just because this sync found them disabled
+    // everywhere.
+    const events = mapQueueStatuses({});
+
+    const mayhem = events.find((e) => e.id === "lol-live-aram-mayhem");
+    const classic = events.find((e) => e.id === "lol-live-league-classic");
+
+    expect(mayhem?.status).toBe("ENDED");
+    expect(mayhem?.isLimitedTime).toBe(false);
+    expect(classic?.status).toBe("ENDED");
+    expect(classic?.isLimitedTime).toBe(false);
+  });
+
+  it("defaults every other known queue to isLimitedTime:true", () => {
+    const events = mapQueueStatuses({});
+
+    const urf = events.find((e) => e.id === "lol-live-urf");
+
+    expect(urf?.isLimitedTime).toBe(true);
   });
 });

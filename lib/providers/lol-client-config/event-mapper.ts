@@ -26,6 +26,14 @@ interface KnownQueue {
   title: string;
 
   description: string;
+
+  // Structurally permanent (ARAM Mayhem/League Classic, confirmed by
+  // Riot's own dev updates — see ADR-029) vs genuinely rotating
+  // (everything else here). Independent of the live-computed
+  // `status` below — a permanent mode can still show ENDED if this
+  // service ever reports it disabled everywhere, which would itself
+  // be real, meaningful information, not something to hide.
+  isLimitedTime?: boolean;
 }
 
 const KNOWN_QUEUES: KnownQueue[] = [
@@ -63,6 +71,22 @@ const KNOWN_QUEUES: KnownQueue[] = [
     title: "Arena 3x6",
     description:
       "Arena's 3-player-team variant, six total compositions.",
+  },
+  {
+    queueId: 2400,
+    id: "lol-live-aram-mayhem",
+    title: "ARAM: Mayhem",
+    description:
+      "ARAM with chaotic augments and Set-based progression. Riot confirmed in a March 2026 dev update that it's staying with no end date in mind (verified via WebSearch 2026-08-12, see ADR-029) — that's why it's marked permanent below, independent of the live check.",
+    isLimitedTime: false,
+  },
+  {
+    queueId: 4310,
+    id: "lol-live-league-classic",
+    title: "League Classic",
+    description:
+      "The old-school alternate client, recreating early-League gameplay inside the current launcher. Launched July 29, 2026 designed as a permanent mode (verified via WebSearch 2026-08-12, see ADR-029) — that's why it's marked permanent below, independent of the live check.",
+    isLimitedTime: false,
   },
 ];
 
@@ -149,7 +173,7 @@ export function mapQueueStatuses(
 
       category: EVENT_CATEGORIES.PLAYABLE,
 
-      isLimitedTime: true,
+      isLimitedTime: queue.isLimitedTime ?? true,
 
       trackedUsers: 0,
 

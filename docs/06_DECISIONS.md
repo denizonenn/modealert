@@ -3020,3 +3020,49 @@ anlık görüntü değil.
   yanlış veri üretmez (retry/health-check pipeline'ı zaten var).
 - 105/105 test (6 yeni, region-izolasyon regresyon testi dahil),
   `tsc --noEmit`, `npm run build` temiz.
+
+---
+
+# ADR-038: ARAM Mayhem ve League Classic de Aynı Canlı Sinyale Taşındı
+
+Status: Accepted
+
+Date: 2026-08-13
+
+## Bağlam
+
+ADR-037'nin ardından doğal bir soru: `rotating-modes/provider.ts`'deki
+ARAM: Mayhem ve League Classic girdileri de hâlâ ADR-029'da bir kez
+WebSearch ile doğrulanıp koda `status: "LIVE"` olarak donduruldu —
+ADR-036'nın kurduğu "asla dondurulmuş anlık görüntü" kuralına göre
+teknik olarak aynı sınıf sorun (şu ana kadar sadece "kalıcı, hiç
+ENDED olmayacağı zaten varsayılıyor" diye göz ardı edilmişti). Artık
+gerçek sinyal elde bulunuyorken bunu düzeltmemek tutarsız olurdu.
+
+## Bulgular
+
+`queues.json`'da League Classic'in gerçek maçlanan queue id'si arandı
+— `4300` (statik dosyada görünen "5v5 Jade"/"Classic") canlı
+`clientconfig` verisinde hiç yok; gerçek canlı karşılığı `4310`
+("Classic", `isSpectatable:true`) ve `4320` — ikisi de na1/euw1/kr'de
+tutarlı şekilde enabled. `4310` temsilci queue olarak seçildi.
+
+## Karar
+
+`lib/providers/lol-client-config/event-mapper.ts`'e queue 2400 (ARAM:
+Mayhem) ve 4310 (League Classic) eklendi — `status` artık her ikisi
+için de canlı hesaplanıyor (≥1 bölgede enabled+visible ise LIVE),
+`isLimitedTime: false` ise ayrı, hâlâ geçerli bir yapısal iddia olarak
+korundu (Riot'un "kalıcı" dediği gerçeği hâlâ ADR-029'un WebSearch
+kanıtına dayanıyor — bunu değiştirmedik, sadece `status`'u dondurulmuş
+olmaktan çıkardık). `rotating-modes/provider.ts`'deki eski statik
+`lol-mode-aram-mayhem`/`lol-mode-league-classic` girdileri kaldırıldı.
+
+## Sonuçlar
+
+- Gerçek canlı veriyle doğrulandı: her ikisi de şu an kontrol edilen
+  15 bölgenin **15'inde de** LIVE — ADR-029'un "kalıcı" iddiasını artık
+  varsayım değil, gerçek veri doğruluyor.
+- 107/107 test (2 yeni: isLimitedTime:false'un ENDED durumda bile
+  korunduğunu, diğer kuyrukların isLimitedTime:true varsayılanını
+  doğrulayan testler), `tsc --noEmit`, `npm run build` temiz.

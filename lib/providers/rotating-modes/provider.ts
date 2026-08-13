@@ -110,31 +110,18 @@ const KNOWN_MODES: KnownMode[] = [
     status: "LIVE",
     isLimitedTime: false,
   },
-  {
-    id: "lol-mode-aram-mayhem",
-    gameId: GAME_IDS.LEAGUE_OF_LEGENDS,
-    title: "ARAM: Mayhem",
-    description:
-      "ARAM with chaotic augments and Set-based progression. Started as a limited-time test but Riot confirmed in a March 2026 dev update that it's staying with no end date in mind (verified via WebSearch 2026-08-12) — no longer inferred from its battle-pass window, it's a confirmed-permanent core mode now.",
-    status: "LIVE",
-    isLimitedTime: false,
-  },
-  {
-    id: "lol-mode-league-classic",
-    gameId: GAME_IDS.LEAGUE_OF_LEGENDS,
-    title: "League Classic",
-    description:
-      "The old-school alternate client, recreating early-League gameplay (Season 3-inspired) inside the current launcher — no separate install. Launched July 29, 2026 designed as a permanent mode, sitting alongside Arena/URF in the mode picker (verified via WebSearch 2026-08-12). Recent enough that long-term permanence isn't as proven as Summoner's Rift/ARAM's decade-plus track record, but it wasn't launched as a time-limited test the way Arena/original Mayhem were.",
-    status: "LIVE",
-    isLimitedTime: false,
-  },
-  // URF and Arena used to be static ENDED-by-default placeholders here
-  // (no signal available anywhere, see the old ADR-024/ADR-036
-  // history) — replaced 2026-08-13 by real, live, self-updating rows
+  // URF, Arena, ARAM Mayhem, and League Classic used to all be static
+  // entries here (Mayhem/Classic as hardcoded permanent LIVE claims
+  // never re-verified after the WebSearch that confirmed them, ADR-029;
+  // URF/Arena as honest ENDED-by-default placeholders, ADR-024/ADR-036)
+  // — all four replaced 2026-08-13 by real, live, self-updating rows
   // from lib/providers/lol-client-config/, which queries Riot's own
   // unauthenticated client config service (clientconfig.rpg.riotgames.com)
-  // for genuine per-region "is this queue enabled right now" data. See
-  // docs/06_DECISIONS.md ADR-037.
+  // for genuine per-region "is this queue enabled right now" data.
+  // Mayhem/Classic keep isLimitedTime: false there (that's a separate,
+  // still-valid structural claim from the same WebSearch research —
+  // only `status` needed to stop being frozen). See docs/06_DECISIONS.md
+  // ADR-037/ADR-038.
   // "ARAM: Mayhem Classic-ish" used to be a static always-ENDED entry
   // here. Moved to lib/providers/communitydragon/normalizer.ts —
   // it's now derived from League Classic's real pass-window dates

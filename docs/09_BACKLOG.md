@@ -452,6 +452,20 @@ Completed
   CommunityDragon; if Riot changes/restricts it, the existing
   health-check pipeline surfaces it as unhealthy rather than silently
   serving wrong data.
+- ~~ARAM: Mayhem / League Classic `rotating-modes` entries~~ —
+  **also superseded 2026-08-13, ADR-038.** Same underlying issue as
+  URF/Arena had before ADR-037, just previously overlooked because
+  "permanent" made it feel safe: `status: "LIVE"` was still a one-time
+  WebSearch snapshot frozen into the code (ADR-029), never re-verified.
+  Moved into `lib/providers/lol-client-config/` alongside URF/Arena
+  (queue 2400 for Mayhem, 4310 for League Classic — its real live
+  queue id; the id in the static `queues.json` snapshot, 4300, doesn't
+  even appear in the live config). `status` is now genuinely
+  live-computed; `isLimitedTime: false` stays as a separate, still-
+  valid structural claim from the same WebSearch research. Verified
+  against real data: both show LIVE in all 15 checked regions right
+  now — the "permanent" claim is now backed by live evidence, not just
+  a research snapshot from a month earlier.
 - **Same provider extended (2026-08-12, ADR-025)** with Summoner's
   Rift and ARAM as permanent `LIVE`/`PLAYABLE` rows — structurally
   always-queueable modes, not something requiring live verification.
