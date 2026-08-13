@@ -3881,3 +3881,45 @@ kapsamı dışında, gerçek bir kullanıcısı var.
   sayılarıyla.
 - 137/137 test, `tsc --noEmit`, `npm run build` temiz. Şema değişikliği
   yok — sadece okuma-zamanı hesaplama, migration gerekmedi.
+
+---
+
+# ADR-048: Gerçek RSS Feed — İki Mevcut Tablo, Hiç Yeni Veri Değil
+
+Status: Accepted
+
+Date: 2026-08-13
+
+## Bağlam
+
+Deniz "devam et" dedi. docs/09_BACKLOG.md'nin "Ideas" bölümünde uzun
+süredir inşa edilmemiş duran "Event RSS" maddesi ele alındı — hem
+gerçek veriden üretilebilecek, düşük riskli bir özellik, hem de
+VC memo'nun "dağıtım/growth motion yok" bulgusuna dolaylı bir katkı
+(RSS feed'leri Feedly gibi agregatörler tarafından indexleniyor,
+gerçek bir keşfedilebilirlik kanalı).
+
+## Karar
+
+Yeni veri **eklenmedi** — `/feed.xml` iki mevcut, zaten gerçek
+zaman damgalı tabloyu birleştiriyor: `EventHistory` (her LIVE/TRACKING
+penceresinin gerçek başlangıcı, ADR-002'den beri var) ve `EventChange`
+(alan bazlı gerçek düzenlemeler, ADR-039'dan beri var). İkisi de
+kendi amaçları için zaten yazılıyordu, hiçbiri syndicate edilmiyordu.
+`feed.service.ts` ikisini gerçek zaman damgasına göre birleştirip
+sıralıyor — hiçbir item özetlenmiş/uydurulmuş değil, direkt DB
+satırlarının kendisi.
+
+`escapeXml` ile güvenli XML üretimi (email şablonlarındaki
+`escapeHtml` deseninin aynısı — event title/description üçüncü parti
+API verisi, hiç güvenilmiyor). Kök layout'a `alternates.types`
+(RSS keşfi için `<link rel="alternate">`), footer'a görünür "RSS"
+linki eklendi.
+
+## Doğrulama
+
+- Gerçek dev server'a karşı `curl` ile test edildi: geçerli RSS 2.0
+  XML, 50 gerçek item (LoL rotasyon modları, PUBG sezonu, vb.),
+  gerçek `pubDate`/`link`/`description` değerleriyle.
+- 137/137 test, `tsc --noEmit`, `npm run build` temiz. Şema değişikliği
+  yok.

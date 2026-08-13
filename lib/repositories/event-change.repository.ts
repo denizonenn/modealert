@@ -31,3 +31,23 @@ export async function getChangesByEvent(
     },
   });
 }
+
+// For the public RSS feed — same shape as getChangesByEvent but
+// global and capped.
+export async function getRecentChanges(limit: number) {
+  return prisma.eventChange.findMany({
+    include: {
+      event: {
+        include: {
+          game: true,
+        },
+      },
+    },
+
+    orderBy: {
+      changedAt: "desc",
+    },
+
+    take: limit,
+  });
+}

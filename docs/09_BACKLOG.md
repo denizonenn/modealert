@@ -1483,7 +1483,9 @@ No open bugs.
 
 - Event popularity heatmap
 
-- Personalized recommendations
+- ~~Personalized recommendations~~ — **done (2026-08-13, ADR-047).**
+  Real collaborative filtering on Watchlist co-occurrence, see P2 AI
+  Features.
 
 - Event calendar
 
@@ -1493,9 +1495,12 @@ No open bugs.
 
 - Twitch integration
 
-- Event RSS
+- ~~Event RSS~~ — **done (2026-08-13, ADR-048).** `/feed.xml`,
+  combines real EventHistory + EventChange rows, no new data. Linked
+  from the footer and `<link rel="alternate">` in the site metadata.
 
-- Weekly digest
+- ~~Weekly digest~~ — **done (2026-08-13, ADR-046).** See P1 Product
+  Analytics & Retention.
 
 ---
 

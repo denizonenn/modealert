@@ -90,6 +90,25 @@ export async function getHistoryBySeriesKey(
   });
 }
 
+// Most-recent-first, capped — for the public RSS feed. `getAllHistory`
+// pulls the entire table in ascending order, wrong shape and wrong
+// cost for "just the latest N".
+export async function getRecentHistory(limit: number) {
+  return prisma.eventHistory.findMany({
+    include: {
+      event: {
+        include: {
+          game: true,
+        },
+      },
+    },
+    orderBy: {
+      startedAt: "desc",
+    },
+    take: limit,
+  });
+}
+
 export async function getAllHistory() {
   return prisma.eventHistory.findMany({
     include: {

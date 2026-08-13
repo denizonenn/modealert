@@ -6,6 +6,7 @@ export function Footer() {
         <div className="md:ml-auto flex items-center gap-6">
           <a href="/status" className="hover:text-white">Status</a>
           <a href="/statistics" className="hover:text-white">Statistics</a>
+          <a href="/feed.xml" className="hover:text-white">RSS</a>
           <a href="/privacy" className="hover:text-white">Privacy</a>
           <a href="/terms" className="hover:text-white">Terms</a>
           <a href="https://github.com/denizonenn/modealert" target="_blank" className="hover:text-white">
