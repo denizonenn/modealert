@@ -60,6 +60,11 @@ export async function DELETE() {
     );
   }
 
+  // Best-effort — a Lemon Squeezy hiccup shouldn't block account
+  // deletion, but skipping this would leave a Premium subscription
+  // billing an account that no longer exists.
+  await billingService.cancelSubscriptionForUser(session.user.id);
+
   await prisma.user.delete({
     where: { id: session.user.id },
   });

@@ -6,6 +6,7 @@ import {
 } from "@/lib/repositories/user.repository";
 import {
   buildCheckoutUrl,
+  cancelSubscription,
   getCustomerPortalUrl,
 } from "@/lib/billing/lemonsqueezy-client";
 import {
@@ -58,6 +59,19 @@ export const billingService = {
 
   getCheckoutUrl(userId: string, email: string) {
     return buildCheckoutUrl(userId, email);
+  },
+
+  // Best-effort — called right before account deletion so a Premium
+  // user doesn't keep getting billed for an account that no longer
+  // exists. Never throws: deletion should proceed either way.
+  async cancelSubscriptionForUser(userId: string) {
+    const billing = await getUserBilling(userId);
+
+    if (!billing?.lemonSqueezySubscriptionId) {
+      return;
+    }
+
+    await cancelSubscription(billing.lemonSqueezySubscriptionId);
   },
 
   // Called by the webhook route after signature verification. Maps a

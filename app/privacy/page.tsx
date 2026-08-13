@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     "What ModeAlert collects, why, and how to delete it. Plain-language privacy policy — no tracking pixels, no data resale.",
 }
 
-const LAST_UPDATED = "August 6, 2026"
+const LAST_UPDATED = "August 13, 2026"
 
 export default function PrivacyPage() {
   return (
@@ -75,6 +75,13 @@ export default function PrivacyPage() {
               only to keep you signed in. No advertising or cross-site
               tracking cookies are set.
             </li>
+            <li>
+              <span className="text-white">Subscription status</span> — if
+              you upgrade to Premium, we store your plan, subscription
+              status, and Lemon Squeezy&apos;s customer/subscription IDs
+              (opaque references, not your card details) so we can grant
+              access and let you manage billing.
+            </li>
           </ul>
           <p className="leading-relaxed">
             We don&apos;t use tracking pixels, third-party analytics
@@ -106,6 +113,14 @@ export default function PrivacyPage() {
               <span className="text-white">Google</span> — only if you
               choose &ldquo;Sign in with Google&rdquo;, to authenticate
               you.
+            </li>
+            <li>
+              <span className="text-white">Lemon Squeezy</span> — only if
+              you upgrade to Premium. They&apos;re our payment processor
+              and Merchant of Record, so they handle your payment details
+              directly (card number, billing address) — ModeAlert never
+              sees or stores them. They notify us only of your
+              subscription status.
             </li>
           </ul>
           <p className="leading-relaxed">

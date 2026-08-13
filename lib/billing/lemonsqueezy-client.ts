@@ -117,3 +117,36 @@ export async function getCustomerPortalUrl(
     return null;
   }
 }
+
+// Called when a ModeAlert account is deleted — without this, a
+// Premium user who deletes their account would keep getting charged
+// by Lemon Squeezy with no account left to manage it from. DELETE
+// cancels future renewals (the same "access until period end, no
+// prorated refund" behavior as a self-service cancel from the
+// customer portal); the 7-day refund policy in /terms covers the
+// edge case where that's not fast enough. Best-effort — a failure
+// here shouldn't block the account deletion itself.
+export async function cancelSubscription(
+  subscriptionId: string
+): Promise<boolean> {
+  if (!isApiConfigured()) {
+    return false;
+  }
+
+  try {
+    const response = await fetch(
+      `https://api.lemonsqueezy.com/v1/subscriptions/${subscriptionId}`,
+      {
+        method: "DELETE",
+        headers: {
+          Accept: "application/vnd.api+json",
+          Authorization: `Bearer ${env.LEMONSQUEEZY_API_KEY}`,
+        },
+      }
+    );
+
+    return response.ok;
+  } catch {
+    return false;
+  }
+}

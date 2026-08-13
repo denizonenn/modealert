@@ -7,10 +7,10 @@ import { SectionEyebrow } from "@/components/shared/section-eyebrow"
 export const metadata: Metadata = {
   title: "Terms of Service",
   description:
-    "The terms for using ModeAlert — a free, early-access game event tracker.",
+    "The terms for using ModeAlert — a free-to-start game event tracker with an optional Premium plan.",
 }
 
-const LAST_UPDATED = "August 6, 2026"
+const LAST_UPDATED = "August 13, 2026"
 
 export default function TermsPage() {
   return (
@@ -66,23 +66,59 @@ export default function TermsPage() {
 
         <div className="space-y-3">
           <h2 className="text-xl font-semibold text-white">
-            3. Free, early-access service — no guarantees
+            3. Free and Premium plans — no guarantees
           </h2>
           <p className="leading-relaxed">
-            ModeAlert is currently free to use and provided{" "}
+            ModeAlert&apos;s Free plan is provided{" "}
             <span className="text-white">as-is</span>, without warranty of
-            any kind. Event detection depends entirely on third-party APIs
-            we don&apos;t control — they can change, rate-limit, or go
-            offline without notice, which can delay or prevent an alert.
-            We do our best to keep data accurate and timely, but we can&apos;t
-            guarantee you&apos;ll be notified of every event, or that
-            notifications will always be on time.
+            any kind, and Premium doesn&apos;t change that. Event detection
+            depends entirely on third-party APIs we don&apos;t control —
+            they can change, rate-limit, or go offline without notice,
+            which can delay or prevent an alert. We do our best to keep
+            data accurate and timely, but we can&apos;t guarantee
+            you&apos;ll be notified of every event, or that notifications
+            will always be on time.
           </p>
         </div>
 
         <div className="space-y-3">
           <h2 className="text-xl font-semibold text-white">
-            4. Your account
+            4. Premium billing
+          </h2>
+          <p className="leading-relaxed">
+            Premium is $4.99/month, billed monthly until you cancel.
+            Payments are processed by{" "}
+            <span className="text-white">Lemon Squeezy</span>, our
+            Merchant of Record — Lemon Squeezy handles your payment
+            details directly and is the merchant on your card statement;
+            ModeAlert never sees or stores your card number.
+          </p>
+          <ul className="list-disc space-y-2 pl-6 leading-relaxed">
+            <li>
+              You can cancel anytime from{" "}
+              <span className="text-white">Dashboard → Settings</span> —
+              you keep Premium access until the end of the period you
+              already paid for, then the account reverts to Free (your
+              data isn&apos;t deleted, tracking above the Free limit just
+              pauses).
+            </li>
+            <li>
+              Not happy with Premium? Email{" "}
+              <a
+                href="mailto:denizate@gmail.com"
+                className="text-white underline underline-offset-4 hover:text-zinc-300"
+              >
+                denizate@gmail.com
+              </a>{" "}
+              within 7 days of being charged for a full refund, no
+              questions asked.
+            </li>
+          </ul>
+        </div>
+
+        <div className="space-y-3">
+          <h2 className="text-xl font-semibold text-white">
+            5. Your account
           </h2>
           <ul className="list-disc space-y-2 pl-6 leading-relaxed">
             <li>
@@ -103,19 +139,19 @@ export default function TermsPage() {
 
         <div className="space-y-3">
           <h2 className="text-xl font-semibold text-white">
-            5. Changes to the service
+            6. Changes to the service
           </h2>
           <p className="leading-relaxed">
             ModeAlert is actively developed and may change features,
-            supported games, or pricing over time. If we ever introduce
-            paid tiers, existing free functionality won&apos;t be removed
-            retroactively without reasonable notice.
+            supported games, or pricing over time. Existing Free
+            functionality won&apos;t be removed retroactively without
+            reasonable notice.
           </p>
         </div>
 
         <div className="space-y-3">
           <h2 className="text-xl font-semibold text-white">
-            6. Limitation of liability
+            7. Limitation of liability
           </h2>
           <p className="leading-relaxed">
             To the extent permitted by law, ModeAlert and its operator
@@ -128,7 +164,7 @@ export default function TermsPage() {
 
         <div className="space-y-3">
           <h2 className="text-xl font-semibold text-white">
-            7. Changes to these terms
+            8. Changes to these terms
           </h2>
           <p className="leading-relaxed">
             We may update these terms as the product evolves. If a change
@@ -138,7 +174,7 @@ export default function TermsPage() {
         </div>
 
         <div className="space-y-3">
-          <h2 className="text-xl font-semibold text-white">8. Contact</h2>
+          <h2 className="text-xl font-semibold text-white">9. Contact</h2>
           <p className="leading-relaxed">
             Questions about these terms? Email{" "}
             <a

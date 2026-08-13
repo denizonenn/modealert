@@ -3298,6 +3298,34 @@ kurulum, "low maintenance" prensibiyle daha uyumlu).
   OAuth'un ADR-005'te canlıya alınma şekliyle birebir aynı desen. O
   zamana kadar `/pricing`'deki "Upgrade" butonu "Upgrades aren't live
   yet" mesajına düşüyor, sistem kırılmıyor.
+## Follow-up (aynı gün): iki gerçek eksik bulundu, Lemon Squeezy hesabı beklemeden düzeltildi
+
+Deniz Lemon Squeezy hesap kurulumunu sona bırakıp devam etmemi
+söyledi. Bunu beklerken iki gerçek boşluk fark edildi:
+
+1. **`/terms` ve `/privacy` hâlâ "tamamen ücretsiz, ödeme yok"
+   diyordu** — "3. Free, early-access service" başlığı, metadata
+   description'ı, ve privacy'nin "Who we share data with" bölümü
+   Lemon Squeezy'den hiç bahsetmiyordu. İkisi de güncellendi: yeni
+   "4. Premium billing" bölümü (Lemon Squeezy Merchant of Record
+   olarak tanıtılıyor, kart bilgisi ModeAlert'e hiç gelmiyor,
+   aylık $4.99, dilediğin zaman iptal — dönem sonuna kadar erişim
+   devam ediyor, **7 gün içinde soru sormadan tam iade** — bu son
+   politika Deniz'e sorulmadı, standart/düşük riskli bir metin kararı
+   olarak seçildi, kolayca değiştirilebilir). Privacy'ye
+   subscription/Lemon Squeezy ID'lerinin toplandığı + Lemon
+   Squeezy'nin sadece abonelik durumu bildirdiği eklendi.
+2. **Hesap silme, Premium aboneliğini iptal etmiyordu** — bir
+   kullanıcı hesabını silse bile Lemon Squeezy'de abonelik
+   çalışmaya devam edip onu ücretlendirmeye devam ederdi.
+   `lib/billing/lemonsqueezy-client.ts`'e `cancelSubscription()`
+   eklendi (`DELETE /v1/subscriptions/{id}`), `DELETE
+   /api/account`'a bağlandı — best-effort (Lemon Squeezy hatası hesap
+   silmeyi engellemiyor).
+
+Her ikisi de mağaza kurulmadan test edilebiliyor (env boşken
+zarifçe no-op) — `tsc --noEmit`, `npm run build` temiz.
+
 - **İlk kullanıcı edinme stratejisi** — Deniz ayrıca konuşmak istedi,
   ayrı bir konu (bu ADR sadece paywall/ödeme altyapısını kapsıyor).
   Önerilen yön: oyun bazlı Reddit toplulukları (zaten desteklenen 10
