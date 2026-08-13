@@ -95,7 +95,7 @@ kadar.**
 - **Veritabanı:** Neon Postgres (Vercel Storage Marketplace üzerinden).
   Artık SQLite değil — `DATABASE_URL` (pooled) + `DATABASE_URL_UNPOOLED`
   (migration'lar için) kullanılıyor.
-- **Aktif provider'lar (11, hepsi gerçek veriyle doğrulandı):** Riot API
+- **Aktif provider'lar (12, hepsi gerçek veriyle doğrulandı):** Riot API
   (platform status + champion rotation), CommunityDragon (event-hub,
   live+pbe patchline), Valorant (platform status + act/episode),
   **Destiny 2** (Bungie API — platform status + haftalık aktif
@@ -114,7 +114,11 @@ kadar.**
   League Client'ın giriş öncesi kullandığı key gerektirmeyen config
   servisi — URF/Arena gibi yıllardır "sinyalsiz" denen rotasyonlu
   modlar için gerçek, bölge bazlı, canlı `isEnabled` verisi,
-  2026-08-13, bkz. ADR-037).
+  2026-08-13, bkz. ADR-037), **PUBG: BATTLEGROUNDS** (resmi KRAFTON
+  developer API, key gerekiyor (self-serve, IP kilidi yok) — gerçek
+  `isCurrentSeason` bayrağından güncel ranked sezonu, 2026-08-13, bkz.
+  ADR-043). `PUBG_API_KEY` şu an sadece local `.env`'de — Vercel
+  production'a henüz eklenmedi.
   LCU sadece kişiselleştirme için — event keşfi için KULLANILMAZ
   (bkz. docs/06_DECISIONS.md ADR-001). Call of Duty değerlendirildi ve
   **reddedildi** — Activision'ın resmi bir API'si yok, gayri-resmi
@@ -128,6 +132,13 @@ kadar.**
   apexlegendsapi.com key'i Discord hesabı bağlanmadan aktif olmuyor
   (Discord Türkiye'den VPN'siz erişilemiyor — Discord auth'taki aynı
   engel, ADR-005) — key `.env`'de duruyor, VPN'e geçilince tamamlanır.
+  **2026-08-13'te ayrıca** Clash Royale/Clash of Clans/Brawl Stars
+  (Supercell — key'ler IP'ye kilitli, Vercel'in dinamik IP'siyle
+  uyumsuz) ve Genshin Impact/HoYoverse (resmi API yok, sadece
+  güvenilirliği düşük "fan API" var) araştırılıp reddedildi. **World
+  of Warcraft** (Battle.net — gerçek haftalık Mythic+ affix rotasyonu)
+  gerçek bir aday ama Deniz'in key alma denemesi şu an çalışmıyor,
+  tekrar denenecek.
 - **`RIOT_API_KEY` dev key, 24 saatte bir expire oluyor.** Production
   key başvurusu **gönderildi (2026-08-06, App ID 867857, Product
   Game Focus: League of Legends, Status: Pending Review)** — Riot'un

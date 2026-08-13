@@ -3410,6 +3410,81 @@ hesaplıyor.
   doğrulanmış bir şey eklemektense boş bırakmak, projenin "asla
   tahmin/varsayım" ilkesiyle tutarlı. Backlog'da açık kaldı.
 
+---
+
+# ADR-043: 10. Oyun — PUBG: BATTLEGROUNDS (gerçek "current season" sinyali)
+
+Status: Accepted
+
+Date: 2026-08-13
+
+## Bağlam
+
+Deniz "oyunları çok fazla arttırmamız lazım, az şuan" dedi. Geniş bir
+araştırma yapıldı — sonuçlar ve reddedilenler için bkz. "Yeni Oyun
+Araştırması (2026-08-13)" başlıklı Idea notu. **PUBG** ve **World of
+Warcraft (Battle.net)** gerçek, düşük sürtünmeli (Discord/VPN/IP-kilit
+gibi bir engel yok) adaylar olarak bulundu; Deniz ikisi için de key
+almayı kabul etti. PUBG key'i geldi (developer.pubg.com, self-serve,
+anında aktif); Battle.net tarafında bir sorun yaşandı (Deniz'in
+notu: "bu pubgydi battle net nedense çalışmıyor şuan") — o yüzden bu
+ADR sadece PUBG'yi kapsıyor, WoW ayrı bir ADR'de (key çalışınca)
+eklenecek.
+
+## Bulgular
+
+`https://api.pubg.com/shards/steam/seasons` — gerçek key ile canlı
+test edildi, resmi PUBG Developer API (KRAFTON), IP kilidi yok
+(Supercell'in aksine — bkz. reddedilenler). Her sezon nesnesinde
+gerçek bir `isCurrentSeason: true/false` alanı var — tam olarak bu
+projenin her yerde aradığı "şu an aktif mi" sinyali, tahmin değil.
+`/status` endpoint'i sadece API'nin kendisinin ayakta olduğunu
+doğruluyor (gerçek bir oyun/sunucu durumu değil), o yüzden platform
+status eklenmedi — sadece sezon.
+
+Sezon id'leri ("division.bro.official.pc-2018-42") insan-okunur bir
+isim taşımıyor; sondaki sayı (42) PUBG'nin kendi sitesinde/oyun içinde
+gösterdiği gerçek sezon numarası, "Season 42" olarak üretildi (CDragon
+`sets[N].name`'in Set 18 için yanlış çıkmasından ders alınarak, gömülü
+bir "isim" alanına değil, doğrulanabilir sayısal bir alana güvenildi).
+
+## Karar
+
+`lib/providers/pubg/` (poe/warframe ile aynı dosya deseni) eklendi,
+registry'ye kaydedildi. `PUBG_API_KEY` env var'ı (`lib/config/env.ts`,
+key yoksa provider `enabled: false` — Resend/Google/Bungie'deki aynı
+"sessizce devre dışı" deseni). Yeni `Game` satırı (`id: "pubg"`)
+prod DB'ye elle eklendi (schema değişikliği değil, sadece veri —
+CLAUDE.md'nin migration kuralı `ALTER`/`CREATE` gibi DDL'i kapsıyor,
+bu sadece bir `INSERT`; satır sayısı ekleme öncesi/sonrası doğrulandı,
+9→10). `GAME_IDS.PUBG`, `GAMES_WITH_PROVIDER`'a otomatik dahil oldu.
+`react-icons/si`'nin gerçek `SiPubg` marka ikonu kullanıldı (emoji
+fallback yerine, LoL/Valorant/Fortnite/Destiny'deki aynı desen).
+
+## Doğrulama
+
+- Gerçek key ile `pubgService.getEvents()` çalıştırıldı: `Season 42`
+  LIVE olarak üretildi.
+- **Tam `providerSyncService.syncAll()` gerçek prod DB'ye karşı
+  çalıştırıldı** (sadece izole test değil) — PUBG "received: 1,
+  saved: 1", gerçek `Event` satırı (`pubg-season-division.bro.
+  official.pc-2018-42`, slug `pubg-season-42-e284e2`) DB'de doğrulandı.
+  (Aynı koşuda Riot/Valorant/TFT 401 verdi — `RIOT_API_KEY`'in bilinen
+  24 saatlik expire'ı, PUBG'den bağımsız, CLAUDE.md'de zaten
+  dokümante.)
+- 125/125 test (3 yeni: sezon numarası çıkarma, `isCurrentSeason`
+  bulunamayınca boş dönme, sayısız id'ye fallback), `tsc --noEmit`,
+  `npm run build` temiz.
+
+## Yapılmayan
+
+- **`PUBG_API_KEY` Vercel production env'e henüz eklenmedi** — sadece
+  local `.env`'de. Deniz'in Vercel dashboard'dan eklemesi gerekiyor,
+  yoksa prod'da provider `enabled: false` kalır (kırılmaz, sessizce
+  devre dışı).
+- World of Warcraft (Battle.net) — Deniz'in key alma sürecinde bir
+  sorun oldu, ayrıca ele alınacak.
+
 - **İlk kullanıcı edinme stratejisi** — Deniz ayrıca konuşmak istedi,
   ayrı bir konu (bu ADR sadece paywall/ödeme altyapısını kapsıyor).
   Önerilen yön: oyun bazlı Reddit toplulukları (zaten desteklenen 10

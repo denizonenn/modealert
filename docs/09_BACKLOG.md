@@ -817,7 +817,7 @@ Recommendation engine
 
 # P2 — Multi Game Support
 
-Status: 🟢 9 real providers (2026-08-06)
+Status: 🟢 10 real providers (2026-08-13)
 
 Live providers
 
@@ -871,6 +871,10 @@ Live providers
 - Foxhole ✅ (2026-08-06, `war-service-live.foxholeservices.com`,
   official developer (Clapfoot) API, no key needed — single ongoing
   World Conquest war state (`War #137` verified live). See ADR-016.)
+- PUBG: BATTLEGROUNDS ✅ (2026-08-13, `api.pubg.com`, official KRAFTON
+  developer API, key required (self-serve, no IP lock) — current
+  ranked season only, real `isCurrentSeason` flag (`Season 42`
+  verified live). See ADR-043.)
 
 Pending Deniz's action
 
@@ -906,11 +910,30 @@ Evaluated and rejected
   entries, no active/date filter), same failure mode as Fortnite's
   old `/v1/playlists` problem. Not usable without a second endpoint
   to isolate currently-running tournaments, which doesn't exist.
-- ~~Diablo 4~~ — no official Blizzard API without a registered
-  client id/secret (same key-required profile as WoW/Hearthstone/
-  Overwatch 2). Community Helltide/world-boss trackers
-  (helltides.com, d4armory.io) are websites, not documented public
-  JSON APIs.
+- ~~Diablo 4~~ — no official Blizzard API. **Reasoning clarified
+  2026-08-13:** the original note ("needs a registered client
+  id/secret") wasn't actually the blocker — Riot/Bungie/PUBG all
+  require a registered key too and that's fine. The real reason:
+  Battle.net's Game Data API catalog simply doesn't include Diablo IV
+  at all (only WoW, Diablo III, Hearthstone, StarCraft II do — see the
+  World of Warcraft entry above, in progress via ADR-043's research).
+  Community Helltide/world-boss trackers (helltides.com, d4armory.io)
+  are websites, not documented public JSON APIs.
+- ~~Clash Royale / Clash of Clans / Brawl Stars~~ (Supercell) —
+  **researched 2026-08-13.** Real season/event data exists, but
+  Supercell's API keys are IP-locked to a single address — genuinely
+  incompatible with Vercel's dynamic serverless egress IPs, same class
+  of hard infrastructure blocker as Apex's Discord-linking requirement
+  (ADR-005). A proxy service (e.g. RoyaleAPI's) could route around it,
+  but that trades one third-party dependency for another, weakening
+  the trust chain. Not pursued.
+- ~~Genshin Impact / HoYoverse games~~ — **researched 2026-08-13.** No
+  official HoYoLab public API for events/banners exists. The only
+  option found is a community-run "fan API" aggregating calendar data
+  — a materially weaker trust class than CommunityDragon (which
+  mirrors Riot's actual game files directly, not a third party's own
+  aggregation/guesswork). Inconsistent with this project's
+  real/official-source-only principle.
 - ~~Elite Dangerous~~ — Frontier has no first-party keyless Community
   Goals API; third-party tools (Inara, ED-API) proxy through their
   own services, which isn't a source ModeAlert can depend on directly.
@@ -937,10 +960,10 @@ Evaluated and deferred (keyless, but data source currently broken)
   `/v2/build` work with no key, but the endpoint that actually matters
   (`/v2/events`, real-time meta-event/world-boss timers) returned
   `503 "API not active"` on a real request — a known, long-standing
-  ArenaNet bug, not a fluke (re-checked again 2026-08-06, still
-  broken). Falling back to a static rotation table would violate the
-  no-fake-data principle (ADR-012). Revisit if ArenaNet ever fixes it.
-  See ADR-013.
+  ArenaNet bug, not a fluke (re-checked 2026-08-06 and again
+  2026-08-13, still broken both times). Falling back to a static
+  rotation table would violate the no-fake-data principle (ADR-012).
+  Revisit if ArenaNet ever fixes it. See ADR-013.
 
 Future no-key candidates worth a look (unverified, higher effort)
 
@@ -1279,6 +1302,37 @@ No open bugs.
 ---
 
 # Ideas
+
+- **Yeni Oyun Araştırması (2026-08-13)** — Deniz "oyunları çok fazla
+  arttırmamız lazım" dedi. Geniş bir tarama yapıldı:
+  - **Eklendi:** PUBG (ADR-043).
+  - **Bekliyor (Deniz'in key alma sorunundan dolayı):** World of
+    Warcraft/Battle.net — Mythic+ affix rotasyonu gibi gerçek haftalık
+    bir sinyali var, self-serve client id+secret gerekiyor (IP kilidi
+    yok, Riot/Bungie ile aynı sürtünme sınıfı). Deniz key almaya
+    çalıştı ama şu an çalışmıyor — tekrar denenecek.
+  - **Reddedildi — IP kilidi (gerçek teknik engel):** Clash Royale/
+    Clash of Clans/Brawl Stars (Supercell). Key'ler tek bir IP'ye
+    kilitleniyor, Vercel'in serverless dinamik IP'siyle uyumsuz —
+    Apex/Discord'daki gibi gerçek bir altyapı engeli, atlanamaz
+    (proxy servisleri var ama üçüncü parti bir bağımlılık eklemek
+    aynı güven sınıfını düşürürdü).
+  - **Reddedildi — hâlâ kırık:** Guild Wars 2 `/v2/events` tekrar
+    canlı test edildi (2026-08-13), hâlâ `503 API not active` —
+    ADR-013'ün bulgusu bir hafta sonra da geçerliliğini koruyor.
+  - **Reddedildi — sadece resmi olmayan kaynak var:** Genshin
+    Impact/HoYoverse oyunları. HoYoLab'ın resmi bir public API'si yok;
+    bulunan tek seçenek topluluk yapımı "fan API" (CommunityDragon'dan
+    farklı bir güven sınıfı — CommunityDragon Riot'un kendi oyun
+    dosyalarının doğrudan aynası, bu ise üçüncü bir tarafın kendi
+    agregasyonu). Projenin "sadece gerçek/resmi kaynak" ilkesiyle
+    tutarsız, eklenmedi.
+  - Diablo 4 için önceki ret (ADR bağlamı, "Blizzard client id
+    gerekiyor") bu turda yeniden incelendi: aslında sorun client id
+    değilmiş (Riot/Bungie de client id gerektiriyor, sorun değil) —
+    gerçek sebep Battle.net'in Game Data API kataloğunda Diablo IV'ün
+    hiç yer almaması (sadece WoW/Diablo III/Hearthstone/StarCraft II
+    var). Ret kararı doğruydu, gerekçesi netleştirildi.
 
 - ~~u.gg outbound links~~ — **done (2026-08-06).** Deniz asked for a
   u.gg integration. u.gg has no public API (verified — it's a stats/

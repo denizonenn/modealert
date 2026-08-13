@@ -27,6 +27,9 @@ export const env = {
   RIOT_API_KEY:
     process.env.RIOT_API_KEY ?? "",
 
+  PUBG_API_KEY:
+    process.env.PUBG_API_KEY ?? "",
+
   BUNGIE_API_KEY:
     process.env.BUNGIE_API_KEY ?? "",
 

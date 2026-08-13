@@ -120,6 +120,17 @@ async function main() {
         activeUsers: "15K",
         featured: false,
       },
+      {
+        id: "pubg",
+        name: "PUBG: BATTLEGROUNDS",
+        slug: "pubg-battlegrounds",
+        logo: "🪂",
+        color: "#F1AA03",
+        shortName: "PUBG",
+        supportedEvents: 0,
+        activeUsers: "0",
+        featured: false,
+      },
     ],
   });
 

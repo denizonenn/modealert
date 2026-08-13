@@ -11,6 +11,7 @@ import { warframeProvider } from "@/lib/providers/warframe/provider";
 import { poeProvider } from "@/lib/providers/poe/provider";
 import { helldivers2Provider } from "@/lib/providers/helldivers2/provider";
 import { foxholeProvider } from "@/lib/providers/foxhole/provider";
+import { pubgProvider } from "@/lib/providers/pubg/provider";
 import { rotatingModesProvider } from "@/lib/providers/rotating-modes/provider";
 import { lolClientConfigProvider } from "@/lib/providers/lol-client-config/provider";
 
@@ -26,6 +27,7 @@ const providers: EventProvider[] = [
   poeProvider,
   helldivers2Provider,
   foxholeProvider,
+  pubgProvider,
   rotatingModesProvider,
   lolClientConfigProvider,
 ];

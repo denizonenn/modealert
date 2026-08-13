@@ -2,6 +2,7 @@ import {
   SiBungie,
   SiFortnite,
   SiLeagueoflegends,
+  SiPubg,
   SiValorant,
 } from "react-icons/si"
 
@@ -31,4 +32,5 @@ export const GAME_BRAND_ICONS: Record<
   poe: GiHoodedFigure,
   helldivers2: GiSpartanHelmet,
   foxhole: GiTrenchSpade,
+  pubg: SiPubg,
 }
