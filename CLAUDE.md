@@ -95,7 +95,7 @@ kadar.**
 - **Veritabanı:** Neon Postgres (Vercel Storage Marketplace üzerinden).
   Artık SQLite değil — `DATABASE_URL` (pooled) + `DATABASE_URL_UNPOOLED`
   (migration'lar için) kullanılıyor.
-- **Aktif provider'lar (12, hepsi gerçek veriyle doğrulandı):** Riot API
+- **Aktif provider'lar (13, hepsi gerçek veriyle doğrulandı):** Riot API
   (platform status + champion rotation), CommunityDragon (event-hub,
   live+pbe patchline), Valorant (platform status + act/episode),
   **Destiny 2** (Bungie API — platform status + haftalık aktif
@@ -118,7 +118,11 @@ kadar.**
   developer API, key gerekiyor (self-serve, IP kilidi yok) — gerçek
   `isCurrentSeason` bayrağından güncel ranked sezonu, 2026-08-13, bkz.
   ADR-043). `PUBG_API_KEY` şu an sadece local `.env`'de — Vercel
-  production'a henüz eklenmedi.
+  production'a henüz eklenmedi. **PlanetSide 2**
+  (`census.daybreakgames.com`, Daybreak'in paylaşılan `s:example`
+  servis id'si, key gerektirmiyor — güncel sunucu-geneli "Alert"
+  durumu, gerçek kıta/süre verisiyle, 2026-08-13, bkz. ADR-044 —
+  önceden "websocket gerekir" denilmişti, yanlış çıktı).
   LCU sadece kişiselleştirme için — event keşfi için KULLANILMAZ
   (bkz. docs/06_DECISIONS.md ADR-001). Call of Duty değerlendirildi ve
   **reddedildi** — Activision'ın resmi bir API'si yok, gayri-resmi

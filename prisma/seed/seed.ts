@@ -131,6 +131,17 @@ async function main() {
         activeUsers: "0",
         featured: false,
       },
+      {
+        id: "planetside2",
+        name: "PlanetSide 2",
+        slug: "planetside-2",
+        logo: "🪐",
+        color: "#6366f1",
+        shortName: "PS2",
+        supportedEvents: 0,
+        activeUsers: "0",
+        featured: false,
+      },
     ],
   });
 

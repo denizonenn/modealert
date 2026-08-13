@@ -12,6 +12,7 @@ import { poeProvider } from "@/lib/providers/poe/provider";
 import { helldivers2Provider } from "@/lib/providers/helldivers2/provider";
 import { foxholeProvider } from "@/lib/providers/foxhole/provider";
 import { pubgProvider } from "@/lib/providers/pubg/provider";
+import { planetside2Provider } from "@/lib/providers/planetside2/provider";
 import { rotatingModesProvider } from "@/lib/providers/rotating-modes/provider";
 import { lolClientConfigProvider } from "@/lib/providers/lol-client-config/provider";
 
@@ -28,6 +29,7 @@ const providers: EventProvider[] = [
   helldivers2Provider,
   foxholeProvider,
   pubgProvider,
+  planetside2Provider,
   rotatingModesProvider,
   lolClientConfigProvider,
 ];

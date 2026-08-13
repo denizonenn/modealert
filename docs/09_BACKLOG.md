@@ -817,7 +817,7 @@ Recommendation engine
 
 # P2 — Multi Game Support
 
-Status: 🟢 10 real providers (2026-08-13)
+Status: 🟢 11 real providers (2026-08-13)
 
 Live providers
 
@@ -875,6 +875,12 @@ Live providers
   developer API, key required (self-serve, no IP lock) — current
   ranked season only, real `isCurrentSeason` flag (`Season 42`
   verified live). See ADR-043.)
+- PlanetSide 2 ✅ (2026-08-13, `census.daybreakgames.com`, Daybreak's
+  shared `s:example` service id, no key needed — current server-wide
+  "Alert" (metagame event) status, real zone/duration data. Backlog
+  previously said this needed a websocket; re-checked and that turned
+  out to be wrong — a sorted, limited REST poll on `world_event` is
+  enough. See ADR-044.)
 
 Pending Deniz's action
 
@@ -967,15 +973,21 @@ Evaluated and deferred (keyless, but data source currently broken)
 
 Future no-key candidates worth a look (unverified, higher effort)
 
-- PlanetSide 2 (Daybreak Census API, `census.daybreakgames.com`) —
-  the shared `s:example` service ID works with zero registration
-  (confirmed live 2026-08-06), so it's keyless in spirit even though
-  it looks like a key. The interesting data (active continent
-  "Alerts") isn't exposed as a clean "currently active" REST
-  endpoint though — trackers derive it from the realtime ESS
-  websocket or by diffing `world_event` history, which is a much
-  bigger lift than the REST-polling pattern every other provider
-  uses here. Worth it only if Deniz specifically wants PS2.
+- ~~PlanetSide 2~~ — **done (2026-08-13, ADR-044).** The "needs a
+  websocket" assumption above was wrong — re-checked and a sorted,
+  limited REST poll on `world_event` gives the same answer. See the
+  Live providers list above.
+- Dota 2 — Steam Web API has real endpoints but requires a key (a
+  Steam account is needed to generate one), and Dota doesn't really
+  have LoL/Valorant-style rotating limited-time modes to begin with
+  (its seasonal events like Diretide/New Bloom ship as client updates,
+  not something toggled by a live API flag). OpenDota's `/leagues`
+  problem (ADR context above) was a separate, already-rejected issue.
+  Not pursued 2026-08-13 without a key.
+- EverQuest II / DC Universe Online — same Daybreak Census API as
+  PlanetSide 2 covers these too (keyless), but they're niche/old
+  enough that they don't match Deniz's actual player base. Not
+  investigated further.
 
 Done (2026-08-05)
 

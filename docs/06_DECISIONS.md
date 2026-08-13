@@ -3485,6 +3485,83 @@ fallback yerine, LoL/Valorant/Fortnite/Destiny'deki aynı desen).
 - World of Warcraft (Battle.net) — Deniz'in key alma sürecinde bir
   sorun oldu, ayrıca ele alınacak.
 
+---
+
+# ADR-044: 11. Oyun — PlanetSide 2 (key gerektirmeden, "imkansız" denilen bir varsayım yeniden incelendi)
+
+Status: Accepted
+
+Date: 2026-08-13
+
+## Bağlam
+
+Deniz "tüm oyunları tara, dota vs, hepsini bensiz halledebildiğini
+hepsini hallet" dedi — key/hesap gerektirmeyen, tamamen bağımsız
+yapılabilecek eklemelere odaklanıldı. Dota 2 araştırıldı (Steam Web
+API, OpenDota zaten reddedilmişti) — Valve'ın kendi API'si de key
+istiyor ve Dota'nın LoL/Valorant tarzı "rotasyonlu mod" kavramı yok;
+gerçek bir sinyal bulunamadı, key gerektirdiği için de bu turda
+denenmedi (Deniz'den bir şey istenmedi).
+
+## Bulgu — PlanetSide 2 için önceki "websocket gerekir" varsayımı yanlıştı
+
+docs/09_BACKLOG.md'de PlanetSide 2, Daybreak Census API'sinin
+`s:example` paylaşılan servis id'siyle (kayıt gerektirmiyor)
+keyless olduğu ama "ilginç veri (aktif 'Alert') temiz bir REST
+endpoint'i değil, gerçek zamanlı ESS websocket'i veya `world_event`
+geçmişini fark almayı gerektiriyor — bu her sağlayıcının kullandığı
+REST-polling deseninden çok daha büyük bir iş" diye not edilmişti.
+
+Bu varsayım yeniden incelendi (ADR-037'nin URF/Arena için "sinyalsiz"
+denilen kaynağı yeniden bulduğu deneyimiyle aynı ders — "imkansız"
+sonucunu, gerçekten doğru kaynağa bakılıp bakılmadığını kontrol etmeden
+kabul etmemek) ve **yanlış çıktı**: `world_event?type=METAGAME&c:sort=
+timestamp:-1&c:limit=5` sorgusu, her Alert başlangıç/bitiş geçişini
+kendi zaman damgasıyla ayrı bir kayıt olarak döndürüyor — en son
+kayda bakmak tek başına "şu an aktif mi" sorusunu cevaplıyor,
+websocket'e hiç gerek yok. Ayrıca PS2'nin yıllar süren oyuncu
+azalmasıyla tek bir sunucuya (`world_id: 1`, "Osprey") birleştiği
+gerçek zamanlı doğrulandı — bu da mimariyi basitleştirdi (tek
+sunucu, çoklu sunucu karmaşası yok).
+
+## Karar
+
+`lib/providers/planetside2/` eklendi (poe/warframe deseniyle aynı).
+Key gerekmiyor. En son Alert geçişini alıp (`metagame_event`
+tanımından gerçek ismi + `duration_minutes`'ı, `zone` tanımından
+gerçek kıta ismini eşleştirerek) LIVE ise tahmini bitişi (gerçek
+resmi süre verisinden, tahmin değil), ENDED ise sadece "en son ne
+zaman bitti"yi gösteriyor — Iron Banner'ın aksine "bir sonraki ne
+zaman" iddiası YOK, çünkü Alert'ler nüfus/bölge koşullarından
+tetikleniyor, sabit bir takvimi yok (bilmediğimiz bir şeyi uydurmama
+ilkesi). `seriesKey: "planetside2-alert"` ile geçmiş Alert'ler
+gruplanıyor.
+
+## Doğrulama
+
+- Gerçek canlı veriyle test edildi: en son Alert ("Hossin Unstable
+  Meltdown", Hossin kıtası) ENDED olarak doğru tespit edildi, gerçek
+  bitiş zaman damgasıyla.
+- **Tam `providerSyncService.syncAll()` gerçek prod DB'ye karşı
+  çalıştırıldı** — "received: 1, saved: 1", gerçek `Event` satırı DB'de
+  doğrulandı. Yeni `Game` satırı (`id: "planetside2"`) elle eklendi,
+  satır sayısı doğrulandı (10→11).
+- 129/129 test (4 yeni: LIVE+tahmini bitiş, ENDED+"next" iddiası
+  olmaması, boş geçmiş, eksik tanım/kıta fallback'i), `tsc --noEmit`,
+  `npm run build` temiz.
+
+## Yapılmayan
+
+- Dota 2 — key gerektiriyor (Steam Web API), bu turda denenmedi
+  (Deniz'den bir şey istemeden ilerleme kararına uyuldu). Gerçek bir
+  "rotasyonlu mod" kavramı da yok — OpenDota'nın zaten reddedilen
+  sorunundan (ADR bağlamı, "her lig, filtre yok") bağımsız olarak,
+  Dota'nın kendisi bu ürünün "limited-time mode" konseptine LoL/
+  Valorant kadar iyi oturmuyor.
+- EverQuest II / DC Universe Online — Daybreak'in aynı Census API'si
+  bu oyunları da kapsıyor (keyless), ama çok niş/eski oyunlar,
+  Deniz'in mevcut oyuncu kitlesiyle uyuşmuyor — değerlendirilmedi.
+
 - **İlk kullanıcı edinme stratejisi** — Deniz ayrıca konuşmak istedi,
   ayrı bir konu (bu ADR sadece paywall/ödeme altyapısını kapsıyor).
   Önerilen yön: oyun bazlı Reddit toplulukları (zaten desteklenen 10

@@ -9,6 +9,7 @@ import {
 import {
   GiChessKnight,
   GiHoodedFigure,
+  GiPlanetConquest,
   GiRobotHelmet,
   GiSpartanHelmet,
   GiTrenchSpade,
@@ -33,4 +34,5 @@ export const GAME_BRAND_ICONS: Record<
   helldivers2: GiSpartanHelmet,
   foxhole: GiTrenchSpade,
   pubg: SiPubg,
+  planetside2: GiPlanetConquest,
 }
