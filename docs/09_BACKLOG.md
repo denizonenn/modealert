@@ -750,6 +750,13 @@ Completed
   own row on `/status` and `/admin` (also factored into `/status`'s
   "All systems operational" headline). Verified live (healthy, real
   latency).
+- **Provider outage alerting** — **done (2026-08-13, ADR-046).**
+  Closed the exact bus-factor risk named in the product's own
+  readiness memo: `/status`/`/admin` existed but nobody was watching
+  them, so a dead provider (e.g. the Riot key expiring) could go
+  unnoticed for days. `healthAlertService` now emails `ADMIN_EMAILS`
+  once a provider crosses into 2-consecutive-daily-syncs-unhealthy
+  (~24h down), and only once per incident, not daily.
 
 Need
 
@@ -798,6 +805,42 @@ Deliberately not built (would be fake or genuinely risky)
   noted under Notification Engine's Retry Policy). A real persistent
   log viewer needs its own storage, which is new infrastructure, not
   a page.
+
+---
+
+# P1 — Product Analytics & Retention
+
+Status: 🟢 (2026-08-13, ADR-046)
+
+Completed
+
+- **First-party funnel analytics** — signed-in users only, no
+  cookies, no third-party script (see the "Due Diligence" readiness
+  memo, which named "nobody's watching the funnel" as a blocking
+  finding). New `AnalyticsEvent` table, allowlisted event names only.
+  Tracks: onboarding step viewed, onboarding finished, free-limit hit,
+  signup completed (all 3 methods), checkout clicked, premium
+  activated. Aggregate 30-day counts on `/admin`'s new Funnel panel —
+  no per-user PII surfaced there. Privacy policy updated to disclose
+  it honestly.
+- **Weekly digest email** — first real retention mechanic beyond the
+  alerts themselves. Every Monday, users with email on and a non-empty
+  watchlist get a real snapshot of what they're tracking. Piggybacks
+  on the existing daily sync cron (no second Vercel cron entry
+  needed).
+- **Cross-game moat stated explicitly in marketing copy** — the
+  homepage Features section and `/features` page now name the real,
+  dynamic game count ("11 games, one inbox") and the actual
+  differentiator (one watchlist instead of a tracker per game),
+  instead of a generic/stale 4-game description.
+
+Future
+
+- Anonymous/pre-signup funnel tracking (landing page → signup) —
+  deliberately out of scope for now, would need a real decision about
+  cookieless session identification that's consistent with the
+  privacy policy's promises, not a quick add.
+- A/B testing the $4.99 price point — needs real signups first.
 
 ---
 

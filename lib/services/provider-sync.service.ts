@@ -10,6 +10,8 @@ import {
   createHealthCheck,
 } from "@/lib/repositories/provider-health-check.repository";
 
+import { checkAndAlert } from "@/lib/services/health-alert.service";
+
 export const providerSyncService = {
   async syncAll() {
     const syncStartedAt =
@@ -80,6 +82,11 @@ export const providerSyncService = {
                 latencyMs,
                 error: message,
               });
+
+              await checkAndAlert(
+                provider.id,
+                provider.name
+              );
 
               console.error(
                 `[ProviderSync] ${provider.name} failed:`,

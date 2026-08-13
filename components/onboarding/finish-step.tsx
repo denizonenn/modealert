@@ -8,12 +8,15 @@ import Link from "next/link"
 
 import { useOnboardingStore } from "@/stores/onboarding-store"
 import { useEvents } from "@/hooks/use-events"
+import { useTrackEvent } from "@/hooks/use-track-event"
 
 import { Button } from "@/components/ui/button"
 import { FREE_WATCHLIST_LIMIT } from "@/lib/constants/plan"
+import { ANALYTICS_EVENTS } from "@/lib/constants/analytics-events"
 
 export default function FinishStep() {
   const router = useRouter()
+  const track = useTrackEvent()
 
   const { selectedEvents, clear } = useOnboardingStore()
   const { events } = useEvents()
@@ -49,6 +52,7 @@ export default function FinishStep() {
       if (results.some((response) => response.status === 402)) {
         // Whatever fit under the free limit is already saved — this
         // just stops here instead of claiming full success.
+        track(ANALYTICS_EVENTS.WATCHLIST_LIMIT_HIT, "onboarding")
         setLimitReached(true)
         return
       }
@@ -57,6 +61,10 @@ export default function FinishStep() {
         throw new Error("One or more events failed to save.")
       }
 
+      track(
+        ANALYTICS_EVENTS.ONBOARDING_FINISHED,
+        String(selectedEvents.length)
+      )
       clear()
       router.push("/dashboard")
     } catch {
@@ -69,6 +77,7 @@ export default function FinishStep() {
   }
 
   function handleContinueAnyway() {
+    track(ANALYTICS_EVENTS.ONBOARDING_FINISHED, "limit-reached")
     clear()
     router.push("/dashboard")
   }

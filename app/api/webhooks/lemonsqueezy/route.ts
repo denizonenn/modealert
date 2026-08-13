@@ -4,6 +4,8 @@ import { verifyWebhookSignature } from "@/lib/billing/lemonsqueezy-client";
 import { billingService } from "@/lib/services/billing.service";
 import { withErrorHandling } from "@/lib/api/with-error-handling";
 import { lemonSqueezyWebhookSchema } from "@/lib/validation/schemas";
+import { analyticsService } from "@/lib/services/analytics.service";
+import { ANALYTICS_EVENTS } from "@/lib/constants/analytics-events";
 
 const HANDLED_EVENTS = new Set([
   "subscription_created",
@@ -55,6 +57,20 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
 
   if (HANDLED_EVENTS.has(parsed.data.meta.event_name)) {
     await billingService.syncSubscriptionFromWebhook(parsed.data);
+
+    // The real conversion moment — not subscription_updated, which
+    // also fires on every renewal and would inflate the funnel count.
+    const userId = parsed.data.meta.custom_data?.user_id;
+
+    if (
+      parsed.data.meta.event_name === "subscription_created" &&
+      userId
+    ) {
+      await analyticsService.record(
+        userId,
+        ANALYTICS_EVENTS.PREMIUM_ACTIVATED
+      );
+    }
   }
 
   return NextResponse.json({ received: true });

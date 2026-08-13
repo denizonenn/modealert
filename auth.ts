@@ -9,6 +9,8 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/db/prisma";
 import { env } from "@/lib/config/env";
 import { checkRateLimit, getClientIp } from "@/lib/security/rate-limit";
+import { analyticsService } from "@/lib/services/analytics.service";
+import { ANALYTICS_EVENTS } from "@/lib/constants/analytics-events";
 
 const LOCKOUT_THRESHOLD = 5;
 const LOCKOUT_DURATION_MS = 15 * 60 * 1000;
@@ -156,6 +158,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
 
       return session;
+    },
+  },
+
+  events: {
+    // Fires for adapter-backed sign-ups (Google, magic link). The
+    // Credentials/password path doesn't go through the adapter at
+    // all (see the provider's own note above), so that one is
+    // tracked directly in /api/auth/register instead — together they
+    // cover every real signup method.
+    async createUser({ user }) {
+      if (user.id) {
+        await analyticsService.record(
+          user.id,
+          ANALYTICS_EVENTS.SIGNUP_COMPLETED
+        );
+      }
     },
   },
 });

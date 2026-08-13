@@ -6,34 +6,37 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { SectionEyebrow } from "@/components/shared/section-eyebrow"
 import { Bell, Clock3, Gamepad2, Shield, ArrowRight } from "lucide-react"
 
-const features = [
-  {
-    title: "Instant email alerts",
-    description: "Receive a beautiful email the moment your selected mode goes live.",
-    icon: Bell,
-    gradient: "linear-gradient(135deg, #a855f7, #d946ef)",
-  },
-  {
-    title: "Daily detection",
-    description: "Our cron system checks for mode changes automatically, once a day.",
-    icon: Clock3,
-    gradient: "linear-gradient(135deg, #3b82f6, #06b6d4)",
-  },
-  {
-    title: "Multiple games",
-    description: "Track limited-time events across Riot titles and other popular games.",
-    icon: Gamepad2,
-    gradient: "linear-gradient(135deg, #ec4899, #f43f5e)",
-  },
-  {
-    title: "Privacy first",
-    description: "We only store the preferences needed to send the alerts you request.",
-    icon: Shield,
-    gradient: "linear-gradient(135deg, #10b981, #14b8a6)",
-  },
-]
+function getFeatures(gameCount: number) {
+  return [
+    {
+      title: "Instant email alerts",
+      description: "Receive a beautiful email the moment your selected mode goes live.",
+      icon: Bell,
+      gradient: "linear-gradient(135deg, #a855f7, #d946ef)",
+    },
+    {
+      title: "Daily detection",
+      description: "Our cron system checks for mode changes automatically, once a day.",
+      icon: Clock3,
+      gradient: "linear-gradient(135deg, #3b82f6, #06b6d4)",
+    },
+    {
+      title: `${gameCount} games, one inbox`,
+      description: `One watchlist for everything you play, instead of a separate tracker, Discord bot, or community site per game.`,
+      icon: Gamepad2,
+      gradient: "linear-gradient(135deg, #ec4899, #f43f5e)",
+    },
+    {
+      title: "Privacy first",
+      description: "We only store the preferences needed to send the alerts you request.",
+      icon: Shield,
+      gradient: "linear-gradient(135deg, #10b981, #14b8a6)",
+    },
+  ]
+}
 
-export function Features() {
+export function Features({ gameCount }: { gameCount: number }) {
+  const features = getFeatures(gameCount)
   return (
     <section id="features" className="mx-auto max-w-7xl px-6 py-24">
       <div className="max-w-3xl">

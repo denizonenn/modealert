@@ -16,14 +16,16 @@ import { Footer } from "@/components/layout/footer"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { SectionEyebrow } from "@/components/shared/section-eyebrow"
+import { GAMES_WITH_PROVIDER } from "@/lib/constants/games"
 
 export const metadata: Metadata = {
   title: "Features",
   description:
-    "See how ModeAlert detects new League of Legends, Valorant, Destiny 2, and Teamfight Tactics events before they're officially announced, and emails you the moment something changes.",
+    "See how ModeAlert detects game events across League of Legends, Valorant, Destiny 2, and 8 other games before they're officially announced, and emails you the moment something changes.",
 }
 
-const CORE_FEATURES = [
+function getCoreFeatures(gameCount: number) {
+  return [
   {
     title: "Early detection via PBE",
     description:
@@ -39,9 +41,8 @@ const CORE_FEATURES = [
     gradient: "linear-gradient(135deg, #3b82f6, #06b6d4)",
   },
   {
-    title: "Multiple games, one inbox",
-    description:
-      "Track League of Legends, Valorant, Destiny 2, and Teamfight Tactics from a single watchlist instead of checking multiple launchers and Twitter accounts.",
+    title: `${gameCount} games, one inbox`,
+    description: `League of Legends, Valorant, Destiny 2, TFT, Fortnite, Warframe, Path of Exile, Helldivers 2, Foxhole, PUBG, PlanetSide 2 — one watchlist instead of a different tracker, Discord bot, or community site per game.`,
     icon: Gamepad2,
     gradient: "linear-gradient(135deg, #ec4899, #f43f5e)",
   },
@@ -66,9 +67,12 @@ const CORE_FEATURES = [
     icon: Shield,
     gradient: "linear-gradient(135deg, #10b981, #14b8a6)",
   },
-]
+  ]
+}
 
 export default function FeaturesPage() {
+  const CORE_FEATURES = getCoreFeatures(GAMES_WITH_PROVIDER.size)
+
   return (
     <main className="min-h-screen bg-black text-white">
       <Navbar />

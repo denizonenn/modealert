@@ -32,6 +32,7 @@ model User {
 
   watchlists          Watchlist[]
   notifications       Notification[]
+  analyticsEvents     AnalyticsEvent[]
 }
 
 model Account {
@@ -204,6 +205,27 @@ model RateLimitHit {
   createdAt DateTime @default(now())
 
   @@index([key, createdAt])
+}
+
+// First-party, no-cookie funnel tracking — see docs/06_DECISIONS.md
+// ADR-046. Deliberately scoped to signed-in users only (no anonymous/
+// pre-signup tracking, no third-party script) so it stays consistent
+// with the privacy policy's "no tracking pixels, no cross-site
+// tracking" promise. `detail` is a small free-text tag (e.g. which
+// onboarding step), not a JSON blob — kept simple on purpose.
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+
+  userId    String
+  name      String
+  detail    String?
+
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([name, createdAt])
+  @@index([userId])
 }
 
 model Watchlist {

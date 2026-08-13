@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useRef } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 
@@ -12,6 +13,8 @@ import { Button } from "@/components/ui/button"
 
 import { useOnboardingStore } from "@/stores/onboarding-store"
 import { useRequireAuth } from "@/hooks/use-require-auth"
+import { useTrackEvent } from "@/hooks/use-track-event"
+import { ANALYTICS_EVENTS } from "@/lib/constants/analytics-events"
 
 const STEP_TITLES: Record<number, string> = {
   1: "Which games do you play?",
@@ -21,6 +24,7 @@ const STEP_TITLES: Record<number, string> = {
 
 export default function OnboardingPage() {
   const authStatus = useRequireAuth()
+  const track = useTrackEvent()
 
   const {
     step,
@@ -29,6 +33,19 @@ export default function OnboardingPage() {
     nextStep,
     previousStep,
   } = useOnboardingStore()
+
+  // Answers the funnel question directly: which step do signed-up
+  // users actually reach before giving up. Only fires once auth is
+  // confirmed, so it never double-counts the pre-auth redirect state.
+  const trackedSteps = useRef(new Set<number>())
+
+  useEffect(() => {
+    if (authStatus !== "authenticated") return
+    if (trackedSteps.current.has(step)) return
+
+    trackedSteps.current.add(step)
+    track(ANALYTICS_EVENTS.ONBOARDING_STEP_VIEWED, String(step))
+  }, [authStatus, step, track])
 
   const canContinue =
     step === 1

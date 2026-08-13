@@ -12,7 +12,9 @@ import { Switch } from "@/components/ui/switch"
 import { Skeleton } from "@/components/shared/skeleton"
 
 import { useRequireAuth } from "@/hooks/use-require-auth"
+import { useTrackEvent } from "@/hooks/use-track-event"
 import { PLAN_LABELS, type Plan } from "@/lib/constants/plan"
+import { ANALYTICS_EVENTS } from "@/lib/constants/analytics-events"
 
 const MIN_PASSWORD_LENGTH = 8
 
@@ -67,6 +69,7 @@ function UpgradedBanner() {
 
 function SubscriptionSection({ account }: { account: Account }) {
   const isPremium = account.plan === "PREMIUM"
+  const track = useTrackEvent()
 
   return (
     <Section
@@ -107,7 +110,12 @@ function SubscriptionSection({ account }: { account: Account }) {
             </a>
           )
         ) : account.checkoutUrl ? (
-          <a href={account.checkoutUrl}>
+          <a
+            href={account.checkoutUrl}
+            onClick={() =>
+              track(ANALYTICS_EVENTS.CHECKOUT_CLICKED, "settings")
+            }
+          >
             <Button className="bg-gradient-brand text-white">
               Upgrade to Premium
             </Button>

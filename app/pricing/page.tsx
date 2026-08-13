@@ -6,6 +6,7 @@ import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
 import { SectionEyebrow } from "@/components/shared/section-eyebrow"
+import { CheckoutLink } from "@/components/pricing/checkout-link"
 
 import { auth } from "@/auth"
 import { billingService } from "@/lib/services/billing.service"
@@ -126,11 +127,11 @@ export default async function PricingPage() {
                 </Button>
               </Link>
             ) : checkoutUrl ? (
-              <a href={checkoutUrl}>
+              <CheckoutLink href={checkoutUrl} source="pricing-page">
                 <Button className="mt-8 w-full bg-gradient-brand text-white shadow-[0_0_30px_rgba(168,85,247,0.35)] hover:shadow-[0_0_40px_rgba(168,85,247,0.5)]">
                   Upgrade to Premium
                 </Button>
-              </a>
+              </CheckoutLink>
             ) : (
               <p className="mt-8 text-center text-xs text-zinc-500">
                 Upgrades aren&apos;t live yet — check back soon.

@@ -8,6 +8,7 @@ import { env } from "@/lib/config/env";
 import {
   providerSyncService,
 } from "@/lib/services/provider-sync.service";
+import { weeklyDigestService } from "@/lib/services/weekly-digest.service";
 
 export async function GET(
   request: NextRequest
@@ -37,12 +38,20 @@ export async function GET(
     const { results, durationMs } =
       await providerSyncService.syncAll();
 
+    let digest: { sent: number; skipped: number } | undefined;
+
+    if (weeklyDigestService.shouldRunToday(new Date())) {
+      digest = await weeklyDigestService.sendDigests();
+    }
+
     return NextResponse.json({
       success: true,
 
       results,
 
       durationMs,
+
+      digest,
     });
   } catch (error) {
     console.error(error);

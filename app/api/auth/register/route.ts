@@ -6,6 +6,8 @@ import { withErrorHandling } from "@/lib/api/with-error-handling";
 import { checkRateLimit, getClientIp } from "@/lib/security/rate-limit";
 import { parseJsonBody } from "@/lib/validation/parse-body";
 import { registerSchema } from "@/lib/validation/schemas";
+import { analyticsService } from "@/lib/services/analytics.service";
+import { ANALYTICS_EVENTS } from "@/lib/constants/analytics-events";
 
 // Unauthenticated + creates a real DB row, so this is the most
 // abuse-prone route in the app (mass fake account creation, email
@@ -52,12 +54,18 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
 
   const passwordHash = await bcrypt.hash(password, 12);
 
-  await prisma.user.create({
+  const user = await prisma.user.create({
     data: {
       email,
       password: passwordHash,
     },
   });
+
+  await analyticsService.record(
+    user.id,
+    ANALYTICS_EVENTS.SIGNUP_COMPLETED,
+    "password"
+  );
 
   return NextResponse.json({ success: true });
 });

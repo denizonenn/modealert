@@ -1,0 +1,77 @@
+import { Resend } from "resend";
+
+import { getDigestRecipients } from "@/lib/repositories/user.repository";
+import { buildDigestHtml } from "@/lib/notifications/email/digest-template";
+import { createUnsubscribeToken } from "@/lib/notifications/email/unsubscribe-token";
+import { env } from "@/lib/config/env";
+import { SITE_URL } from "@/lib/constants/site";
+
+const resend = env.RESEND_API_KEY
+  ? new Resend(env.RESEND_API_KEY)
+  : null;
+
+// The retention gap named directly in the product's own readiness
+// memo (docs/06_DECISIONS.md ADR-046): nothing brings a user back
+// except an alert actually firing. This is the first re-engagement
+// mechanic — a real, current snapshot of what they're tracking, sent
+// once a week (piggybacked on the existing daily sync cron rather
+// than a second Vercel cron entry, see weeklyDigestService.shouldRunToday).
+export const weeklyDigestService = {
+  // Monday, so it lands at the same time as the week's first sync —
+  // arbitrary but consistent; not tied to any real weekly game reset.
+  shouldRunToday(now: Date): boolean {
+    return now.getUTCDay() === 1;
+  },
+
+  async sendDigests() {
+    if (!resend) {
+      return { sent: 0, skipped: 0 };
+    }
+
+    const recipients = await getDigestRecipients();
+
+    let sent = 0;
+    let skipped = 0;
+
+    for (const recipient of recipients) {
+      const entries = recipient.watchlists.map((w) => ({
+        title: w.event.title,
+        status: w.event.status,
+        gameName: w.event.game.name,
+      }));
+
+      if (entries.length === 0) {
+        skipped++;
+        continue;
+      }
+
+      const unsubscribeToken = createUnsubscribeToken(recipient.id);
+      const unsubscribeUrl = `${SITE_URL}/api/unsubscribe?userId=${recipient.id}&token=${unsubscribeToken}`;
+
+      try {
+        await resend.emails.send({
+          from: env.EMAIL_FROM,
+          to: recipient.email,
+          subject: "Your ModeAlert weekly digest",
+          text: entries
+            .map((e) => `${e.gameName}: ${e.title} — ${e.status}`)
+            .join("\n"),
+          html: buildDigestHtml(entries, unsubscribeUrl),
+        });
+
+        sent++;
+      } catch (error) {
+        // One recipient's failure shouldn't stop the rest — same
+        // per-recipient isolation as notification-trigger.service.ts.
+        console.error(
+          "[WeeklyDigest] failed to send",
+          recipient.id,
+          error
+        );
+        skipped++;
+      }
+    }
+
+    return { sent, skipped };
+  },
+};

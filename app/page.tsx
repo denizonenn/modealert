@@ -8,6 +8,7 @@ import { Cta } from "@/components/landing/cta"
 import { Footer } from "@/components/layout/footer"
 import { FAQS } from "@/lib/constants/faq"
 import { SITE_URL } from "@/lib/constants/site"
+import { GAMES_WITH_PROVIDER } from "@/lib/constants/games"
 
 // Hero fetches real event data server-side for the dashboard preview
 // widget — revalidate periodically so it doesn't go stale between
@@ -62,7 +63,7 @@ export default function HomePage() {
       <Navbar />
       <Hero />
       <SupportedGames />
-      <Features />
+      <Features gameCount={GAMES_WITH_PROVIDER.size} />
       <HowItWorks />
       <Faq />
       <Cta />

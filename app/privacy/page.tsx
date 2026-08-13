@@ -82,6 +82,15 @@ export default function PrivacyPage() {
               (opaque references, not your card details) so we can grant
               access and let you manage billing.
             </li>
+            <li>
+              <span className="text-white">Product usage</span> — a small
+              number of first-party events (e.g. finishing onboarding,
+              hitting the free plan&apos;s limit) tied to your account, so
+              we can see where the product is confusing without sending
+              anything to a third party. Only recorded while you&apos;re
+              signed in — nothing is tracked before you have an account or
+              if you&apos;re signed out.
+            </li>
           </ul>
           <p className="leading-relaxed">
             We don&apos;t use tracking pixels, third-party analytics

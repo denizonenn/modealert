@@ -3707,3 +3707,97 @@ kapsam bilinçli olarak sınırlandı — bkz. "Yapılmayan" bölümü.
   altyapı/hesap gerektiren hiçbir şey eklenmedi** — mevcut Postgres
   altyapısıyla çözülebilen her şey öyle çözüldü, "low maintenance"
   ilkesiyle tutarlı.
+
+---
+
+# ADR-046: "VC Gibi Düşün" — Readiness Memo'daki Buildable Maddeler
+
+Status: Accepted
+
+Date: 2026-08-13
+
+## Bağlam
+
+Deniz'e ADR-045'in ardından bir "due diligence" memo'su hazırlandı
+(bir VC fon yöneticisinin bakış açısıyla — bkz. paylaşılan artifact,
+"Due Diligence"). Deniz "PUBG key'i geldiğinde paylaşırım, buna göre
+yapılması gerekenleri yap" dedi — memo'nun "Buildable — say the word"
+sütunundaki maddeler bu ADR'de uygulandı, "Only Deniz decides"
+sütunundakilere (şirket kuruluşu, gerçek kullanıcıya çıkma, fiyat
+doğrulama) dokunulmadı.
+
+## Bulgu #1 kapatıldı: sağlık alarmı (tek nokta arıza riski)
+
+Memo'nun en kritik bulgusu — LoL takibinin 24 saatte bir manuel
+yenilenen bir key'e bağlı olması, kimsenin fark etmeden günlerce
+kırık kalabilmesi — artık sessiz değil. `providerSyncService.syncAll()`
+her provider hatası sonrası `healthAlertService.checkAndAlert()`'i
+çağırıyor: bir provider art arda 2 sync'te (günlük cron'da bu ~24
+saat demek) başarısız olursa, `ADMIN_EMAILS`'e bir kez (her gün tekrar
+değil — sadece "2'li seriye yeni girdi" anında) e-posta gidiyor. Saf
+geçiş mantığı (`justCrossedIntoOutage`) ayrı, test edilebilir bir
+fonksiyona çıkarıldı.
+
+## Bulgu #2 kapatıldı: ilk taraf, gizlilik-dostu analytics
+
+Memo'nun "kimse funnel'ı izlemiyor" bulgusu. Yeni `AnalyticsEvent`
+tablosu — sadece giriş yapmış kullanıcılar (anonim/ön-kayıt takibi
+YOK, cookie yok, üçüncü parti script yok — privacy policy'nin "no
+tracking pixels, no cross-site tracking" sözüyle tutarlı kalması için
+bilinçli bir kapsam sınırı). İzin verilen event isimleri sabit bir
+allowlist (`ANALYTICS_EVENTS`), serbest metin değil.
+
+Takip edilen gerçek dönüm noktaları: onboarding adım görüntüleme
+(hangi adımda bırakıyorlar — memo'nun tam sorduğu şey),
+onboarding tamamlama, free limit'e çarpma, signup (parola/Google/
+magic-link — üçü de, `auth.ts`'in `events.createUser`'ı + register
+route'unun ikisi birden), checkout tıklama, premium aktivasyonu
+(`subscription_created` webhook event'inde, yenilemelerde değil).
+`/admin`'e yeni bir "Funnel" paneli eklendi (son 30 gün, agregat
+sayılar — kişisel veri göstermiyor). Privacy policy güncellendi —
+bu izlemeyi dürüstçe açıklıyor.
+
+## Bulgu #5 kapatıldı: haftalık digest (retention mekanizması)
+
+Memo: "bildirim dışında kullanıcıyı geri getiren hiçbir şey yok."
+Yeni `weeklyDigestService` — opt-in olan ve en az 1 event izleyen her
+kullanıcıya, her Pazartesi, izledikleri her şeyin güncel durumunu
+özetleyen bir e-posta. Yeni bir Vercel cron girdisi eklenmedi —
+mevcut tek günlük `/api/cron/sync` cron'u, gün Pazartesi ise digest'i
+de tetikliyor (`shouldRunToday()`, saf ve test edilebilir).
+
+## Bulgu #6 kapatıldı: moat artık sayfada açıkça yazıyor
+
+Memo: "gerçek bir moat var, hiçbir yerde söylenmiyor." Ana sayfanın
+Features bölümü ve `/features` sayfasındaki "Multiple games" kartı,
+statik/eski bir oyun listesi yerine gerçek, dinamik
+`GAMES_WITH_PROVIDER.size` sayısını ("11 games, one inbox") ve
+"ayrı ayrı tracker/Discord bot yerine tek watchlist" farklılaşmasını
+açıkça söylüyor. Rakiplerin ne yaptığına dair doğrulanamayan bir
+iddia ("kimse bunu yapmıyor") kasıtlı olarak kullanılmadı — sadece
+ModeAlert'in kendi değer önerisi.
+
+## Yapılmayan (bilinçli)
+
+- Gerçek e-posta gönderimi (health alert, weekly digest) **tetiklenmedi**
+  doğrulama sırasında — gerçek kullanıcılara beklenmedik e-posta gitmesin
+  diye. Bunun yerine: geçiş mantığı unit test'lerle (6 test), digest
+  alıcı sorgusu ve HTML şablonu gerçek DB'ye karşı salt-okunur
+  doğrulandı (3 gerçek kullanıcı, 15/15/1 watchlist, gerçek HTML
+  üretildi — hiçbir e-posta yollanmadı).
+- Memo'nun "Only Deniz decides" sütunu (şirket kuruluşu, Reddit
+  paylaşımı, fiyat doğrulama, risk toleransı, yatırım kararı) —
+  hiçbiri bu ADR'nin kapsamında değil, kasıtlı olarak dokunulmadı.
+
+## Doğrulama
+
+- Gerçek DB'ye karşı: `analyticsService.record()` gerçek bir satır
+  oluşturdu, `getFunnelCounts()` doğru saydı, test satırı temizlendi.
+  `getDigestRecipients()` gerçek 3 kullanıcıyı doğru watchlist
+  sayılarıyla döndürdü, `buildDigestHtml()` gerçek event verisinden
+  8203 karakterlik geçerli bir HTML üretti.
+- 137/137 test (11 yeni: `justCrossedIntoOutage` için 6,
+  `shouldRunToday` için 2, önceki analytics/health testleri dahil),
+  `tsc --noEmit`, `npm run build` temiz.
+- Yeni migration (`AnalyticsEvent` tablosu) satır sayısı
+  doğrulamasıyla deploy edildi.

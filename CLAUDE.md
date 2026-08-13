@@ -190,6 +190,17 @@ kadar.**
   silindi, form input'larına `aria-label`. Bilinçli olarak
   yapılmayanlar (Public API, tam WCAG denetimi, nonce-tabanlı sıkı
   CSP) ADR-045'te gerekçeli.
+- **"VC gibi düşün" readiness turu tamamlandı (2026-08-13, ADR-046).**
+  Deniz'e sunulan "Due Diligence" memo'sundaki buildable maddeler
+  hayata geçirildi: provider 2 gün üst üste unhealthy olursa
+  `ADMIN_EMAILS`'e tek seferlik alarm e-postası (bus-factor riski
+  kapatıldı), ilk taraf/gizlilik-dostu funnel analytics
+  (`AnalyticsEvent`, sadece giriş yapmış kullanıcılar, `/admin`'de
+  Funnel paneli), haftalık digest e-postası (yeni bir Vercel cron
+  girdisi olmadan, mevcut günlük cron'a bindirilmiş), ve gerçek oyun
+  sayısına dayanan açık bir "moat" mesajı (ana sayfa + `/features`).
+  Şirket kuruluşu/gerçek kullanıcıya çıkma/fiyat doğrulama gibi
+  sadece Deniz'in karar verebileceği maddelere dokunulmadı.
 - Detaylı karar geçmişi için **docs/06_DECISIONS.md** her zaman en
   güncel ve en güvenilir kaynak — yeni bir oturuma başlarken önce
   orayı oku.

@@ -2,6 +2,9 @@ import { useState } from "react"
 import useSWR, { mutate as globalMutate } from "swr"
 import { useSession } from "next-auth/react"
 
+import { useTrackEvent } from "@/hooks/use-track-event"
+import { ANALYTICS_EVENTS } from "@/lib/constants/analytics-events"
+
 interface WatchlistEntry {
   id: string
   userId: string
@@ -23,6 +26,7 @@ const fetcher = async (
 export function useWatchlist() {
   const { status } = useSession()
   const isAuthed = status === "authenticated"
+  const track = useTrackEvent()
 
   const { data, error, isLoading, mutate } = useSWR<
     WatchlistEntry[]
@@ -75,6 +79,10 @@ export function useWatchlist() {
         revalidate: false,
       }
     )
+
+    if (hitLimit) {
+      track(ANALYTICS_EVENTS.WATCHLIST_LIMIT_HIT, "dashboard")
+    }
 
     setLimitReached(hitLimit)
 

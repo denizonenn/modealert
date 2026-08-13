@@ -26,6 +26,33 @@ export async function getUserBilling(userId: string) {
   });
 }
 
+// Only users who'd actually see something worth reading — opted into
+// email and watching at least one event. Selects just the fields the
+// digest needs, not full User/Event/Game rows.
+export async function getDigestRecipients() {
+  return prisma.user.findMany({
+    where: {
+      emailOptOut: false,
+      watchlists: { some: {} },
+    },
+    select: {
+      id: true,
+      email: true,
+      watchlists: {
+        select: {
+          event: {
+            select: {
+              title: true,
+              status: true,
+              game: { select: { name: true } },
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
 export async function findUserBySubscriptionId(
   subscriptionId: string
 ) {

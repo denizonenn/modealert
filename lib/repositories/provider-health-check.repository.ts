@@ -11,6 +11,19 @@ export async function createHealthCheck(data: {
   });
 }
 
+// Most-recent-first — used to detect a provider that just crossed
+// into "unhealthy on 2 checks in a row" (see health-alert.service.ts).
+export async function getRecentHealthChecks(
+  providerId: string,
+  limit: number
+) {
+  return prisma.providerHealthCheck.findMany({
+    where: { providerId },
+    orderBy: { checkedAt: "desc" },
+    take: limit,
+  });
+}
+
 export async function getUptimeByProvider(
   since: Date
 ) {
