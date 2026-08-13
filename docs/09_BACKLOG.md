@@ -441,10 +441,15 @@ Completed
   `ENDED`/`PLAYABLE` row even though Riot's feed currently has zero
   signal for it (verified live + PBE, both checked). Never claims
   LIVE, never invents dates — exists purely so it's selectable ahead
-  of a real signal ever showing up. Arena has the identical
-  no-signal problem (`cherry-lobby.json` has no dates either) and
-  could get the same treatment if wanted — not added yet, out of
-  scope of what was asked.
+  of a real signal ever showing up. Arena had the identical no-signal
+  problem (`cherry-lobby.json` has no dates either) — **added
+  2026-08-13, ADR-036.** Unlike URF, WebSearch found real, dated,
+  official evidence Arena is active right now (Riot's own Patch 26.16
+  notes, August 12, 2026, confirm ongoing balance changes + the
+  weekly "Bravery Arena" variant), so its entry is `LIVE`/`PLAYABLE`
+  rather than URF's honest `ENDED` — a live API signal still doesn't
+  exist for it (checked live + PBE again, zero entries), so this is a
+  manually-verified snapshot, not a live pipeline result.
 - **Same provider extended (2026-08-12, ADR-025)** with Summoner's
   Rift and ARAM as permanent `LIVE`/`PLAYABLE` rows — structurally
   always-queueable modes, not something requiring live verification.
@@ -950,8 +955,13 @@ Future
 
 - Profiles (avatar/display name editing beyond what OAuth provides)
 - Preferences
-- Notification settings (component exists — `notification-settings.tsx`
-  — still not wired to a page, see Technical Debt below)
+- ~~Notification settings~~ — basic version already live via
+  `/dashboard/settings`'s email-notifications toggle (`emailOptOut`).
+  The separate, richer `notification-settings.tsx` component this note
+  used to point to was actually an empty 0-line stub, deleted
+  2026-08-05 (see Bugs section) — this note just never got corrected.
+  Per-channel granularity (once Discord/Telegram exist) would be a new
+  build, not "finishing" an old component.
 - ~~Deniz still needs to create the Google OAuth Client...~~ — Google
   done and live (2026-08-05). Discord deferred: Discord is currently
   blocked from Deniz's location without a VPN, so Discord Developer
@@ -1135,8 +1145,9 @@ Current
   kuruldu; navbar'a bağlandı. `use-notifications.ts` içine `markRead` /
   `markAllRead` eklendi (mevcut `PATCH /api/notifications` endpoint'ini
   kullanıyor), `notification-center`/`notification-item`/`empty-state`
-  kompakt dropdown görünümüne göre yeniden stillendirildi. Kalan parça:
-  `notification-settings.tsx` hâlâ hiçbir sayfaya bağlı değil.
+  kompakt dropdown görünümüne göre yeniden stillendirildi.
+  `notification-settings.tsx` (boş, 0 satırlık bir stub'dı) aynı gün
+  silindi — bkz. Bugs bölümü.
 
 ---
 

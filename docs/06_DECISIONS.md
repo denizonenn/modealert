@@ -2844,3 +2844,44 @@ bırakıldı.
   başlık senaryosu dahil), `tsc --noEmit`, `npm run build` temiz.
 - docs/09_BACKLOG.md'deki stale "Known duplicate-title issue" notu
   düzeltildi.
+- İki ayrı stale backlog notu daha bulunup düzeltildi (kod ile doküman
+  arasında sessiz sapma bırakmama kuralı, CLAUDE.md "Belgeleme
+  Kuralı"): `notification-settings.tsx`'in "hâlâ bağlı değil" notu —
+  dosya aslında 2026-08-05'te boş bir stub olduğu için zaten
+  silinmişti, bildirim tercihi `/dashboard/settings`'te gerçekten var.
+
+## Aynı Oturumda İkinci Parça — Arena İçin Honest LIVE Placeholder
+
+ADR-024/docs/09_BACKLOG.md, URF'ün kardeşi Arena'nın da aynı
+sinyalsizlik problemine sahip olduğunu ("cherry-lobby.json'da tarih
+yok") ama eklenmediğini not düşmüştü. Bu oturumda gerçek event-hub
+verisi tekrar kontrol edildi (live + PBE, ikisi de sıfır Arena girdisi
+— URF'le birebir aynı durum) ve ardından WebSearch ile Arena'nın
+gerçek, tarihli, resmi bir kaynaktan doğrulanabilir güncel durumu arandı
+— URF'te olmayan bir şey bulundu: Riot'un kendi Patch 26.16 notları
+(12 Ağustos 2026, leagueoflegends.com) Arena'nın o an aktif olduğunu
+doğruluyor (dengeleme değişiklikleri + haftalık "Bravery Arena"
+varyantının geri dönüşü), 25 Haziran 2025'te (Patch 25.13) başlayan
+mevcut run'ın parçası olarak. Bu, Iron Banner'ın (Bungie'nin resmi
+duyurulmuş takviminden hesaplanan statü, ADR-034) ve Mayhem/Classic'in
+(WebSearch ile resmi kaynaklardan doğrulanan kalıcılık, ADR-029)
+kullandığı aynı güven eşiği — canlı API sinyali değil ama tarihli,
+resmi, doğrulanabilir bir kaynak.
+
+`lib/providers/rotating-modes/provider.ts`'e `rotating-mode-arena`
+eklendi: `status: "LIVE"`, `isLimitedTime: true` (Mayhem/Classic'in
+aksine Arena kalıcı olarak onaylanmadı, hâlâ rotasyonlu — WebSearch
+"not a permanently-available mode, it still rotates" diyor).
+Description doğrulama tarihini (2026-08-13) ve kaynağı açıkça belirtiyor
+ki gelecekte bayatlarsa fark edilsin. Dosyanın en üstündeki "tek kural"
+yorumu da güncellendi: artık `LIVE` sadece "yapısal olarak kalıcı"
+anlamına gelmiyor, "tarihli/resmi kaynaktan doğrulanmış rotasyonlu mod"
+durumunu da kapsıyor (Iron Banner ile aynı desen).
+
+## Sonuçlar (Arena)
+
+- `tsc --noEmit`, `npm run build`, 98/98 test temiz (bu ekleme için ayrı
+  test yazılmadı — dosyadaki diğer statik `KNOWN_MODES` girdileri de
+  test edilmiyor, aynı "düz veri" sınırı).
+- `rotatingModesProvider.getEvents()` doğrudan çalıştırılıp gerçek
+  çıktı doğrulandı (id, status, description).

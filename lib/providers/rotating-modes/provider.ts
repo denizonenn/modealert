@@ -31,9 +31,16 @@ import { EVENT_CATEGORIES } from "@/lib/constants/event-category";
 //
 // The one rule that must never be broken: `status` reflects a fact
 // this file's author can actually stand behind, never a guess.
-// - "LIVE" — structurally permanent, no live verification needed.
-// - "ENDED" — known rotating mode, zero live signal right now. Never
-//   a fabricated LIVE claim, never an invented date.
+// - "LIVE" — either structurally permanent (no live verification
+//   needed), or a rotating mode with a real, dated, official source
+//   confirming it's active right now (e.g. Riot's own patch notes —
+//   see Arena below). Always cites the source and verification date
+//   so staleness is visible, same as Destiny 2's Iron Banner
+//   (computed from Bungie's announced schedule rather than a live API
+//   signal, see docs/06_DECISIONS.md ADR-034).
+// - "ENDED" — known rotating mode, zero signal (live API or dated
+//   official source) confirming it's active right now. Never a
+//   fabricated LIVE claim, never an invented date.
 //
 // If a mode listed here ever gets its own real, dated
 // communitydragon-sourced row (live or PBE), that row reports the
@@ -121,6 +128,15 @@ const KNOWN_MODES: KnownMode[] = [
     description:
       "Ultra Rapid Fire — near-zero cooldowns, no mana, chaos. A rotating featured mode; Riot doesn't publish a schedule for when featured modes are in rotation, so ModeAlert has no live signal for it right now (checked both the live and PBE event-hub feeds directly — neither has a URF entry). Its last confirmed run (as ARURF) started January 22, 2026 with Patch 26.2, per Riot's own official patch notes (verified via WebSearch 2026-08-12) — no reliable end date found, so that's not seeded as history here (would be false precision). Tracked so you don't miss the next one — the moment Riot's data shows a real URF window, ModeAlert reports its actual status and starts building real history (how long it stays live, PBE-to-live lag) automatically.",
     status: "ENDED",
+    isLimitedTime: true,
+  },
+  {
+    id: "rotating-mode-arena",
+    gameId: GAME_IDS.LEAGUE_OF_LEGENDS,
+    title: "Arena",
+    description:
+      "2v2v2v2v2v2v2v2 round-based combat with augments. Same no-API-signal problem as URF (checked both the live and PBE event-hub feeds directly — neither has an Arena entry), so this isn't from ModeAlert's usual live pipeline. Unlike URF though, there's real, current, official evidence it's active right now: Riot's own Patch 26.16 notes (published August 12, 2026, leagueoflegends.com) confirm ongoing Arena content — champion balance changes plus the weekly 'Bravery Arena' variant returning — for its run that's been going since June 25, 2025 (Patch 25.13). Marked LIVE from that dated official source, not a live API signal (verified via WebSearch 2026-08-13) — re-verify if this starts to look stale, since Arena still rotates and isn't confirmed permanent the way ARAM Mayhem/League Classic are.",
+    status: "LIVE",
     isLimitedTime: true,
   },
   // "ARAM: Mayhem Classic-ish" used to be a static always-ENDED entry
