@@ -4,6 +4,7 @@ import {
 
 import {
   getNotificationStats,
+  getFalsePositiveStats,
 } from "@/lib/repositories/notification.repository";
 
 import {
@@ -75,11 +76,13 @@ export const globalStatisticsService = {
       notifications,
       healthChecks,
       notificationFailures30d,
+      falsePositives,
     ] = await Promise.all([
       getAllHistory(),
       getNotificationStats(),
       getUptimeByProvider(since),
       getNotificationFailureCount(since),
+      getFalsePositiveStats(),
     ]);
 
     const groups = groupByEvent(history);
@@ -294,6 +297,26 @@ export const globalStatisticsService = {
                     notificationFailures30d)) *
                   1000
               ) / 10,
+
+        falsePositives: {
+          totalReported:
+            falsePositives.totalReported,
+
+          // Real user reports, not an inferred/guessed signal — see
+          // docs/06_DECISIONS.md ADR-040. Rate is against all-time
+          // sends (a report can come in long after the 30-day window
+          // a notification was sent in), so this is deliberately not
+          // "reports in the last 30 days / sends in the last 30
+          // days" — that would understate it.
+          rate:
+            notifications.total === 0
+              ? null
+              : Math.round(
+                  (falsePositives.totalReported /
+                    notifications.total) *
+                    1000
+                ) / 10,
+        },
       },
     };
   },

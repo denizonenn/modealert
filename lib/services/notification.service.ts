@@ -4,6 +4,7 @@ import {
   markNotificationRead,
   markAllNotificationsRead,
   deleteNotification,
+  reportNotificationFalsePositive,
 } from "@/lib/repositories/notification.repository";
 
 export const notificationService = {
@@ -40,5 +41,9 @@ export const notificationService = {
 
   async delete(id: string, userId: string) {
     return deleteNotification(id, userId);
+  },
+
+  async reportFalsePositive(id: string, userId: string) {
+    return reportNotificationFalsePositive(id, userId);
   },
 };

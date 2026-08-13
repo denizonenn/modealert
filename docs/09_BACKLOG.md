@@ -675,12 +675,20 @@ Completed
   raw count — `null`/honest-empty-state when there have been zero send
   attempts in the window.
 
-Need (not buildable without new instrumentation — flagged, not skipped)
+Done (2026-08-13, ADR-040)
 
-- **False positives** — no concept for this exists in the app yet (no
-  user-facing "this was wrong" feedback mechanism). Needs a product
-  decision on what a false positive even means here (bad prediction?
-  notification for an event that wasn't real?) before it's buildable.
+- ~~False positives~~ — Deniz picked a definition from 3 concrete
+  options: real user-facing "this was wrong" reports, not an inferred/
+  guessed signal (rejected: automatic status-flapping detection, which
+  would assume something's wrong rather than a user confirming it).
+  `Notification.falsePositiveReportedAt` (nullable, additive migration,
+  hand-written SQL, row counts verified before/after deploy) — set
+  once, idempotent. "This was wrong" button on every notification
+  (navbar bell dropdown + `/dashboard/notifications`), real rate shown
+  on `/statistics` with the same honest-empty-state pattern as
+  everything else there. Verified end-to-end against the real DB
+  (reported a real notification, confirmed idempotency, confirmed the
+  stats calculation, restored the original state).
 
 ---
 

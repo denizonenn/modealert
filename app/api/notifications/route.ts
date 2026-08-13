@@ -34,6 +34,17 @@ export async function PATCH(request: NextRequest) {
 
   const body = await request.json();
 
+  if (body.id && body.falsePositive) {
+    await notificationService.reportFalsePositive(
+      body.id,
+      session.user.id
+    );
+
+    return NextResponse.json({
+      success: true,
+    });
+  }
+
   if (body.id) {
     await notificationService.markRead(
       body.id,

@@ -15,6 +15,7 @@ export default function NotificationCenter() {
     isLoading,
     markRead,
     markAllRead,
+    reportFalsePositive,
   } = useNotifications();
 
   return (
@@ -49,7 +50,13 @@ export default function NotificationCenter() {
               message={notification.message}
               read={notification.read}
               createdAt={notification.createdAt}
+              falsePositiveReportedAt={
+                notification.falsePositiveReportedAt
+              }
               onMarkRead={() => markRead(notification.id)}
+              onReportFalsePositive={() =>
+                reportFalsePositive(notification.id)
+              }
             />
           ))
         )}

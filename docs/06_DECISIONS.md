@@ -3118,3 +3118,57 @@ değiştiyse). `/events/[slug]`'a mevcut Timeline'ın altına yeni bir
 - Geriye dönük doldurulamaz (diğer "yeni enstrümantasyon" özellikleri
   gibi) — 2026-08-13'ten itibaren gerçek edit'leri kaydetmeye
   başlıyor.
+
+---
+
+# ADR-040: "False Positive" — Gerçek Kullanıcı Geri Bildirimi, Tahmin/Sezgi Değil
+
+Status: Accepted
+
+Date: 2026-08-13
+
+## Bağlam
+
+docs/09_BACKLOG.md'nin P1 Statistics bölümünde "False positives" uzun
+süredir "ne anlama geldiği belirsiz, ürün kararı gerekiyor" diye
+işaretliydi. Deniz'e üç somut tanım seçeneği sunuldu (kullanıcı
+"yanlıştı" işaretlemesi / statü çırpınması otomatik tespiti / zaten
+var olan prediction accuracy) — **kullanıcının gerçekten işaretleyip
+raporlayabilmesini** seçti. Bu, projenin "asla tahmin/varsayım,
+sadece gerçek sinyal" ilkesiyle en tutarlı seçenek — otomatik
+"flapping" tespiti bir şeyin yanlış olduğunu varsayardı, kanıtlamazdı.
+
+## Karar
+
+`Notification.falsePositiveReportedAt` (nullable `DateTime`) eklendi
+— additive migration, hand-written SQL, deploy öncesi/sonrası satır
+sayıları (70/55/4/31/10/9) birebir doğrulandı. `null` = hiç
+raporlanmadı; ilk raporlama anında set edilir, tekrar tıklama
+zaman damgasını değiştirmez (idempotent, `WHERE ... AND
+falsePositiveReportedAt IS NULL` ile).
+
+- `notification.repository.ts`: `reportNotificationFalsePositive()`,
+  `getFalsePositiveStats()`.
+- `PATCH /api/notifications` mevcut `markRead`/`markAllRead`
+  deseniyle genişletildi — `{ id, falsePositive: true }` body'si yeni
+  aksiyonu tetikliyor.
+- `components/notifications/notification-item.tsx`'e "This was wrong"
+  butonu eklendi (rapor edildikten sonra "Reported as wrong" olarak
+  devre dışı kalıyor) — hem navbar zil dropdown'ında (`notification-
+  center.tsx`) hem `/dashboard/notifications`'ta gerçek.
+- `/statistics`'e yeni bir "Reported as wrong" kutusu eklendi —
+  `globalStatisticsService`'in mevcut honest-empty-state desenini
+  izliyor (hiç bildirim yoksa "No notifications sent yet", varsa
+  gerçek oran + "`X of Y notifications ever sent`").
+
+## Doğrulama
+
+- Gerçek DB'ye karşı uçtan uca doğrulandı: gerçek bir bildirime
+  `reportFalsePositive` çağrıldı (1 satır güncellendi), ikinci çağrı
+  idempotent olduğu için 0 satır güncelledi ve zaman damgası
+  değişmedi, `globalStatisticsService.get()` doğru oranı (1/10 = %10)
+  hesapladı — sonra orijinal `null` durumuna geri döndürüldü.
+- `tsc --noEmit`, `npm run build` temiz. Bu özellik için ayrı unit
+  test yazılmadı — mevcut `read`/`markRead` toggle'ı da test
+  edilmiyor, aynı "CRUD plumbing, pure function değil" sınırı
+  (gerçek DB'ye karşı end-to-end doğrulama ile telafi edildi).

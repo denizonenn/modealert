@@ -32,6 +32,32 @@ export async function getNotificationStats() {
   return { total, last30Days };
 }
 
+export async function getFalsePositiveStats() {
+  const thirtyDaysAgo = new Date(
+    Date.now() - 30 * 24 * 60 * 60 * 1000
+  );
+
+  const [totalReported, reportedLast30Days] =
+    await Promise.all([
+      prisma.notification.count({
+        where: {
+          falsePositiveReportedAt: {
+            not: null,
+          },
+        },
+      }),
+      prisma.notification.count({
+        where: {
+          falsePositiveReportedAt: {
+            gte: thirtyDaysAgo,
+          },
+        },
+      }),
+    ]);
+
+  return { totalReported, reportedLast30Days };
+}
+
 export async function createNotification(data: {
   userId: string;
   eventId: string;
@@ -72,6 +98,25 @@ export async function markAllNotificationsRead(
     },
     data: {
       read: true,
+    },
+  });
+}
+
+// Idempotent — only sets the timestamp the first time, so a repeat
+// call (e.g. a double-click) doesn't overwrite the original report
+// time.
+export async function reportNotificationFalsePositive(
+  id: string,
+  userId: string
+) {
+  return prisma.notification.updateMany({
+    where: {
+      id,
+      userId,
+      falsePositiveReportedAt: null,
+    },
+    data: {
+      falsePositiveReportedAt: new Date(),
     },
   });
 }

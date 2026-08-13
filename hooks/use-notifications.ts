@@ -16,6 +16,8 @@ interface Notification {
 
   read: boolean
 
+  falsePositiveReportedAt: string | null
+
   createdAt: string
 }
 
@@ -91,6 +93,33 @@ export function useNotifications() {
     )
   }
 
+  async function reportFalsePositive(id: string) {
+    const reportedAt = new Date().toISOString()
+
+    await mutate(
+      async () => {
+        await fetch("/api/notifications", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ id, falsePositive: true }),
+        })
+
+        return fetcher("/api/notifications")
+      },
+      {
+        optimisticData: notifications.map((n) =>
+          n.id === id
+            ? { ...n, falsePositiveReportedAt: reportedAt }
+            : n
+        ),
+        rollbackOnError: true,
+        revalidate: false,
+      }
+    )
+  }
+
   return {
     notifications,
     unreadCount,
@@ -98,5 +127,6 @@ export function useNotifications() {
     isLoading,
     markRead,
     markAllRead,
+    reportFalsePositive,
   }
 }

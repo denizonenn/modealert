@@ -26,6 +26,7 @@ export default function NotificationHistoryPage() {
     isLoading,
     markRead,
     markAllRead,
+    reportFalsePositive,
   } = useNotifications()
 
   const [filter, setFilter] = useState<Filter>("all")
@@ -123,7 +124,13 @@ export default function NotificationHistoryPage() {
                 message={notification.message}
                 read={notification.read}
                 createdAt={notification.createdAt}
+                falsePositiveReportedAt={
+                  notification.falsePositiveReportedAt
+                }
                 onMarkRead={() => markRead(notification.id)}
+                onReportFalsePositive={() =>
+                  reportFalsePositive(notification.id)
+                }
               />
             ))
           )}

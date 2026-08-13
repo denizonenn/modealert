@@ -207,6 +207,12 @@ model Notification {
 
   read       Boolean
 
+  // Null = not reported. Set the one time a user flags this specific
+  // notification as wrong (e.g. the event it announced wasn't really
+  // live/didn't happen as described) — real, first-party feedback,
+  // not an inferred/guessed signal.
+  falsePositiveReportedAt DateTime?
+
   createdAt  DateTime @default(now())
 
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)

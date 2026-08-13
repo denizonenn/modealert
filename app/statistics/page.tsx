@@ -237,6 +237,32 @@ export default async function StatisticsPage() {
                 </>
               )}
             </div>
+
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-5 sm:col-span-2">
+              <p className="text-xs uppercase tracking-wide text-zinc-600">
+                Reported as wrong
+              </p>
+              <p className="mt-1 text-xs text-zinc-600">
+                Real user reports — a recipient flagged a specific
+                notification as inaccurate, not an inferred guess.
+              </p>
+              {stats.notifications.falsePositives.rate === null ? (
+                <p className="mt-2 text-sm text-zinc-500">
+                  No notifications sent yet.
+                </p>
+              ) : (
+                <>
+                  <p className="mt-2 text-2xl font-semibold">
+                    {stats.notifications.falsePositives.rate}%
+                  </p>
+                  <p className="mt-1 text-xs text-zinc-600">
+                    {stats.notifications.falsePositives.totalReported}{" "}
+                    of {stats.notifications.total} notifications ever
+                    sent
+                  </p>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </section>
