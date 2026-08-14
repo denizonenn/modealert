@@ -8,6 +8,7 @@ import { Lock, Mail } from "lucide-react"
 
 import { Navbar } from "@/components/layout/navbar"
 import { Button } from "@/components/ui/button"
+import { PasswordStrength } from "@/components/ui/password-strength"
 
 const MIN_PASSWORD_LENGTH = 8
 
@@ -117,6 +118,12 @@ function SignUpForm() {
             className="h-10 w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"
           />
         </div>
+
+        {password.length > 0 && (
+          <div className="dark rounded-lg border border-white/10 bg-white/5 px-3 py-3">
+            <PasswordStrength value={password} />
+          </div>
+        )}
 
         <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3">
           <Lock className="h-4 w-4 shrink-0 text-zinc-500" />
