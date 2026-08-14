@@ -5,6 +5,7 @@ import { DashboardPreview, type PreviewEvent } from "./dashboard-preview"
 import { StatsBar } from "./stats-bar"
 import Link from "next/link"
 import { ModeRotator } from "./mode-rotator"
+import KineticGrid from "@/components/ui/kinetic-grid"
 
 import { eventQueryService } from "@/lib/services/event-query.service"
 import { GAMES_WITH_PROVIDER } from "@/lib/constants/games"
@@ -76,12 +77,18 @@ export async function Hero() {
   const { events, monitoredCount, gameCount } = await getPreviewData()
 
   return (
-    <section className="relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_0%,rgba(168,85,247,0.18),transparent_60%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_35%_at_80%_10%,rgba(59,130,246,0.14),transparent_60%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_35%_at_15%_15%,rgba(236,72,153,0.12),transparent_60%)]" />
+    <KineticGrid globalColor="brand" className="text-white">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_50%_35%_at_50%_15%,rgba(0,0,0,0.4),transparent_70%)]" />
 
       <div className="relative mx-auto flex max-w-7xl flex-col items-center px-6 py-24 text-center md:py-32">
+        <div className="mb-5 flex items-center gap-2 rounded-full border border-white/10 bg-black/40 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.2em] text-zinc-400 backdrop-blur-sm">
+          <span className="relative flex h-1.5 w-1.5">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
+          </span>
+          Live — {gameCount} games / {monitoredCount} events tracked
+        </div>
+
         <Badge className="mb-6 border border-white/10 bg-white/10 text-white hover:bg-white/15">
           <Zap className="mr-2 h-3 w-3" /> Daily mode detection
         </Badge>
@@ -114,8 +121,15 @@ export async function Hero() {
 
         <StatsBar gameCount={gameCount} eventCount={monitoredCount} />
 
-        <DashboardPreview events={events} monitoredCount={monitoredCount} />
+        <div className="relative w-full max-w-6xl">
+          <span className="absolute -top-2 -left-2 h-6 w-6 border-t-2 border-l-2 border-white/25" />
+          <span className="absolute -top-2 -right-2 h-6 w-6 border-t-2 border-r-2 border-white/25" />
+          <span className="absolute -bottom-2 -left-2 h-6 w-6 border-b-2 border-l-2 border-white/25" />
+          <span className="absolute -bottom-2 -right-2 h-6 w-6 border-b-2 border-r-2 border-white/25" />
+
+          <DashboardPreview events={events} monitoredCount={monitoredCount} />
+        </div>
       </div>
-    </section>
+    </KineticGrid>
   )
 }

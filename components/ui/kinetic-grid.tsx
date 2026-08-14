@@ -57,9 +57,10 @@ export default function KineticGrid({
 }: {
   children?: ReactNode;
   className?: string;
-  globalColor?: "default" | "monochrome";
+  globalColor?: "default" | "monochrome" | "brand";
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const mouseRef = useRef<Point>({ x: -9999, y: -9999 });
   const targetMouseRef = useRef<Point>({ x: -9999, y: -9999 });
@@ -166,6 +167,13 @@ export default function KineticGrid({
           nodeActive: { r: 255, g: 255, b: 255, a: 1.0 },
           glow: "255,255,255",
           ripple: "255,255,255",
+        },
+        brand: {
+          bg: "#000000",
+          lineActive: { r: 168, g: 85, b: 247, a: 0.9 },
+          nodeActive: { r: 168, g: 85, b: 247, a: 1.0 },
+          glow: "168,85,247",
+          ripple: "236,72,153",
         },
       }[globalColor ?? "default"];
 
@@ -328,31 +336,39 @@ export default function KineticGrid({
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
 
     const setSize = () => {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
+      const w = container.offsetWidth;
+      const h = container.offsetHeight;
       canvas.width = w;
       canvas.height = h;
       sizeRef.current = { w, h };
-      if (mouseRef.current.x === -9999) {
-        mouseRef.current = { x: -9999, y: -9999 };
-        targetMouseRef.current = { x: -9999, y: -9999 };
-      }
     };
 
     setSize();
+    const resizeObserver = new ResizeObserver(setSize);
+    resizeObserver.observe(container);
     window.addEventListener("resize", setSize);
 
+    // Coordinates are tracked relative to the container (which scrolls
+    // with the page), not the viewport — the canvas is absolutely
+    // positioned inside it rather than fixed to the screen.
+    const toLocal = (clientX: number, clientY: number) => {
+      const rect = container.getBoundingClientRect();
+      return { x: clientX - rect.left, y: clientY - rect.top };
+    };
+
     const onMouseMove = (e: MouseEvent) => {
-      targetMouseRef.current = { x: e.clientX, y: e.clientY };
+      targetMouseRef.current = toLocal(e.clientX, e.clientY);
     };
 
     const onClick = (e: MouseEvent) => {
+      const { x, y } = toLocal(e.clientX, e.clientY);
       ripplesRef.current.push({
-        x: e.clientX,
-        y: e.clientY,
+        x,
+        y,
         radius: 0,
         opacity: 1,
         born: performance.now(),
@@ -364,6 +380,7 @@ export default function KineticGrid({
     rafRef.current = requestAnimationFrame(animate);
 
     return () => {
+      resizeObserver.disconnect();
       window.removeEventListener("resize", setSize);
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("click", onClick);
@@ -377,15 +394,18 @@ export default function KineticGrid({
 
   return (
     <div
+      ref={containerRef}
       className={cn(
         "relative w-full min-h-screen overflow-hidden",
-        globalColor === "monochrome" ? "bg-[#000000]" : "bg-[#161618]",
+        globalColor === "monochrome" || globalColor === "brand"
+          ? "bg-[#000000]"
+          : "bg-[#161618]",
         className,
       )}
     >
       <canvas
         ref={canvasRef}
-        className="fixed inset-0 w-full h-full z-0 pointer-events-none"
+        className="absolute inset-0 w-full h-full z-0 pointer-events-none"
       />
 
       <div className="relative z-10 w-full h-full">{children}</div>
