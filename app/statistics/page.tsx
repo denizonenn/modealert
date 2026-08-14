@@ -1,9 +1,11 @@
 import type { Metadata } from "next"
-import Link from "next/link"
 
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
 import { SectionEyebrow } from "@/components/shared/section-eyebrow"
+import { PopularityHeatmap } from "@/components/statistics/popularity-heatmap"
+import { MagnitudeBarList } from "@/components/statistics/magnitude-bar-list"
+import { UptimeBars } from "@/components/statistics/uptime-bars"
 
 import { globalStatisticsService } from "@/lib/services/global-statistics.service"
 import { formatDuration, formatCount } from "@/lib/utils"
@@ -34,46 +36,45 @@ export default async function StatisticsPage() {
 
         <div className="mt-10">
           <h2 className="text-xl font-semibold tracking-tight">
+            Popularity
+          </h2>
+          <p className="mt-1 text-sm text-zinc-500">
+            Real watchlist counts by game and category — how many people
+            are actually tracking each kind of event, not an estimate.
+          </p>
+
+          <PopularityHeatmap
+            games={stats.popularity.games}
+            categories={stats.popularity.categories}
+            cells={stats.popularity.cells}
+            maxValue={stats.popularity.maxValue}
+          />
+        </div>
+
+        <div className="mt-12">
+          <h2 className="text-xl font-semibold tracking-tight">
             Most tracked events
           </h2>
           <p className="mt-1 text-sm text-zinc-500">
             Events ranked by how many times we&apos;ve seen them occur.
           </p>
 
-          <div className="mt-4 space-y-2">
-            {stats.mostCommon.length === 0 ? (
-              <p className="text-sm text-zinc-500">
-                No history recorded yet — check back after the next sync.
-              </p>
-            ) : (
-              stats.mostCommon.map((item, index) => (
-                <div
-                  key={item.eventId}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="w-5 text-zinc-600">{index + 1}</span>
-                    {item.slug ? (
-                      <Link
-                        href={`/events/${item.slug}`}
-                        className="font-medium hover:text-zinc-300"
-                      >
-                        {item.title}
-                      </Link>
-                    ) : (
-                      <span className="font-medium">{item.title}</span>
-                    )}
-                    <span className="text-zinc-600">·</span>
-                    <span className="text-zinc-500">{item.gameName}</span>
-                  </div>
-
-                  <span className="text-xs text-zinc-500">
-                    seen {item.appearanceCount}×
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
+          {stats.mostCommon.length === 0 ? (
+            <p className="mt-4 text-sm text-zinc-500">
+              No history recorded yet — check back after the next sync.
+            </p>
+          ) : (
+            <MagnitudeBarList
+              items={stats.mostCommon.map((item) => ({
+                key: item.eventId,
+                label: item.title,
+                sublabel: item.gameName,
+                href: item.slug ? `/events/${item.slug}` : undefined,
+                value: item.appearanceCount,
+                valueLabel: `seen ${item.appearanceCount}×`,
+              }))}
+            />
+          )}
         </div>
 
         <div className="mt-12">
@@ -107,20 +108,14 @@ export default async function StatisticsPage() {
                 </p>
               </div>
 
-              <div className="mt-3 space-y-2">
-                {stats.averageDuration.byGame.map((game) => (
-                  <div
-                    key={game.gameId}
-                    className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm"
-                  >
-                    <span className="text-zinc-300">{game.gameName}</span>
-                    <span className="text-zinc-500">
-                      {formatDuration(game.averageMs)} avg · {game.sampleSize}{" "}
-                      sample{game.sampleSize === 1 ? "" : "s"}
-                    </span>
-                  </div>
-                ))}
-              </div>
+              <MagnitudeBarList
+                items={stats.averageDuration.byGame.map((game) => ({
+                  key: game.gameId,
+                  label: game.gameName,
+                  value: game.averageMs,
+                  valueLabel: `${formatDuration(game.averageMs)} avg · ${game.sampleSize} sample${game.sampleSize === 1 ? "" : "s"}`,
+                }))}
+              />
             </>
           )}
         </div>
@@ -169,22 +164,7 @@ export default async function StatisticsPage() {
               sync.
             </p>
           ) : (
-            <div className="mt-4 space-y-2">
-              {stats.providerUptime.providers.map((provider) => (
-                <div
-                  key={provider.providerId}
-                  className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm"
-                >
-                  <span className="text-zinc-300">
-                    {provider.providerName}
-                  </span>
-                  <span className="text-zinc-500">
-                    {provider.uptimePercent}% · {provider.sampleSize} check
-                    {provider.sampleSize === 1 ? "" : "s"}
-                  </span>
-                </div>
-              ))}
-            </div>
+            <UptimeBars providers={stats.providerUptime.providers} />
           )}
         </div>
 

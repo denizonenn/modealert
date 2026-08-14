@@ -4009,3 +4009,71 @@ tekrarlıyor (ADR-041).
   faydalanamıyordu) bu turda tamamlandı.
 - 143/143 test, `tsc --noEmit` temiz. Şema değişikliği yok — sadece
   yeni bir sabit dosya + saf hesaplama fonksiyonları.
+
+---
+
+# ADR-050: `/statistics` Görsel Zenginleştirme — Popülerlik Heatmap'i + Bar Chart'lar
+
+Status: Accepted
+
+Date: 2026-08-14
+
+## Bağlam
+
+Deniz iki şey istedi: `docs/09_BACKLOG.md`'nin "Ideas" bölümünde bekleyen
+"Event popularity heatmap" maddesi, ve `/statistics` sayfasının
+dataviz skill'iyle görsel olarak zenginleştirilmesi (sayfa tamamen
+düz liste/kart metniydi, hiç grafik yoktu).
+
+## Karar
+
+**Popülerlik heatmap'i** — yeni veri değil, mevcut gerçek sinyalin
+(ADR-047'nin `trackedUsers` — okuma anında gerçek `Watchlist`
+satırlarından hesaplanıyor, DB'deki hep-0 kolon değil) oyun × kategori
+kırılımında toplanması. `globalStatisticsService.get()`'e
+`computePopularity()` eklendi: `eventQueryService.getAll()`'dan gelen
+her event'in `trackedUsers`'ı `(gameId, category)` hücresine
+ekleniyor. `components/statistics/popularity-heatmap.tsx` (client,
+hover/focus tooltip'li, klavye erişilebilir hücreler, "View as table"
+ile tam erişilebilir tablo fallback'i).
+
+**Renk:** dataviz skill'inin metoduyla — tek hue (marka moru), sequential
+encoding, dark-mode'da "flips anchor" kuralına göre düşük değer siyah
+yüzeye yaklaşıyor (neredeyse görünmez), yüksek değer en parlak adım.
+Tailwind purple-950→purple-400 arası 4 gerçek adım + "veri yok" için
+ayrı, neredeyse şeffaf bir 5. adım. Kategorik validator'ı bu ramp'a
+kasıtlı olarak çalıştırmadım — skill'in kendi notu ("running the
+categorical validator on a sequential ramp will FAIL by design") bunu
+açıkça söylüyor; onun yerine hücre-içi metin/arkaplan kontrastını
+`validate_palette.js`'in export ettiği `contrast()` fonksiyonuyla tek
+tek doğruladım (en kötüsü 5.38:1, hepsi 4.5:1 eşiğinin üzerinde).
+
+**Bar chart'lar:** "Most tracked events" ve "Average duration by game"
+düz listeden `components/statistics/magnitude-bar-list.tsx`'e
+(tek seri → tek marka rengi, legend gerekmiyor) geçti. "Provider
+uptime" `components/statistics/uptime-bars.tsx`'e — bu gerçekten bir
+sağlık/state metriği olduğu için (seri değil) sabit status paletini
+(good/warning/critical, ikon+label ile) kullanıyor, kategorik renk
+değil.
+
+## Bilinçli olarak yapılmayan
+
+- "Average duration, overall" ve "Prediction accuracy" gibi tekil
+  headline sayılar grafiğe çevrilmedi — skill'in kendi kuralı: "bazen
+  cevap grafik değil, bir stat tile'dır." Zaten tek büyük sayı olarak
+  okunuyorlar, bir bar/çizgiye zorlamak gürültü olurdu.
+- Heatmap tüm 11 oyunu göstermiyor, sadece gerçek trackedUsers'ı olan
+  oyunları — 0 popülerliği olan satırları göstermek "veri yok"
+  ile "gerçekten sıfır" arasındaki farkı bulanıklaştırırdı; component
+  zaten tamamen boşsa dürüst bir empty-state mesajı veriyor.
+
+## Doğrulama
+
+- Gerçek dev server'a karşı görsel olarak test edildi: heatmap 13
+  gerçek dolu hücre gösteriyor (ör. Destiny 2 × Rotation & Milestones
+  = 7, League of Legends × Season/Battle Pass = 7), tooltip'ler doğru
+  oyun/kategori/değer gösteriyor, "View as table" gerçek verilerle
+  açılıyor, uptime bar'ları gerçek Riot key expiry sorununu kırmızı
+  "Unhealthy" olarak doğru yakalıyor.
+- 143/143 test, `tsc --noEmit` temiz. Şema değişikliği yok — sadece
+  mevcut gerçek verinin yeni bir agregasyonu ve görsel katman.

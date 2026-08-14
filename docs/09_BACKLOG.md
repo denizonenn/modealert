@@ -1481,7 +1481,12 @@ No open bugs.
   querying this exact service. Placeholder rows retired in favor of
   `lib/providers/lol-client-config/`.
 
-- Event popularity heatmap
+- ~~Event popularity heatmap~~ — **done (2026-08-14, ADR-050).**
+  `/statistics` now shows a real game × category heatmap built from
+  the existing trackedUsers popularity signal (ADR-047) — no new
+  data. Same pass also converted the page's plain lists ("Most
+  tracked events", "Average duration by game", "Provider uptime")
+  into real bar/status charts using the dataviz skill's method.
 
 - ~~Event calendar~~ — **done (2026-08-14, ADR-049).** `/calendar`:
   three real sections (Live now / Estimated to end / Typically

@@ -19,7 +19,74 @@ import {
   getProviderName,
 } from "@/lib/providers/core/registry";
 
+import { eventQueryService } from "@/lib/services/event-query.service";
+
+import {
+  EVENT_CATEGORY_LABELS,
+  EVENT_CATEGORY_ORDER,
+  type EventCategory,
+} from "@/lib/constants/event-category";
+
 const UPTIME_WINDOW_DAYS = 30;
+
+// Popularity heatmap: real per-event trackedUsers (ADR-047 — computed
+// at read time from actual Watchlist rows, not the always-0 DB column)
+// summed by game × category. Purely an aggregation of an existing real
+// signal, no new data.
+async function computePopularity() {
+  const events = await eventQueryService.getAll();
+
+  const gameNames = new Map<string, string>();
+  const cellValues = new Map<string, number>();
+
+  for (const event of events) {
+    gameNames.set(event.gameId, event.game.name);
+
+    const key = `${event.gameId}::${event.category}`;
+    cellValues.set(
+      key,
+      (cellValues.get(key) ?? 0) + event.trackedUsers
+    );
+  }
+
+  const gameTotals = new Map<string, number>();
+
+  for (const [key, value] of cellValues) {
+    const [gameId] = key.split("::");
+    gameTotals.set(gameId, (gameTotals.get(gameId) ?? 0) + value);
+  }
+
+  const games = [...gameNames.entries()]
+    .map(([gameId, gameName]) => ({
+      gameId,
+      gameName,
+      total: gameTotals.get(gameId) ?? 0,
+    }))
+    // Most-tracked game first — the heatmap's most useful default sort.
+    .sort(
+      (a, b) => b.total - a.total || a.gameName.localeCompare(b.gameName)
+    );
+
+  const cells = games.flatMap(({ gameId }) =>
+    EVENT_CATEGORY_ORDER.map((category) => ({
+      gameId,
+      category,
+      value: cellValues.get(`${gameId}::${category}`) ?? 0,
+    }))
+  );
+
+  const maxValue = Math.max(0, ...cells.map((cell) => cell.value));
+
+  return {
+    games: games.map(({ gameId, gameName }) => ({ gameId, gameName })),
+    categories: EVENT_CATEGORY_ORDER.map((category) => ({
+      category,
+      label: EVENT_CATEGORY_LABELS[category as EventCategory],
+    })),
+    cells,
+    maxValue,
+  };
+}
 
 type HistoryWithEvent = Awaited<
   ReturnType<typeof getAllHistory>
@@ -77,12 +144,14 @@ export const globalStatisticsService = {
       healthChecks,
       notificationFailures30d,
       falsePositives,
+      popularity,
     ] = await Promise.all([
       getAllHistory(),
       getNotificationStats(),
       getUptimeByProvider(since),
       getNotificationFailureCount(since),
       getFalsePositiveStats(),
+      computePopularity(),
     ]);
 
     const groups = groupByEvent(history);
@@ -227,6 +296,8 @@ export const globalStatisticsService = {
 
     return {
       mostCommon,
+
+      popularity,
 
       providerUptime: {
         windowDays:
