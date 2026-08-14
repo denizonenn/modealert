@@ -156,7 +156,12 @@ export default async function CalendarPage() {
           emptyMessage="Nothing limited-time is live right now."
         >
           {liveNow.map((row) => (
-            <CalendarRowView key={row.id} row={row} isPremium={isPremium} />
+            <CalendarRowView
+              key={row.id}
+              row={row}
+              isPremium={isPremium}
+              isPrediction={false}
+            />
           ))}
         </CalendarSection>
 
@@ -165,7 +170,12 @@ export default async function CalendarPage() {
           emptyMessage="No live event has enough history yet for an estimate."
         >
           {endingSoon.map((row) => (
-            <CalendarRowView key={row.id} row={row} isPremium={isPremium} />
+            <CalendarRowView
+              key={row.id}
+              row={row}
+              isPremium={isPremium}
+              isPrediction={true}
+            />
           ))}
         </CalendarSection>
 
@@ -174,7 +184,12 @@ export default async function CalendarPage() {
           emptyMessage="No ended event has enough history yet to estimate a return."
         >
           {returning.map((row) => (
-            <CalendarRowView key={row.id} row={row} isPremium={isPremium} />
+            <CalendarRowView
+              key={row.id}
+              row={row}
+              isPremium={isPremium}
+              isPrediction={true}
+            />
           ))}
         </CalendarSection>
       </section>
@@ -215,11 +230,18 @@ function CalendarSection({
 function CalendarRowView({
   row,
   isPremium,
+  isPrediction,
 }: {
   row: CalendarRow
   isPremium: boolean
+  isPrediction: boolean
 }) {
-  const dateGated = row.status !== "LIVE"
+  // "Live now" shows a real current status, not a forecast — free for
+  // everyone. "Estimated to end"/"Typically returns" are the same
+  // predicted-date feature that's Premium-gated on /events/[slug]
+  // (ADR-041) — must stay gated here too, regardless of whether the
+  // event happens to be LIVE right now.
+  const dateGated = isPrediction
 
   const content = (
     <Link
