@@ -21,7 +21,11 @@ export function NotificationBell() {
         render={
           <button
             type="button"
-            aria-label="Notifications"
+            aria-label={
+              unreadCount > 0
+                ? `Notifications, ${unreadCount} unread`
+                : "Notifications"
+            }
             className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-white hover:bg-white/10"
           />
         }
@@ -29,10 +33,17 @@ export function NotificationBell() {
         <Bell className="h-4 w-4" />
 
         {unreadCount > 0 && (
-          <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-gradient-brand px-1 text-[10px] font-semibold text-white">
+          <span
+            aria-hidden="true"
+            className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-gradient-brand px-1 text-[10px] font-semibold text-white"
+          >
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
+
+        <span role="status" aria-atomic="true" className="sr-only">
+          {unreadCount > 0 ? `${unreadCount} unread notifications` : ""}
+        </span>
       </PopoverTrigger>
 
       <PopoverContent

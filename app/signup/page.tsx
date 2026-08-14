@@ -91,7 +91,7 @@ function SignUpForm() {
       </div>
 
       <form onSubmit={handleSubmit} className="mt-10 flex flex-col gap-3">
-        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3">
+        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 transition-colors focus-within:border-white/30 focus-within:ring-2 focus-within:ring-white/15">
           <Mail className="h-4 w-4 shrink-0 text-zinc-500" />
 
           <input
@@ -105,7 +105,7 @@ function SignUpForm() {
           />
         </div>
 
-        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3">
+        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 transition-colors focus-within:border-white/30 focus-within:ring-2 focus-within:ring-white/15">
           <Lock className="h-4 w-4 shrink-0 text-zinc-500" />
 
           <input
@@ -125,7 +125,7 @@ function SignUpForm() {
           </div>
         )}
 
-        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3">
+        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 transition-colors focus-within:border-white/30 focus-within:ring-2 focus-within:ring-white/15">
           <Lock className="h-4 w-4 shrink-0 text-zinc-500" />
 
           <input
