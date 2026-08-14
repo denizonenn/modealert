@@ -3923,3 +3923,89 @@ linki eklendi.
   gerçek `pubDate`/`link`/`description` değerleriyle.
 - 137/137 test, `tsc --noEmit`, `npm run build` temiz. Şema değişikliği
   yok.
+
+---
+
+# ADR-049: `/calendar` — Araştırılmış Cadence Fallback'i (Sadece PoE, Şimdilik)
+
+Status: Accepted
+
+Date: 2026-08-14
+
+## Bağlam
+
+docs/09_BACKLOG.md'nin "Ideas" bölümünde uzun süredir bekleyen "Event
+calendar" maddesi ele alındı. Sorun: `eventPredictionService`'in
+"estimated to end" / "typically returns" tahminleri sadece kendi
+`EventHistory` verimizden hesaplanıyor (ortalama süre/aralık), ve
+tracking 2026-08-04'te başladığı için neredeyse hiçbir event'in 2+
+tamamlanmış döngüsü yok — takvim sayfası açıldığında büyük çoğunluk
+"not enough history yet" gösterecekti, ki bu teknik olarak doğru ama
+ürün olarak boş.
+
+## Karar
+
+`lib/constants/researched-cadences.ts` — gerçek, WebSearch ile
+doğrulanmış, kaynak+tarih+caveat'lı, **elle küratörlü, kısa** bir
+sabit cadence listesi. Sadece kendi verimiz yetersizken devreye
+giriyor (`predictWithResearchedFallback` /
+`predictNextArrivalWithResearchedFallback` — kendi hesaplanmış bir
+tahmin varsa ona asla dokunmuyor), ve fixed-window formülüyle her
+çağrıda taze hesaplanıyor (Destiny'nin `mapIronBanner`'ıyla aynı
+desen — dondurulmuş bir tahmin değil).
+
+Şu an listede **sadece bir event var: PoE'nin güncel challenge
+league'i** (GGG'nin 2013'ten beri 41 league'lik gerçek geçmişi,
+medyan 98 gün, %87.8'i Cuma günü başlamış — kaynak ve tarih
+`researched-cadences.ts`'te). Diğer adaylar araştırılıp kasıtlı
+olarak **eklenmedi**:
+
+- Çoğu rotasyonlu/limited-time event (Helldivers Major Order'ları,
+  Foxhole savaşları, PlanetSide Alert'leri) sabit bir aralıkla değil,
+  gerçek dünya koşullarıyla (nüfus, anlatı) tetikleniyor — bir formül
+  zorlamak veri kılığına girmiş bir tahmin olurdu.
+- **URF** özel olarak araştırılıp reddedildi: Riot'un 2025
+  değişiklikleri URF'yi tek bir yıllık slottan, sabit aralığı olmayan,
+  sezonluk Act'lere dağıtılmış bir role kaydırdı — sabit bir
+  `intervalDays` yazmak gerçek olmayan bir kesinlik iddia ederdi.
+- **Arena** zaten daha iyi bir sinyale sahip (ADR-037'nin gerçek canlı
+  client-config kontrolü) — formüle ihtiyacı yok.
+
+`confidence` alanı için: kendi geçmiş-tabanlı tahminler
+gözlem-başına-yüzde artıyor (10%/appearance, 20%/gap — daha çok
+gerçek gözlem, daha çok güven). Araştırılmış cadence'in arkasında
+tekrar eden bir iç doğrulama yok, tek bir dış kaynak var — bu yüzden
+sabit, mütevazı **50** kullanıldı (istatistiksel kesinlik iddia
+etmeyen bir orta değer; gerçek riskler zaten `caveats` metninde
+somut olarak yazıyor, örn. PoE league'inin bir kez 322 gün sürdüğü).
+
+`/calendar` sayfası üç bölüm gösteriyor — Live now / Estimated to end
+/ Typically returns — hepsi gerçek `eventQueryService`/
+`eventPredictionService` çağrılarından, hiçbiri sabit/mock veri değil.
+Tarih bilgisi (`LIVE` olmayan satırlar için) `PremiumTeaser` ile
+gate'lendi, mevcut per-event prediction/statistics paywall desenini
+tekrarlıyor (ADR-041).
+
+## Bilinçli olarak yapılmayan
+
+- Araştırılmış cadence listesi genişletilmedi — her event için
+  WebSearch yapıp kaynak bulmak bu ADR'nin kapsamı değil, ihtiyaç
+  ortaya çıktıkça (bir event'in kendi geçmişi birikene kadar gerçekten
+  boş kalması) tek tek eklenecek bir şey.
+- Takvim ayrı bir görsel takvim/ay ızgarası değil — üç sıralı liste.
+  Gerçek bir ay görünümü (FullCalendar tarzı) daha büyük bir UI
+  yatırımı; şu an gösterilecek veri hacmi (tek haneli sayıda
+  limited-time event) onu haklı çıkarmıyor.
+
+## Doğrulama
+
+- `predictFromResearchedCadence` için 6 yeni unit test (null durum,
+  cycle içi, cycle sınırı, rollover, anchor öncesi clamp, kaynak/
+  caveat aktarımı) — hepsi geçiyor.
+- `predictNextArrival`/`predictNextArrivalBySeriesKey`'in de aynı
+  fallback'i kullanacak şekilde genişletilmesi (ilk taslakta sadece
+  `predict`/`predictBySeriesKey` kullanıyordu — asimetrikti, "typically
+  returns" PoE gibi bir event bittiğinde araştırılmış tahminden
+  faydalanamıyordu) bu turda tamamlandı.
+- 143/143 test, `tsc --noEmit` temiz. Şema değişikliği yok — sadece
+  yeni bir sabit dosya + saf hesaplama fonksiyonları.

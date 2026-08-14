@@ -1483,6 +1483,15 @@ No open bugs.
 
 - Event popularity heatmap
 
+- ~~Event calendar~~ — **done (2026-08-14, ADR-049).** `/calendar`:
+  three real sections (Live now / Estimated to end / Typically
+  returns), all from `eventQueryService`/`eventPredictionService`.
+  Added `RESEARCHED_CADENCES` as a small, hand-curated fallback for
+  when our own tracked history isn't enough yet (only PoE's league so
+  far — most rotating events don't have a real fixed cadence, and URF
+  specifically was researched and rejected for one). Premium-gated
+  dates, same pattern as existing per-event predictions.
+
 - ~~Personalized recommendations~~ — **done (2026-08-13, ADR-047).**
   Real collaborative filtering on Watchlist co-occurrence, see P2 AI
   Features.

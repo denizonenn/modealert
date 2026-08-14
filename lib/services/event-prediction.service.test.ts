@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { computeRecurrence } from "./event-prediction.service";
+import {
+  computeRecurrence,
+  predictFromResearchedCadence,
+} from "./event-prediction.service";
 
 function occurrence(startedAt: string, endedAt: string | null) {
   return {
@@ -68,5 +71,63 @@ describe("computeRecurrence", () => {
 
     expect(result.averageGapMs).toBeNull();
     expect(result.gapCount).toBe(0);
+  });
+});
+
+describe("predictFromResearchedCadence", () => {
+  const EVENT_ID = "poe-current-league";
+  // Real anchor from researched-cadences.ts: 2026-07-24T20:00:00.000Z,
+  // 98-day interval.
+  const ANCHOR = new Date("2026-07-24T20:00:00.000Z");
+  const DAY_MS = 24 * 60 * 60 * 1000;
+
+  it("returns null for an event with no researched cadence", () => {
+    expect(
+      predictFromResearchedCadence("some-untracked-event", new Date())
+    ).toBeNull();
+  });
+
+  it("predicts the end of the current cycle shortly after the anchor", () => {
+    const now = new Date(ANCHOR.getTime() + DAY_MS);
+    const result = predictFromResearchedCadence(EVENT_ID, now);
+
+    expect(result?.predictedEndAt.getTime()).toBe(
+      ANCHOR.getTime() + 98 * DAY_MS
+    );
+    expect(result?.researched).toBe(true);
+  });
+
+  it("stays in the same cycle right up until it ends", () => {
+    const now = new Date(ANCHOR.getTime() + 97 * DAY_MS);
+    const result = predictFromResearchedCadence(EVENT_ID, now);
+
+    expect(result?.predictedEndAt.getTime()).toBe(
+      ANCHOR.getTime() + 98 * DAY_MS
+    );
+  });
+
+  it("rolls over to the next cycle once the interval has passed", () => {
+    const now = new Date(ANCHOR.getTime() + 99 * DAY_MS);
+    const result = predictFromResearchedCadence(EVENT_ID, now);
+
+    expect(result?.predictedEndAt.getTime()).toBe(
+      ANCHOR.getTime() + 196 * DAY_MS
+    );
+  });
+
+  it("clamps to the first cycle if called before the anchor date", () => {
+    const now = new Date(ANCHOR.getTime() - 10 * DAY_MS);
+    const result = predictFromResearchedCadence(EVENT_ID, now);
+
+    expect(result?.predictedEndAt.getTime()).toBe(
+      ANCHOR.getTime() + 98 * DAY_MS
+    );
+  });
+
+  it("carries the real source citation and caveats through", () => {
+    const result = predictFromResearchedCadence(EVENT_ID, new Date());
+
+    expect(result?.source).toContain("GGG");
+    expect(result?.caveats).toContain("Settlers of Kalguur");
   });
 });

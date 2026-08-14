@@ -6,6 +6,8 @@ import {
   computeStatistics,
 } from "@/lib/services/event-statistics.service";
 
+import { RESEARCHED_CADENCES } from "@/lib/constants/researched-cadences";
+
 type HistoryEntry = { startedAt: Date; endedAt: Date | null };
 
 // How long an event has typically been LIVE/TRACKING each time it's
@@ -157,6 +159,118 @@ function predictFromHistory(
   };
 }
 
+// Fixed-window formula, same shape as Destiny's mapIronBanner —
+// recomputed fresh from a real, sourced anchor + interval every call,
+// never a frozen guess. Returns null when no researched cadence
+// exists for this event id (the common case — see
+// researched-cadences.ts for why most events don't get one).
+export function predictFromResearchedCadence(
+  eventId: string,
+  now: Date
+) {
+  const cadence = RESEARCHED_CADENCES[eventId];
+
+  if (!cadence) {
+    return null;
+  }
+
+  const cycleMs = cadence.intervalDays * 24 * 60 * 60 * 1000;
+  const elapsed = now.getTime() - cadence.anchorDate.getTime();
+  const cycleIndex = Math.max(0, Math.floor(elapsed / cycleMs));
+
+  const currentCycleStart = new Date(
+    cadence.anchorDate.getTime() + cycleIndex * cycleMs
+  );
+
+  const predictedEndAt = new Date(
+    currentCycleStart.getTime() + cycleMs
+  );
+
+  return {
+    predictedEndAt,
+    remainingMs: Math.max(0, predictedEndAt.getTime() - now.getTime()),
+    researched: true as const,
+    source: cadence.source,
+    verifiedAt: cadence.verifiedAt,
+    caveats: cadence.caveats,
+    // Unlike history-based confidence (10%/occurrence, 20%/gap — more
+    // observations, more certainty), this is a single external source,
+    // not repeated internal validation. Fixed at a moderate 50 rather
+    // than a number that implies statistical backing it doesn't have —
+    // real caveats already surface the concrete reasons it could be
+    // off (see researched-cadences.ts).
+    confidence: 50,
+  };
+}
+
+async function predictWithResearchedFallback(
+  eventId: string,
+  history: HistoryEntry[]
+) {
+  const ownPrediction = predictFromHistory(history);
+
+  // Only fall back when our own tracking is currently active but has
+  // no real completed-occurrence average yet — never overrides real
+  // tracked data once enough of it exists.
+  const needsFallback =
+    ownPrediction.active &&
+    "prediction" in ownPrediction &&
+    ownPrediction.prediction === null;
+
+  if (!needsFallback) {
+    return ownPrediction;
+  }
+
+  const researched = predictFromResearchedCadence(eventId, new Date());
+
+  if (!researched) {
+    return ownPrediction;
+  }
+
+  return {
+    active: true as const,
+    ...researched,
+  };
+}
+
+// Same researched-cadence fallback, for the "it's currently ended —
+// when does it come back" question instead of "when does the current
+// occurrence end." A fixed-window cadence answers both from the same
+// anchor/interval, so an ended event with no own recurrence average
+// yet still gets a real, sourced estimate instead of "not enough
+// history."
+async function predictNextArrivalWithResearchedFallback(
+  eventId: string,
+  history: HistoryEntry[]
+) {
+  const ownPrediction = predictNextArrivalFromHistory(history);
+
+  const needsFallback =
+    ownPrediction.available &&
+    "nextExpectedAt" in ownPrediction &&
+    ownPrediction.nextExpectedAt === null;
+
+  if (!needsFallback) {
+    return ownPrediction;
+  }
+
+  const researched = predictFromResearchedCadence(eventId, new Date());
+
+  if (!researched) {
+    return ownPrediction;
+  }
+
+  return {
+    available: true as const,
+    nextExpectedAt: researched.predictedEndAt,
+    researched: true as const,
+    source: researched.source,
+    verifiedAt: researched.verifiedAt,
+    caveats: researched.caveats,
+    confidence: researched.confidence,
+  };
+}
+
 export const eventPredictionService = {
   async predictNextArrival(
     eventId: string
@@ -166,7 +280,7 @@ export const eventPredictionService = {
         eventId
       );
 
-    return predictNextArrivalFromHistory(history);
+    return predictNextArrivalWithResearchedFallback(eventId, history);
   },
 
   async predictNextArrivalBySeriesKey(
@@ -177,7 +291,7 @@ export const eventPredictionService = {
         seriesKey
       );
 
-    return predictNextArrivalFromHistory(history);
+    return predictNextArrivalWithResearchedFallback(seriesKey, history);
   },
 
   async predict(
@@ -188,7 +302,7 @@ export const eventPredictionService = {
         eventId
       );
 
-    return predictFromHistory(history);
+    return predictWithResearchedFallback(eventId, history);
   },
 
   async predictBySeriesKey(
@@ -199,6 +313,6 @@ export const eventPredictionService = {
         seriesKey
       );
 
-    return predictFromHistory(history);
+    return predictWithResearchedFallback(seriesKey, history);
   },
 };
