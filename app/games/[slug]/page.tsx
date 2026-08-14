@@ -64,7 +64,10 @@ async function getEventInsights(eventId: string) {
   const predictedEndAt =
     "predictedEndAt" in prediction ? prediction.predictedEndAt : undefined
 
-  return { statistics, prediction, predictedEndAt }
+  const predictionConfidence =
+    "confidence" in prediction ? prediction.confidence : null
+
+  return { statistics, prediction, predictedEndAt, predictionConfidence }
 }
 
 export default async function GameDetailPage({ params }: Props) {
@@ -164,7 +167,13 @@ export default async function GameDetailPage({ params }: Props) {
             </p>
           ) : (
             eventsWithInsights.map(
-              ({ event, statistics, prediction, predictedEndAt }) => (
+              ({
+                event,
+                statistics,
+                prediction,
+                predictedEndAt,
+                predictionConfidence,
+              }) => (
                 <div
                   key={event.id}
                   className="rounded-2xl border border-white/10 bg-white/5 p-5"
@@ -259,12 +268,17 @@ export default async function GameDetailPage({ params }: Props) {
                               predictedEndAt
                             ).toLocaleDateString()}{" "}
                             <span className="text-xs text-zinc-500">
-                              (~{prediction.confidence}% confidence,
-                              based on {statistics.appearanceCount} past
-                              occurrence
-                              {statistics.appearanceCount === 1
-                                ? ""
-                                : "s"}
+                              (
+                              {"researched" in prediction &&
+                              prediction.researched
+                                ? "based on published history"
+                                : `~${predictionConfidence}% confidence, based on ${
+                                    statistics.appearanceCount
+                                  } past occurrence${
+                                    statistics.appearanceCount === 1
+                                      ? ""
+                                      : "s"
+                                  }`}
                               )
                             </span>
                           </p>

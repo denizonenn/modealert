@@ -128,6 +128,14 @@ export default async function EventDetailPage({ params }: Props) {
   const predictedEndAt =
     "predictedEndAt" in prediction ? prediction.predictedEndAt : undefined
 
+  const predictionConfidence =
+    "confidence" in prediction ? prediction.confidence : null
+
+  const researchedPrediction =
+    "researched" in prediction && prediction.researched
+      ? prediction
+      : null
+
   const nextExpectedAt =
     nextArrival.available && "nextExpectedAt" in nextArrival
       ? nextArrival.nextExpectedAt
@@ -260,7 +268,19 @@ export default async function EventDetailPage({ params }: Props) {
                 </p>
                 {predictedEndAt && (
                   <p className="mt-0.5 text-xs text-zinc-600">
-                    ~{prediction.confidence}% confidence
+                    {researchedPrediction ? (
+                      <>
+                        based on published history, verified{" "}
+                        {researchedPrediction.verifiedAt}
+                      </>
+                    ) : (
+                      <>~{predictionConfidence}% confidence</>
+                    )}
+                  </p>
+                )}
+                {researchedPrediction?.caveats && (
+                  <p className="mt-1 text-xs text-zinc-600">
+                    {researchedPrediction.caveats}
                   </p>
                 )}
               </div>
