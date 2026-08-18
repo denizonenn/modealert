@@ -60,3 +60,9 @@ test.ps1
 *.log
 .vercel
 .env*
+
+# external tool, nested repo (not part of ModeAlert)
+/graphify
+
+# graphify generated knowledge graph (local dev aid, not part of ModeAlert)
+/graphify-out
