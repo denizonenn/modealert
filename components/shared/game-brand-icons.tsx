@@ -1,5 +1,6 @@
 import {
   SiBungie,
+  SiEa,
   SiFortnite,
   SiLeagueoflegends,
   SiPubg,
@@ -37,4 +38,5 @@ export const GAME_BRAND_ICONS: Record<
   pubg: SiPubg,
   planetside2: GiPlanetConquest,
   ffxiv: SiSquareenix,
+  "ea-fc": SiEa,
 }

@@ -22,6 +22,8 @@ export const GAME_IDS = {
   PLANETSIDE_2: "planetside2",
 
   FFXIV: "ffxiv",
+
+  EA_FC: "ea-fc",
 } as const;
 
 // Games seeded in the DB with a real, working provider syncing events.

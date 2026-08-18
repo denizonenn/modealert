@@ -17,6 +17,7 @@ import { rotatingModesProvider } from "@/lib/providers/rotating-modes/provider";
 import { lolClientConfigProvider } from "@/lib/providers/lol-client-config/provider";
 import { steamSalesProvider } from "@/lib/providers/steam-sales/provider";
 import { ffxivProvider } from "@/lib/providers/ffxiv/provider";
+import { eaFcProvider } from "@/lib/providers/ea-fc/provider";
 
 const providers: EventProvider[] = [
   riotProvider,
@@ -36,6 +37,7 @@ const providers: EventProvider[] = [
   lolClientConfigProvider,
   steamSalesProvider,
   ffxivProvider,
+  eaFcProvider,
 ];
 
 export function getProviders(): EventProvider[] {

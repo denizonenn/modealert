@@ -4257,3 +4257,120 @@ provider'ın kendi gerçek veri kaynağı tek tek gözden geçirildi:
   — şema değişikliği yok, migration gerekmedi.
 - `npx tsc --noEmit`, `npm test` (156/156), `npm run build` — hepsi
   temiz.
+
+---
+
+# ADR-053: Kaynak Politikası Genişletildi (Scraping Dahil) — EA Sports FC (FUT.GG) 13. Oyun
+
+Status: Accepted
+
+Date: 2026-08-18
+
+## Bağlam
+
+Bu projenin kurulduğu günden beri örtük ama tutarlı bir kural vardı:
+sadece resmi/dokümante API, asla üçüncü parti scraper veya "fan API"
+(bkz. onlarca reddedilen oyun — Genshin, Mobile Legends, Free Fire,
+Deep Rock Galactic, vs., hepsi docs/09_BACKLOG.md'de "Evaluated and
+rejected"). Deniz "oyun sayısı az, web scraper dahil her yolu dene"
+dedi — bu kuralı bilinçli olarak gevşetme kararı, kod tabanında bir
+"Never Do" maddesi olarak yazılı olmadığı için Constitution'da bir
+madde değişikliği gerekmedi, ama Article X gereği burada
+dokümante ediliyor.
+
+## Karar
+
+**Yeni politika: scraping ve üçüncü parti kaynaklar artık kabul
+ediliyor, ama üç şart hâlâ geçerli:**
+1. Veri gerçek ve şu an canlı olmalı (fabrikasyon/dondurulmuş
+   snapshot hâlâ yasak — [[feedback_frozen_snapshot_vs_live_signal]]).
+2. Kaynağın güven sınıfı açıkça dokümante edilmeli (resmi mi, resmi
+   ama dokümante edilmemiş mi, yoksa üçüncü parti mi — okuyucu
+   hangisiyle çalıştığını bilsin).
+3. Mevcut health-check pipeline'ı (ADR-037'nin dediği gibi) kaynağın
+   kırılma sinyalini yakalamaya devam etmeli.
+
+**Bu turda denenen 22 oyun/kaynak** (16 mobil oyun + Bleach + FIFA
+Ultimate Team + CoD + Genshin + Brawl Stars + Dota 2, ayrıca Apex/
+Diablo4/Overwatch2/RocketLeague/ClashRoyale için "resmi ama
+dokümante edilmemiş JSON" avı) — sadece **1 tanesi hemen
+eklenebilir** çıktı, gerisi somut teknik sebeplerle reddedildi (kimin
+API'si yok, kimi Cloudflare/SSO ile kilitli, kimi IP kilitli, kimi
+gerçekten ulaşılamaz — GW2'nin senelerdir kırık `/v2/events`'i gibi).
+Detaylı liste aşağıda.
+
+**Eklenen: EA Sports FC / FIFA Ultimate Team (`ea-fc`, 13. oyun)** —
+`lib/providers/ea-fc/`. Kaynak: **FUT.GG**'nin kendi backend API'si
+(`fut.gg/api/fut/sbc/26/`, anahtarsız). FUT.GG, EA'nın kendi "FC
+Community API" programının izin verdiği sadece 3 siteden biri
+(FUTBIN/FUTWIZ ile birlikte) — yani EA'nın resmi verisi değil ama
+üçüncü parti scraper'lardan (Free Fire/Genshin fan-API'leri gibi) daha
+sağlam bir güven sınıfı: milyonlarca oyuncunun her gün kullandığı,
+kendi backend'i olan gerçek bir platform. Gerçek, canlı, bugünün
+tarihiyle senkronize Squad Building Challenge (SBC) verisi döndürüyor
+(`endTime`/`createdAt` alanları doğrulandı — bugünkü `createdAt` ile
+gerçekten taze). **Tasarım:** 50+ eşzamanlı SBC var, çoğu kalıcı
+tutorial (2035 sentinel tarih, ADR-020'nin LoL sentinel-tarih
+sorunuyla aynı desen) veya sürekli tekrar eden düşük-sinyal günlük
+grind SBC'leri — tek tek event yerine Fortnite'ın Item Shop deseniyle
+aynı şekilde **tek bir "Squad Building Challenges (N active)" toplam
+event'i** olarak agregatlandı, `ROTATION_MILESTONE` kategorisi.
+
+## Reddedilenler (bu turda, somut sebeplerle)
+
+- **16 mobil oyun** (PUBG Mobile, CoD Mobile, Mobile Legends, Free
+  Fire, Honkai Star Rail/Impact, Zenless Zone Zero, Roblox, Candy
+  Crush, Coin Master, Royal Match, Whiteout Survival/Last War,
+  Pokémon GO, EA Sports FC Mobile, Stumble Guys, 8 Ball Pool, Subway
+  Surfers) — hiçbirinde resmi bir public event API'si yok.
+- **Bleach** (Brave Souls / Soul Resonance) — hiç public API yok.
+- **Call of Duty** — gerçek endpoint bulundu
+  (`my.callofduty.com/api/papi-client/...`) ama SSO çerezi (giriş
+  yapmış hesap) gerektiriyor, anahtarsız/public yolu yok.
+- **Brawl Stars** — resmi API hâlâ IP kilitli (Vercel'in dinamik
+  IP'siyle uyumsuz), başka bir birinci-taraf kaynak bulunamadı.
+- **Genshin Impact** — HoYoverse'ün kendi istemcisinin çağırdığı
+  gerçek endpoint bulundu (`hk4e-api-os.hoyoverse.com/.../getAnnList`)
+  ve **CN sunucu varyantı gerçekten çalışıyor** (canlı doğrulandı,
+  gerçek `start_time`/`end_time`). Ama asıl gereken **Global** varyant
+  hem bu ortamdan hem **Deniz'in kendi Chrome'undan** denendiğinde
+  `504 Gateway Time-out` verdi — iki bağımsız ağdan doğrulanmış,
+  gerçekten kırık bir kaynak (GW2'nin `/v2/events`'i gibi), sandbox'a
+  özgü bir sorun değil. CN verisiyle devam etmek yanlış olurdu (farklı
+  oyuncu kitlesi/sunucu).
+- **Apex Legends, Diablo 4, Overwatch 2, Rocket League, Clash Royale/
+  Clans** — "resmi ama dokümante edilmemiş JSON" avı sonuçsuz.
+  Apex'in kendi sitesinde (`apexlegends.com`) gerçek bir Next.js
+  `__NEXT_DATA__` JSON'u var ama alanın adı literal olarak
+  **`gameCampaignsFallback`** — ve içinde "14 Temmuz'da bitiyor" yazan
+  bir kampanya hâlâ Ağustos'ta listede duruyordu, yani gerçekten bayat/
+  placeholder veri. Kullanılmadı — tam da
+  [[feedback_frozen_snapshot_vs_live_signal]]'ın uyardığı hata sınıfı.
+- **helltides.com** (Diablo 4 Helltide takibi, çok bilinen bir araç) —
+  gerçek endpoint bulundu (`/api/schedule`) ama Cloudflare bot-koruması
+  sunucudan otomatik isteği `403` ile engelliyor.
+
+## Bekleyen: Dota 2
+
+**Viable, Deniz'in ücretsiz bir key almasını bekliyor.** Valve'ın
+resmi Steam Web API'si (`IEconDOTA2_570` → `GetTournamentPrizePool`)
+gerçek, dokümante, **IP kilidi yok** — Riot/Bungie/PUBG ile aynı
+sürtünme sınıfı. Aktif Battle Pass/Compendium'un gerçek ödül havuzu
+tutarı > 0 ise, bu "şu an aktif bir sezon event'i var" için gerçek bir
+sinyal. Key: **steamcommunity.com/dev/apikey** (Steam hesabıyla, 2
+dakika). Key gelince `lib/providers/dota2/` olarak eklenip uçtan uca
+doğrulanacak — bkz. docs/09_BACKLOG.md.
+
+## Doğrulama
+
+- `eaFcService.getEvents()` gerçek FUT.GG API'sine karşı test edildi:
+  51 aktif SBC bulundu, sentinel-tarihli tutorial'lar doğru filtrelendi.
+- `providerSyncService.syncAll()` (gerçek, production'ın kullandığı
+  aynı kod yolu) gerçek DB'ye karşı çalıştırıldı: `ea-fc` provider'ı 1
+  satır yazdı, LIVE, doğru `title`/`description`. Diğer 16 provider
+  etkilenmedi (Riot/Valorant/TFT hâlâ bilinen expired-key 401'i
+  veriyor, bununla ilgisiz).
+- `Game.upsert({ id: "ea-fc", ... })` ile tek satırlık additive insert
+  (12 → 13 oyun) — şema değişikliği yok, migration gerekmedi.
+- `npx tsc --noEmit`, `npm test` (169/169), `npm run build` — hepsi
+  temiz.

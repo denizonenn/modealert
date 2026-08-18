@@ -934,7 +934,7 @@ Future
 
 # P2 — Multi Game Support
 
-Status: 🟢 12 real games, 16 providers (2026-08-18)
+Status: 🟢 13 real games, 17 providers (2026-08-18)
 
 Live providers
 
@@ -1014,8 +1014,26 @@ Live providers
   real `discount_percent`-based "Steam Sale" event, via Valve's own
   keyless `appdetails` store API. F2P games in the roster don't return
   price data, so they're excluded rather than faked. See ADR-052.
+- **EA Sports FC / FIFA Ultimate Team** (2026-08-18, `ea-fc`, 13th
+  game) — Deniz approved loosening the data-sourcing policy to allow
+  scraping/third-party sources (see ADR-053). Source: FUT.GG's own
+  backend API (`fut.gg/api/fut/sbc/26/`, keyless), one of only 3 sites
+  EA's own "FC Community API" authorizes — not first-party EA data,
+  but a real, live, currently-verified platform, not a sketchy
+  scraper. Real Squad Building Challenge (SBC) data, aggregated into
+  one "Squad Building Challenges (N active)" event (same pattern as
+  Fortnite's Item Shop) — 50+ concurrent SBCs are mostly permanent
+  tutorials or low-signal daily grind, so per-SBC events would be as
+  noisy as Warframe's excluded alerts/invasions.
 
 Pending Deniz's action
+
+- **Dota 2** — Valve's official Steam Web API (`GetTournamentPrizePool`)
+  is real, documented, and not IP-locked (same friction class as
+  Riot/Bungie/PUBG) — just needs a free self-serve key from
+  **steamcommunity.com/dev/apikey**. Once Deniz provides
+  `STEAM_API_KEY`, `lib/providers/dota2/` gets built and verified
+  end-to-end. See ADR-053.
 
 - Apex Legends — `apexlegendsapi.com` is the viable source. Deniz
   got a key via the web form (2026-08-06), added to `.env` as
@@ -1105,6 +1123,30 @@ Evaluated and rejected
   churning skirmishes — same rejection class as Albion's kill-feed.
 - ~~Brawlhalla~~ — v1.0 dropped the key requirement, but the API only
   covers player/guild stats, no event or season-rotation endpoint.
+- ~~Mobile games, deeper per-title pass (16 titles)~~ — **re-researched
+  2026-08-18** after the general "mobile has no APIs" conclusion above
+  was challenged. Checked individually: PUBG Mobile, Call of Duty
+  Mobile, Mobile Legends, Free Fire, Honkai Star Rail/Impact, Zenless
+  Zone Zero, Roblox, Candy Crush, Coin Master, Royal Match, Whiteout
+  Survival/Last War, Pokémon GO, EA Sports FC Mobile, Stumble Guys, 8
+  Ball Pool, Subway Surfers. All 16 confirmed REJECTED for concrete,
+  title-specific reasons (no official API / closed allowlist / SSO
+  auth-gated / IP-locked / account-scoped only) — see ADR-053.
+- ~~Bleach (Brave Souls / Soul Resonance)~~ — no public API from
+  either publisher (KLab/Nuverse). See ADR-053.
+- ~~Apex Legends, Diablo 4, Overwatch 2, Rocket League, Clash Royale/
+  Clans (undocumented first-party JSON hunt)~~ — same technique that
+  found LoL's rotating-mode signal (ADR-037) tried on 5 more titles,
+  found nothing usable. Apex's own site does load real JSON
+  (`gameCampaignsFallback`) but it's literally named "fallback" and
+  proved stale on inspection (a July-ended sale still listed in
+  August) — rejected as a frozen-snapshot risk, not used. See ADR-053.
+- ~~Genshin Impact, take 2~~ — found the real first-party endpoint
+  (`hk4e-api-os.hoyoverse.com/.../getAnnList`) this time — the CN
+  server variant genuinely works (live-verified). But the Global
+  variant, the one that would actually matter, returns `504` from two
+  independent networks (this environment and Deniz's own Chrome) —
+  confirmed genuinely broken, not a fluke. See ADR-053.
 - ~~Path of Exile 2~~ — checked whether `api.pathofexile.com` exposes
   a separate PoE2 realm; the `realm=poe2` query param is silently
   ignored (same `pc` league data comes back either way). Not a real

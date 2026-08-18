@@ -153,6 +153,17 @@ async function main() {
         activeUsers: "0",
         featured: false,
       },
+      {
+        id: "ea-fc",
+        name: "EA Sports FC (Ultimate Team)",
+        slug: "ea-sports-fc",
+        logo: "⚽",
+        color: "#00ff85",
+        shortName: "FC Ultimate Team",
+        supportedEvents: 0,
+        activeUsers: "0",
+        featured: false,
+      },
     ],
   });
 
