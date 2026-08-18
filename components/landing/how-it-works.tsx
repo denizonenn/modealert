@@ -3,13 +3,13 @@
 import { motion } from "framer-motion"
 import { SectionEyebrow } from "@/components/shared/section-eyebrow"
 import { Bell, Gamepad2, ListChecks } from "lucide-react"
+import { GAMES_WITH_PROVIDER } from "@/lib/constants/games"
 
 const STEPS = [
   {
     icon: Gamepad2,
     title: "Pick your games",
-    description:
-      "Select League of Legends, Valorant, Destiny 2, TFT and more. Add new games any time.",
+    description: `Select from ${GAMES_WITH_PROVIDER.size} supported games — League of Legends, Valorant, Destiny 2, TFT, and more. Add new games any time.`,
   },
   {
     icon: ListChecks,

@@ -386,6 +386,21 @@ Future
   search volume ever justifies the extra maintenance surface.
 - Real custom favicon / app icon (currently the default Next.js one).
 
+Done (2026-08-18)
+
+- ~~Stale "4 games" copy in indexed/shared content~~ — found while
+  looking for the next task: the game count grew to 11 real providers
+  (PUBG/PlanetSide 2 added 2026-08-13) but `app/layout.tsx`'s default
+  meta description, the homepage `Organization` JSON-LD, `/games` and
+  `/live` meta descriptions, the FAQ's "Which games are supported?"
+  answer (also shipped into `FAQPage` JSON-LD), and `HowItWorks`'s
+  step-1 copy still said "League of Legends, Valorant, Destiny 2, and
+  Teamfight Tactics" — same false-claim-in-indexed-content class as the
+  "hourly" → "daily" fix (P1 SEO) and the Fortnite-swap fix (P0
+  Dashboard). All six now read `GAMES_WITH_PROVIDER.size` instead of a
+  hardcoded number, so this can't silently go stale again the next time
+  a game is added.
+
 ---
 
 # P1 — Watchlists

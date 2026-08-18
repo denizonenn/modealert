@@ -1,3 +1,5 @@
+import { GAMES_WITH_PROVIDER } from "@/lib/constants/games"
+
 export const FAQS = [
   {
     question: "How often does ModeAlert check for updates?",
@@ -6,8 +8,7 @@ export const FAQS = [
   },
   {
     question: "Which games are supported?",
-    answer:
-      "League of Legends, Valorant, Destiny 2, and Teamfight Tactics today, with more games (Fortnite included) added as new tracking sources come online.",
+    answer: `${GAMES_WITH_PROVIDER.size} games today — League of Legends, Valorant, Destiny 2, TFT, Fortnite, Warframe, Path of Exile, Helldivers 2, Foxhole, PUBG, and PlanetSide 2 — with more added as new tracking sources come online.`,
   },
   {
     question: "Is ModeAlert free?",

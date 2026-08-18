@@ -4,6 +4,7 @@ import { Inter, Space_Grotesk } from "next/font/google"
 
 import { SessionProvider } from "@/components/providers/session-provider"
 import { SITE_URL } from "@/lib/constants/site"
+import { GAMES_WITH_PROVIDER } from "@/lib/constants/games"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -18,8 +19,7 @@ const spaceGrotesk = Space_Grotesk({
   display: "swap",
 })
 
-const DEFAULT_DESCRIPTION =
-  "ModeAlert tracks limited-time game events, modes, and battle passes across League of Legends, Valorant, Destiny 2, and Teamfight Tactics — and emails you the moment something changes. No client, no extension, free to start."
+const DEFAULT_DESCRIPTION = `ModeAlert tracks limited-time game events, modes, and battle passes across ${GAMES_WITH_PROVIDER.size} games — League of Legends, Valorant, Destiny 2, TFT, and more — and emails you the moment something changes. No client, no extension, free to start.`
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

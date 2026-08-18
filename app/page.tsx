@@ -22,8 +22,7 @@ const jsonLd = [
     "@type": "Organization",
     name: "ModeAlert",
     url: SITE_URL,
-    description:
-      "ModeAlert tracks limited-time game events, modes, and battle passes across League of Legends, Valorant, Destiny 2, and Teamfight Tactics, and emails you the moment something changes.",
+    description: `ModeAlert tracks limited-time game events, modes, and battle passes across ${GAMES_WITH_PROVIDER.size} games — League of Legends, Valorant, Destiny 2, TFT, and more — and emails you the moment something changes.`,
   },
   {
     "@context": "https://schema.org",
