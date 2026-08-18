@@ -50,6 +50,26 @@ export interface WarframeArchimedea {
   type?: string;
 }
 
+export interface WarframeVaultTrader {
+  id: string;
+
+  activation: string;
+
+  expiry: string;
+
+  character: string;
+
+  location: string;
+}
+
+export interface WarframeSteelPath {
+  currentReward?: { name: string };
+
+  activation: string;
+
+  expiry: string;
+}
+
 export interface WarframeWorldstate {
   voidTrader?: WarframeVoidTrader;
 
@@ -60,4 +80,8 @@ export interface WarframeWorldstate {
   archonHunt?: WarframeArchonHunt;
 
   archimedeas?: WarframeArchimedea[];
+
+  vaultTrader?: WarframeVaultTrader;
+
+  steelPath?: WarframeSteelPath;
 }

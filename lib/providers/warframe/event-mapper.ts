@@ -158,6 +158,71 @@ function mapArchimedea(
   ];
 }
 
+// Prime Vault Resurgence — Varzia's rotating shop of previously-vaulted
+// Prime items at Maroo's Bazaar. Found 2026-08-18 while auditing this
+// provider's own worldstate response for fields we weren't mapping yet
+// — `vaultTrader` was already in every payload this provider fetches,
+// just never read. Real, ~monthly cadence (activation/expiry span
+// weeks, not hours), same trust class as the other 5 activities here.
+function mapVaultTrader(
+  trader: WarframeWorldstate["vaultTrader"],
+  now: Date
+): ProviderEvent[] {
+  if (!trader) {
+    return [];
+  }
+
+  const active = isWithin(trader.activation, trader.expiry, now);
+
+  return [
+    {
+      id: "warframe-vault-trader",
+      gameId: GAME_IDS.WARFRAME,
+      title: `${trader.character} — Prime Resurgence`,
+      description: active
+        ? `${trader.character} is selling a rotating selection of vaulted Prime gear at ${trader.location} for Ducats/Aya.`
+        : `Prime Resurgence is between rotations at ${trader.location}.`,
+      status: active ? "LIVE" : "ENDED",
+      category: EVENT_CATEGORIES.COSMETIC_SHOP,
+      isLimitedTime: true,
+      trackedUsers: 0,
+      checkedAt: now,
+    },
+  ];
+}
+
+// Steel Path Circuit's weekly rotating reward — same discovery pass as
+// Prime Resurgence above. Real weekly cadence.
+function mapSteelPath(
+  steelPath: WarframeWorldstate["steelPath"],
+  now: Date
+): ProviderEvent[] {
+  if (!steelPath) {
+    return [];
+  }
+
+  const active = isWithin(steelPath.activation, steelPath.expiry, now);
+  const rewardName = steelPath.currentReward?.name;
+
+  return [
+    {
+      id: "warframe-steel-path",
+      gameId: GAME_IDS.WARFRAME,
+      title: rewardName
+        ? `Steel Path Circuit — ${rewardName}`
+        : "Steel Path Circuit",
+      description: active
+        ? `This week's Steel Path Circuit honor reward${rewardName ? `: ${rewardName}` : ""}. Resets weekly.`
+        : "Between weekly Steel Path Circuit reward rotations.",
+      status: active ? "LIVE" : "ENDED",
+      category: EVENT_CATEGORIES.SEASON_PASS,
+      isLimitedTime: true,
+      trackedUsers: 0,
+      checkedAt: now,
+    },
+  ];
+}
+
 export function mapWarframeEvents(
   worldstate: WarframeWorldstate
 ): ProviderEvent[] {
@@ -169,5 +234,7 @@ export function mapWarframeEvents(
     ...mapSortie(worldstate.sortie, now),
     ...mapArchonHunt(worldstate.archonHunt, now),
     ...mapArchimedea(worldstate.archimedeas, now),
+    ...mapVaultTrader(worldstate.vaultTrader, now),
+    ...mapSteelPath(worldstate.steelPath, now),
   ];
 }

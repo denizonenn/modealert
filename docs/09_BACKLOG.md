@@ -161,8 +161,17 @@ Remaining
   artık URF/Pick URF/Arena/Bravery Arena/Arena 3x6'yı bununla gerçek
   canlı sinyalle takip ediyor. Detay ve sevkiyat öncesi yakalanan
   ciddi bir bölge-parametresi hatası için ADR-037'ye bak.
-- arena metadata (cherry-lobby.json henüz kullanılmıyor)
-- event-passes.json entegrasyonu
+- ~~arena metadata (cherry-lobby.json henüz kullanılmıyor)~~ —
+  **artık geçersiz not (2026-08-18'de fark edildi).** `cherry-lobby
+  .json`'da hiç tarih/aktiflik alanı yok (aynı URF sorunu, bkz.
+  ADR-037'nin bulduğu gerçek çözüm) — Arena zaten
+  `lib/providers/lol-client-config/` üzerinden gerçek canlı sinyalle
+  takip ediliyor. Bu not ADR-037'den sonra silinmesi gerekirken
+  unutulmuş.
+- ~~event-passes.json entegrasyonu~~ — **artık geçersiz not.** Pass
+  pencereleri (Mayhem/URF/Arena progression track, League Classic)
+  zaten CommunityDragon normalizer'ında `SEASON_PASS` kategorisiyle
+  senkronize ediliyor (ADR-023/ADR-026).
 
 ---
 
@@ -968,7 +977,14 @@ Live providers
   activity added 2026-08-12 (ADR-035): Deep Archimedea** — weekly
   endgame mission chain, found via WebSearch then confirmed the same
   worldstate API already in use exposes it (`archimedeas` field, real
-  activation/expiry) — was just never wired up.)
+  activation/expiry) — was just never wired up.) **6th & 7th activity
+  added 2026-08-18 (ADR-052): Prime Resurgence (vaultTrader) and Steel
+  Path Circuit reward (steelPath)** — found by auditing this
+  provider's own worldstate payload for unmapped fields; both were
+  already in every response this provider fetches, real
+  activation/expiry, ~monthly and weekly cadence respectively.
+  `duviriCycle` (rotates every ~2h) and `calendar` deliberately not
+  added — same too-high-frequency exclusion as alerts/invasions.)
 - Path of Exile ✅ (2026-08-06, `api.pathofexile.com`, no key needed —
   current challenge league only (`Allflame` verified live). See
   ADR-014.)

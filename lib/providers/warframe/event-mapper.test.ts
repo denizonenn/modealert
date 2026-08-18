@@ -173,3 +173,73 @@ describe("warframe mapWarframeEvents — Archimedea", () => {
     ).toBeUndefined();
   });
 });
+
+describe("warframe mapWarframeEvents — Prime Resurgence (vaultTrader)", () => {
+  it("is LIVE while within the activation/expiry window", () => {
+    const events = mapWarframeEvents({
+      vaultTrader: {
+        id: "1",
+        activation: iso(-HOUR),
+        expiry: iso(HOUR),
+        character: "Varzia",
+        location: "Maroo's Bazaar",
+      },
+    });
+
+    const trader = events.find((e) => e.id === "warframe-vault-trader");
+
+    expect(trader?.status).toBe("LIVE");
+    expect(trader?.title).toBe("Varzia — Prime Resurgence");
+  });
+
+  it("is ENDED outside the activation/expiry window", () => {
+    const events = mapWarframeEvents({
+      vaultTrader: {
+        id: "1",
+        activation: iso(-2 * HOUR),
+        expiry: iso(-HOUR),
+        character: "Varzia",
+        location: "Maroo's Bazaar",
+      },
+    });
+
+    const trader = events.find((e) => e.id === "warframe-vault-trader");
+
+    expect(trader?.status).toBe("ENDED");
+  });
+
+  it("is omitted entirely when absent", () => {
+    const events = mapWarframeEvents({});
+
+    expect(
+      events.find((e) => e.id === "warframe-vault-trader")
+    ).toBeUndefined();
+  });
+});
+
+describe("warframe mapWarframeEvents — Steel Path Circuit", () => {
+  it("is LIVE while within the activation/expiry window", () => {
+    const events = mapWarframeEvents({
+      steelPath: {
+        currentReward: { name: "Umbra Forma Blueprint" },
+        activation: iso(-HOUR),
+        expiry: iso(HOUR),
+      },
+    });
+
+    const circuit = events.find((e) => e.id === "warframe-steel-path");
+
+    expect(circuit?.status).toBe("LIVE");
+    expect(circuit?.title).toBe(
+      "Steel Path Circuit — Umbra Forma Blueprint"
+    );
+  });
+
+  it("is omitted entirely when absent", () => {
+    const events = mapWarframeEvents({});
+
+    expect(
+      events.find((e) => e.id === "warframe-steel-path")
+    ).toBeUndefined();
+  });
+});

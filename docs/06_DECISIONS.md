@@ -4160,7 +4160,7 @@ bu projede tekrarlayan bir hata sınıfı, bkz. Technical Debt'teki
 
 ---
 
-# ADR-052: Yeni Kaynak Taraması — Steam Sales Provider + FFXIV (12. Oyun)
+# ADR-052: Yeni Kaynak Taraması — Steam Sales, FFXIV, Warframe'de 2 Yeni Event, Mevcut Oyun Denetimi
 
 Status: Accepted
 
@@ -4201,6 +4201,34 @@ platform status'uyla aynı sınıf, aynı düşük-ama-gerçek önceliğe sahip.
 İkon: resmi bir FFXIV SVG marka işareti yok, ama `react-icons/si`'de
 Square Enix'in kendi marka işareti (`SiSquareenix`) var — emoji yerine
 onu kullandık (ADR-020'nin kuralıyla tutarlı).
+
+**3) Mevcut 12 oyunun denetimi ("eksik event var mı")** — her
+provider'ın kendi gerçek veri kaynağı tek tek gözden geçirildi:
+- **Destiny 2** — zaten kapsamlı: `mapActiveMilestones` Bungie'nin
+  Public Milestones API'sindeki *her* aktif milestone'u genel/dinamik
+  olarak map'liyor (tek tek hardcode edilmiş bir liste değil), yani
+  Nightfall/haftalık bounty gibi yeni bir şey çıksa otomatik yakalanır.
+  Eklenecek bir şey yok.
+- **Warframe** — `api.warframestat.us`'un tam JSON cevabı incelendi,
+  şu ana kadar okunmayan 2 gerçek, uygun sıklıkta alan bulundu:
+  `vaultTrader` (Prime Resurgence — Varzia'nın Maroo's Bazaar'daki
+  rotasyonlu vault mağazası, ~aylık pencere) ve `steelPath` (Steel
+  Path Circuit'in haftalık ödül rotasyonu). İkisi de eklendi, gerçek
+  DB'ye karşı doğrulandı (7 event senkronize oldu, ikisi gerçekten
+  LIVE). `duviriCycle` (her ~2 saatte bir değişiyor) bilinçli olarak
+  eklenmedi — projenin "alerts/invasions çok sık, düşük sinyal"
+  kuralıyla aynı sınıf. `calendar` (Warframe 1999 içerik takvimi)
+  karmaşık/dar kapsamlı, bu turda atlandı.
+- **LoL** — `docs/09_BACKLOG.md`'de hâlâ açık görünen iki not
+  ("cherry-lobby.json henüz kullanılmıyor", "event-passes.json
+  entegrasyonu") aslında **geçersiz, silinmemiş eski notlar**:
+  Arena zaten `lol-client-config`'te gerçek canlı sinyalle (ADR-037),
+  pass pencereleri zaten `SEASON_PASS` kategorisiyle (ADR-023/026)
+  takip ediliyor. Backlog düzeltildi.
+- **TFT, Valorant, Fortnite, PoE, Helldivers 2, Foxhole, PUBG,
+  PlanetSide 2** — bu turda derin bir yeni alan bulunamadı (ör. PUBG'nin
+  resmi API'si item-shop/survivor-pass verisi sunmuyor, sadece
+  stats/season). Gelecekte tekrar bakılabilir.
 
 **Reddedilenler:**
 - **Deep Rock Galactic** — resmi API yok, bulunanlar (drgmissions,
