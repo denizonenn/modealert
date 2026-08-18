@@ -31,6 +31,7 @@ model User {
   sessions            Session[]
 
   watchlists          Watchlist[]
+  gameWatchlists      GameWatchlist[]
   notifications       Notification[]
   analyticsEvents     AnalyticsEvent[]
 }
@@ -84,6 +85,7 @@ model Game {
   featured        Boolean
 
   events          Event[]
+  gameWatchlists  GameWatchlist[]
 }
 
 model Event {
@@ -239,6 +241,24 @@ model Watchlist {
 
   @@unique([userId, eventId])
   @@index([eventId])
+}
+
+// Premium-only "follow the whole game" — see ADR-051. Separate table
+// from Watchlist (not a nullable eventId on it) so the free-plan
+// per-event limit logic never has to reason about rows with no event.
+model GameWatchlist {
+  id        String   @id @default(cuid())
+
+  userId    String
+  gameId    String
+
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game      Game     @relation(fields: [gameId], references: [id])
+
+  @@unique([userId, gameId])
+  @@index([gameId])
 }
 
 model Notification {

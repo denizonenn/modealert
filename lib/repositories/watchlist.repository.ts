@@ -35,6 +35,36 @@ export async function getWatchlistsByEvent(
   });
 }
 
+// Notification recipients for one event: direct per-event followers
+// plus anyone following the event's whole game (GameWatchlist — see
+// ADR-051), deduped so a user following both only gets one send.
+export async function getRecipientsForEvent(
+  eventId: string,
+  gameId: string
+) {
+  const [eventWatchers, gameWatchers] = await Promise.all([
+    prisma.watchlist.findMany({
+      where: { eventId },
+      include: { user: true },
+    }),
+    prisma.gameWatchlist.findMany({
+      where: { gameId },
+      include: { user: true },
+    }),
+  ]);
+
+  const byUserId = new Map<
+    string,
+    (typeof eventWatchers)[number]["user"]
+  >();
+
+  for (const row of [...eventWatchers, ...gameWatchers]) {
+    byUserId.set(row.user.id, row.user);
+  }
+
+  return [...byUserId.values()];
+}
+
 export async function getTrackedUserCountsByGame(): Promise<
   Record<string, number>
 > {

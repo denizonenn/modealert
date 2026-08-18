@@ -10,6 +10,7 @@ import { EventStatusBadge } from "@/components/shared/event-status-badge"
 import { SectionEyebrow } from "@/components/shared/section-eyebrow"
 import { RotationBadge } from "@/components/shared/rotation-badge"
 import { PremiumTeaser } from "@/components/shared/premium-teaser"
+import { FollowGameButton } from "@/components/games/follow-game-button"
 
 import { auth } from "@/auth"
 import { gameService } from "@/lib/services/game.service"
@@ -139,8 +140,12 @@ export default async function GameDetailPage({ params }: Props) {
           when it&apos;ll end.
         </p>
 
+        <div className="mt-6">
+          <FollowGameButton gameId={game.id} gameName={game.name} />
+        </div>
+
         {EXTERNAL_RESOURCES[game.id] && (
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-4 flex flex-wrap gap-3">
             {EXTERNAL_RESOURCES[game.id]!.map((resource) => (
               <a
                 key={resource.url}

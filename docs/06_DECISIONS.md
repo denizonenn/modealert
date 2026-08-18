@@ -4077,3 +4077,83 @@ değil.
   "Unhealthy" olarak doğru yakalıyor.
 - 143/143 test, `tsc --noEmit` temiz. Şema değişikliği yok — sadece
   mevcut gerçek verinin yeni bir agregasyonu ve görsel katman.
+
+---
+
+# ADR-051: Watchlist — Oyun Bazlı Takip (`GameWatchlist`), Premium-only
+
+Status: Accepted
+
+Date: 2026-08-18
+
+## Bağlam
+
+`docs/09_BACKLOG.md`'nin "P1 — Watchlists / Future" bölümünde uzun
+süredir açık duran bir madde: "Follow by Game/Queue/Champion
+(currently only Event-level)". Deniz'e sıradaki geliştirme için
+seçenek sunuldu, bu maddeyi seçti.
+
+## Karar
+
+Yeni, ayrı bir tablo — `GameWatchlist` (`userId`, `gameId`,
+`@@unique([userId, gameId])`) — mevcut `Watchlist`'e nullable bir
+`eventId` eklemek yerine. Gerekçe: `Watchlist`'in free-plan
+limit sayacı (`countWatchlistsByUser`, ADR-041) event satırlarını
+sayıyor; `eventId`'si null olabilen karma bir tabloda bu sayaç
+anlamsızlaşırdı.
+
+**Premium-only** (Free plan'da hiç kullanılamıyor, limit'e dahil
+değil) — bir oyunun *tamamını* (şu anki + gelecekteki her event)
+takip etmek sınırsız kapsam demek, bunu free limit'le nasıl
+etkileşeceğini tanımlamaya çalışmak yerine (belirsiz bir ürün kararı,
+bkz. `/admin`'in "Rebuild Data" notundaki "too undefined to build
+blind" ilkesi) doğrudan Premium'un "unlimited watchlist" konumlandırmasına
+oturtuldu — yeni bir upsell yüzeyi.
+
+**Migration:** additive, elle yazıldı (`prisma/migrations/
+20260818150000_add_game_watchlist/migration.sql` — tek `CREATE TABLE`
++ 2 index + 2 FK, DROP/DELETE yok). Deploy öncesi/sonrası satır
+sayıları doğrulandı (users 4, games 11, events 87, watchlists 31,
+notifications 12 — hepsi değişmedi, yeni tablo 0 satırla başladı).
+
+**Bildirim entegrasyonu:** `notification-trigger.service.ts` artık
+`getWatchlistsByEvent` yerine yeni `getRecipientsForEvent(eventId,
+gameId)` kullanıyor — event-seviyeli `Watchlist` + event'in oyununu
+takip eden `GameWatchlist` kullanıcılarını `userId`'ye göre dedupe
+ederek birleştiriyor (aynı kullanıcı hem event'i hem oyunu takip
+ediyorsa çift bildirim gitmiyor).
+
+**UI:** `/games/[slug]`'a `FollowGameButton` (client) eklendi —
+oturum yoksa `/signin`'e yönlendiriyor, Free kullanıcı denerse 402
+alıp "Premium gerekiyor" + `/pricing` linkini gösteriyor, Premium
+kullanıcı gerçek toggle yapabiliyor. Dashboard'da `WatchingList`'e
+"Following (whole game)" şeridi eklendi — takip edilen oyunlar
+gerçek `GameIcon` rozetleriyle listeleniyor, tıklayınca unfollow
+oluyor (yazılıp hiçbir sayfaya bağlanmayan özellik kalmasın diye —
+bu projede tekrarlayan bir hata sınıfı, bkz. Technical Debt'teki
+"written but not connected" temizlikleri).
+
+## Bilinçli olarak yapılmayan
+
+- **Queue/Champion bazlı takip** — backlog maddesi "Game/Queue/
+  Champion" diyordu ama queue/champion granülerliğinde gerçek,
+  event'ten bağımsız bir "takip edilebilir birim" kavramı yok (queue
+  bilgisi zaten `lol-client-config` provider'ının event'leri
+  içinde geliyor, ayrı bir entity değil) — sadece Game seviyesi
+  yapıldı, net ve gerçek bir kapsamı olan tek granülerlik.
+- Dashboard dışında (`/games` liste sayfası gibi) "hangi oyunları
+  takip ediyorum" göstergesi eklenmedi — v1 kapsamı dashboard +
+  `/games/[slug]`'daki buton durumuyla sınırlı tutuldu.
+- Yeni bir analytics event'i eklenmedi (`ANALYTICS_EVENTS`) — mevcut
+  funnel soruları (ADR-046) bunu kapsamıyor, spekülatif olurdu.
+
+## Doğrulama
+
+- `npx tsc --noEmit`, `npm test` (150/150), `npm run build` — hepsi
+  temiz.
+- Migration gerçek DB'ye `prisma migrate deploy` ile uygulandı,
+  satır sayıları önce/sonra doğrulandı.
+- Repository katmanı gerçek DB'ye karşı test edildi: gerçek bir
+  `userId`/`gameId` ile `GameWatchlist` satırı oluşturuldu, varlığı
+  doğrulandı, silindi, satır sayısının 0'a döndüğü teyit edildi (test
+  artığı bırakılmadı — ADR-039/040'takiyle aynı desen).

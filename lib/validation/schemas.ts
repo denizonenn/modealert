@@ -31,6 +31,10 @@ export const watchlistEventSchema = z.object({
   eventId: z.string().min(1),
 });
 
+export const gameWatchlistSchema = z.object({
+  gameId: z.string().min(1),
+});
+
 export const analyticsEventSchema = z.object({
   name: z.enum(
     Object.values(ANALYTICS_EVENTS) as [string, ...string[]]

@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils"
 
 import { useEvents } from "@/hooks/use-events"
 import { useWatchlist } from "@/hooks/use-watchlist"
+import { useGameWatchlist } from "@/hooks/use-game-watchlist"
 import { Skeleton } from "@/components/shared/skeleton"
 import { collapseSeriesToLatest } from "@/lib/utils/event-series"
 
@@ -196,6 +197,11 @@ export default function WatchingList() {
     toggle,
   } = useWatchlist()
 
+  const {
+    followedGameIds,
+    toggle: toggleGame,
+  } = useGameWatchlist()
+
   const [selectedGameId, setSelectedGameId] =
     useState<string | null>(null)
 
@@ -297,6 +303,10 @@ export default function WatchingList() {
       matchesRotationFilter(event.isLimitedTime, selectedRotations)
   )
 
+  const followedGames = games.filter((game) =>
+    followedGameIds.has(game.id)
+  )
+
   return (
     <div>
       <GameFilterBar
@@ -306,6 +316,34 @@ export default function WatchingList() {
       />
 
       <div className="space-y-14">
+        {followedGames.length > 0 && (
+          <div>
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
+              Following (whole game)
+            </h2>
+
+            <div className="flex flex-wrap gap-2">
+              {followedGames.map((game) => (
+                <button
+                  key={game.id}
+                  type="button"
+                  onClick={() => toggleGame(game.id)}
+                  title={`Stop following all of ${game.name}`}
+                  className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 py-1 pr-4 pl-1.5 text-sm font-medium text-white hover:border-white/30"
+                >
+                  <GameIcon
+                    gameId={game.id}
+                    logo={game.logo}
+                    color={game.color}
+                    size="sm"
+                  />
+                  {game.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div>
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-lg font-semibold">

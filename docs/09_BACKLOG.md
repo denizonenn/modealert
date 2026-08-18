@@ -429,9 +429,21 @@ Completed
   also created during onboarding finish step)
 - Real DB persistence (`/api/watchlists`), optimistic updates
 
+Done (2026-08-18, ADR-051)
+
+- ~~Follow by Game/Queue/Champion (currently only Event-level)~~ —
+  Game-level done, Premium-only. New `GameWatchlist` table (separate
+  from `Watchlist`, not a nullable `eventId` on it — keeps the free
+  per-event limit counter well-defined). `notification-trigger.service.ts`
+  now merges event-level and game-level followers (deduped) when
+  picking recipients. `FollowGameButton` on `/games/[slug]`
+  (sign-in/premium-gated), "Following (whole game)" strip on the
+  dashboard. Queue/Champion granularity not pursued — no real,
+  event-independent "trackable unit" exists at that level (queue data
+  already lives inside events, not a separate entity).
+
 Future
 
-- Follow by Game/Queue/Champion (currently only Event-level)
 - Custom filters
 
 ---

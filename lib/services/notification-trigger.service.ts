@@ -23,7 +23,7 @@ import {
 } from "@/lib/repositories/notification-failure.repository";
 
 import {
-  getWatchlistsByEvent,
+  getRecipientsForEvent,
 } from "@/lib/repositories/watchlist.repository";
 
 import { retry } from "@/lib/utils/retry";
@@ -36,12 +36,13 @@ export const notificationTriggerService = {
     event: ProviderEvent,
     previous: EventWithGame | null
   ) {
-    const watchlists =
-      await getWatchlistsByEvent(
-        event.id
+    const recipients =
+      await getRecipientsForEvent(
+        event.id,
+        event.gameId
       );
 
-    if (watchlists.length === 0) {
+    if (recipients.length === 0) {
       return;
     }
 
@@ -55,19 +56,18 @@ export const notificationTriggerService = {
       );
 
     await Promise.all(
-      watchlists.map(
-        async (watchlist) => {
+      recipients.map(
+        async (user) => {
           const recipient = {
-            id: watchlist.user.id,
+            id: user.id,
 
-            email:
-              watchlist.user.email,
+            email: user.email,
           };
 
           for (const provider of providers) {
             if (
               provider.id === "email" &&
-              watchlist.user.emailOptOut
+              user.emailOptOut
             ) {
               continue;
             }
@@ -139,7 +139,7 @@ export const notificationTriggerService = {
     console.log("");
 
     console.log(
-      `Notified ${watchlists.length} users`
+      `Notified ${recipients.length} users`
     );
   },
 };
