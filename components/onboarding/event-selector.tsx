@@ -100,8 +100,8 @@ export default function EventSelector() {
             selectedCategories.has(event.category as EventCategory) &&
             matchesRotationFilter(event.isLimitedTime, selectedRotations)
         )
-        .sort(
-          (a, b) =>
+        .sort((a, b) => {
+          const categoryDiff =
             categorySortKey(
               a.category,
               a.isLimitedTime,
@@ -111,8 +111,15 @@ export default function EventSelector() {
               b.category,
               b.isLimitedTime,
               STATUS_PRIORITY[b.status] ?? 9
-            )
-        ),
+            );
+
+          // Within the same category/rotation/status bucket, surface the
+          // more-tracked event first — real signal from Watchlist counts
+          // (ADR-047), not a guess.
+          return categoryDiff !== 0
+            ? categoryDiff
+            : b.trackedUsers - a.trackedUsers;
+        }),
     [events, selectedGames, selectedCategories, selectedRotations]
   );
 

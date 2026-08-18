@@ -870,8 +870,13 @@ Future
   key (Anthropic) and real per-request cost, unlike everything else
   in "AI Features" which turned out to be buildable for free from
   data already in the DB.
-- Sorting onboarding's event picker by real popularity — a natural
-  follow-up now that the data exists, not done in this pass.
+- ~~Sorting onboarding's event picker by real popularity~~ — **done
+  (2026-08-18).** `EventSelector`'s sort now uses `trackedUsers`
+  (ADR-047's real Watchlist-count signal) as a tiebreaker within each
+  existing category/rotation/status bucket — category still dominates
+  (a real played thing still beats infrastructure noise), popularity
+  only decides ordering among otherwise-equal events. No new data,
+  same field `/events/[slug]` already displays.
 
 ---
 
