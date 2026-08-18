@@ -15,6 +15,8 @@ import { pubgProvider } from "@/lib/providers/pubg/provider";
 import { planetside2Provider } from "@/lib/providers/planetside2/provider";
 import { rotatingModesProvider } from "@/lib/providers/rotating-modes/provider";
 import { lolClientConfigProvider } from "@/lib/providers/lol-client-config/provider";
+import { steamSalesProvider } from "@/lib/providers/steam-sales/provider";
+import { ffxivProvider } from "@/lib/providers/ffxiv/provider";
 
 const providers: EventProvider[] = [
   riotProvider,
@@ -32,6 +34,8 @@ const providers: EventProvider[] = [
   planetside2Provider,
   rotatingModesProvider,
   lolClientConfigProvider,
+  steamSalesProvider,
+  ffxivProvider,
 ];
 
 export function getProviders(): EventProvider[] {

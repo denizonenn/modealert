@@ -142,6 +142,17 @@ async function main() {
         activeUsers: "0",
         featured: false,
       },
+      {
+        id: "ffxiv",
+        name: "Final Fantasy XIV",
+        slug: "final-fantasy-xiv",
+        logo: "🔮",
+        color: "#7dd3fc",
+        shortName: "FFXIV",
+        supportedEvents: 0,
+        activeUsers: "0",
+        featured: false,
+      },
     ],
   });
 

@@ -925,7 +925,7 @@ Future
 
 # P2 — Multi Game Support
 
-Status: 🟢 11 real providers (2026-08-13)
+Status: 🟢 12 real games, 16 providers (2026-08-18)
 
 Live providers
 
@@ -989,6 +989,15 @@ Live providers
   previously said this needed a websocket; re-checked and that turned
   out to be wrong — a sorted, limited REST poll on `world_event` is
   enough. See ADR-044.)
+- Final Fantasy XIV ✅ (2026-08-18, `frontier.ffxiv.com`, official
+  Square Enix launcher-facing endpoint, no key needed — login gate
+  open/closed only, same thin-but-real signal class as LoL/Valorant's
+  platform status. See ADR-052.)
+- **Steam Sales** — not a new game, a new provider (`steam-sales`)
+  extending existing paid Steam games (Helldivers 2, Foxhole) with a
+  real `discount_percent`-based "Steam Sale" event, via Valve's own
+  keyless `appdetails` store API. F2P games in the roster don't return
+  price data, so they're excluded rather than faked. See ADR-052.
 
 Pending Deniz's action
 
@@ -1007,6 +1016,24 @@ Pending Deniz's action
 
 Evaluated and rejected
 
+- ~~Deep Rock Galactic~~ — **researched 2026-08-18.** No official API;
+  the only candidates (`drgmissions`, `drg-deep-dive-tracker`) are
+  third-party scrapers, same trust-class problem as the rejected
+  Genshin "fan API". See ADR-052.
+- ~~Rocket League~~ — **researched 2026-08-18.** No general keyless
+  public API for season/rotation data; only a specialized in-match
+  telemetry API and third-party tracker sites. See ADR-052.
+- ~~Marvel Snap and mobile games generally~~ — **researched
+  2026-08-18.** No official public event API found for any mainstream
+  mobile title checked. See ADR-052.
+- ~~Wargaming (World of Tanks / World of Warships)~~ — **researched
+  2026-08-18.** Self-serve key exists (same friction class as
+  Riot/Bungie/PUBG), but a real event/season endpoint wasn't confirmed
+  in this pass — needs deeper investigation before building. See
+  ADR-052.
+- ~~osu!~~ — **researched 2026-08-18.** Self-serve OAuth client exists,
+  but there's no real time-boxed "event" concept to track (ranking
+  cycles aren't live-service events). See ADR-052.
 - ~~Call of Duty~~ — no official Activision API; unofficial routes
   need a real account login (not an API key) and don't even expose
   event/playlist data, only player stats. See ADR-006.
@@ -1074,10 +1101,10 @@ Evaluated and deferred (keyless, but data source currently broken)
   `/v2/build` work with no key, but the endpoint that actually matters
   (`/v2/events`, real-time meta-event/world-boss timers) returned
   `503 "API not active"` on a real request — a known, long-standing
-  ArenaNet bug, not a fluke (re-checked 2026-08-06 and again
-  2026-08-13, still broken both times). Falling back to a static
-  rotation table would violate the no-fake-data principle (ADR-012).
-  Revisit if ArenaNet ever fixes it. See ADR-013.
+  ArenaNet bug, not a fluke (re-checked 2026-08-06, 2026-08-13, and
+  again 2026-08-18 — still `503` all three times). Falling back to a
+  static rotation table would violate the no-fake-data principle
+  (ADR-012). Revisit if ArenaNet ever fixes it. See ADR-013.
 
 Future no-key candidates worth a look (unverified, higher effort)
 
@@ -1435,6 +1462,18 @@ No open bugs.
 ---
 
 # Ideas
+
+- **Yeni Oyun Araştırması (2026-08-18)** — Deniz "100+ oyuna çıkalım,
+  anahtar gerektirmeyen her oyunu ekle" dedi. Sistemli bir tur daha
+  yapıldı (mobil oyunlar, Deep Rock Galactic, Guild Wars 2 üçüncü kez,
+  Rocket League, Wargaming, osu!, FFXIV, Steam'in kendi API'si).
+  **Sonuç:** 100+ gerçek verilerle ulaşılabilir değil — çoğu oyunda,
+  özellikle mobilde, hiç public event API'si yok. **Eklendi:** FFXIV
+  (12. oyun — sadece login gate açık/kapalı, düşük ama gerçek sinyal)
+  ve yeni bir provider türü, `steam-sales` (mevcut Helldivers 2/Foxhole'a
+  Valve'ın kendi mağaza API'sinden gerçek indirim event'i). Reddedilenler
+  ve gerekçeleri "P2 — Multi Game Support"un "Evaluated and rejected"
+  bölümünde. Detay: docs/06_DECISIONS.md ADR-052.
 
 - **Yeni Oyun Araştırması (2026-08-13)** — Deniz "oyunları çok fazla
   arttırmamız lazım" dedi. Geniş bir tarama yapıldı:

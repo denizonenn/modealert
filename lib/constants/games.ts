@@ -20,6 +20,8 @@ export const GAME_IDS = {
   PUBG: "pubg",
 
   PLANETSIDE_2: "planetside2",
+
+  FFXIV: "ffxiv",
 } as const;
 
 // Games seeded in the DB with a real, working provider syncing events.

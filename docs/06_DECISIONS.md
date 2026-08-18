@@ -4157,3 +4157,75 @@ bu projede tekrarlayan bir hata sınıfı, bkz. Technical Debt'teki
   `userId`/`gameId` ile `GameWatchlist` satırı oluşturuldu, varlığı
   doğrulandı, silindi, satır sayısının 0'a döndüğü teyit edildi (test
   artığı bırakılmadı — ADR-039/040'takiyle aynı desen).
+
+---
+
+# ADR-052: Yeni Kaynak Taraması — Steam Sales Provider + FFXIV (12. Oyun)
+
+Status: Accepted
+
+Date: 2026-08-18
+
+## Bağlam
+
+Deniz "takip edilen oyun sayısını 100+ yapmak lazım, anahtar
+gerektirmeyen her oyunu ekle, mevcut oyunlarda da eksik event'leri
+araştır" dedi. Sistemli bir tarama yapıldı: mobil oyunlar (Marvel
+Snap, Brawl Stars, Clash Royale/Clash of Clans), Deep Rock Galactic,
+Guild Wars 2 (üçüncü kez), Rocket League, Wargaming (WoT/WoWS), osu!,
+FFXIV, Steam'in kendi mağaza API'si.
+
+## Karar
+
+**Gerçekçi tavan:** 100+ hedefi gerçek, uydurulmamış verilerle
+ulaşılabilir değil — sektörün büyük çoğunluğunda (özellikle mobil)
+public event API'si yok. Bu oturumda **2 gerçek, doğrulanmış ekleme**
+bulundu; gerisi reddedildi (aşağıda).
+
+**1) `steam-sales` provider (yeni provider, yeni oyun değil)** —
+Valve'ın kendi mağaza API'si (`store.steampowered.com/api/appdetails`,
+anahtarsız, resmi) üzerinden mevcut ücretli Steam oyunlarına
+(Helldivers 2, Foxhole) gerçek `discount_percent` sinyaliyle "Steam
+Sale" event'i ekliyor. F2P oyunlar (Warframe/PoE/PUBG/PlanetSide 2)
+`price_overview` döndürmüyor, o yüzden listede yok — uydurma
+placeholder yerine hiç event üretilmiyor. Kampanya adı yok (ayrı,
+global `featuredcategories` endpoint'i hangi app'in kampanyada
+olduğunu söylemiyor), açıklama bunu dürüstçe sadece
+indirim-yüzdesi/fiyat olarak veriyor.
+
+**2) Final Fantasy XIV (12. oyun, `ffxiv`)** — Square Enix'in
+launcher'ın giriş öncesi sorguladığı resmi, anahtarsız endpoint'i
+(`frontier.ffxiv.com/worldStatus/gate_status.json`). Tek gerçek
+sinyal: giriş kapısı açık/kapalı (`status: 1`/diğer) — Riot/Valorant'ın
+platform status'uyla aynı sınıf, aynı düşük-ama-gerçek önceliğe sahip.
+İkon: resmi bir FFXIV SVG marka işareti yok, ama `react-icons/si`'de
+Square Enix'in kendi marka işareti (`SiSquareenix`) var — emoji yerine
+onu kullandık (ADR-020'nin kuralıyla tutarlı).
+
+**Reddedilenler:**
+- **Deep Rock Galactic** — resmi API yok, bulunanlar (drgmissions,
+  drg-deep-dive-tracker) üçüncü parti scraper'lar, Genshin'in fan-API'siyle
+  aynı güven sınıfı sorunu.
+- **Guild Wars 2** — `/v2/events` üçüncü kez test edildi, hâlâ `503
+  API not active`. ADR-013'ün bulgusu bir yıl sonra da geçerli.
+- **Brawl Stars / Clash Royale / Clash of Clans (Supercell)** —
+  resmi API IP kilidi (2026-08-13'te zaten reddedilmişti), community
+  "BrawlAPI" statik/üçüncü parti.
+- **Rocket League** — genel, anahtarsız bir public API yok.
+- **Marvel Snap ve genel mobil oyunlar** — hiçbirinde resmi public
+  event API'si bulunamadı.
+- **Wargaming (WoT/WoWS) ve osu!** — self-serve key var ama gerçek
+  bir "event/sezon" endpoint'i doğrulanamadı, derin araştırma
+  gerektirir; bu turda yapılmadı (düşük sinyal/efor oranı).
+
+## Doğrulama
+
+- Her iki yeni kaynak da gerçek DB'ye karşı uçtan uca test edildi:
+  `steamSalesService.getEvents()` + `eventSyncService.sync(...,
+  "steam-sales")` gerçek 2 satır yazdı (Helldivers 2, Foxhole — ikisi
+  de şu an indirimde değil, doğru şekilde ENDED). `ffxivService
+  .getEvents()` aynı şekilde 1 satır yazdı (gate açık, LIVE).
+  `Game.create({ id: "ffxiv", ... })` ile tek satırlık additive insert
+  — şema değişikliği yok, migration gerekmedi.
+- `npx tsc --noEmit`, `npm test` (156/156), `npm run build` — hepsi
+  temiz.

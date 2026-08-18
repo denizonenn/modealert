@@ -3,6 +3,7 @@ import {
   SiFortnite,
   SiLeagueoflegends,
   SiPubg,
+  SiSquareenix,
   SiValorant,
 } from "react-icons/si"
 
@@ -35,4 +36,5 @@ export const GAME_BRAND_ICONS: Record<
   foxhole: GiTrenchSpade,
   pubg: SiPubg,
   planetside2: GiPlanetConquest,
+  ffxiv: SiSquareenix,
 }
