@@ -384,9 +384,25 @@ Future
 
 - Per-game landing pages (`/games/league-of-legends`, etc.) if organic
   search volume ever justifies the extra maintenance surface.
-- Real custom favicon / app icon (currently the default Next.js one).
 
 Done (2026-08-18)
+
+- ~~Real custom favicon / app icon (currently the default Next.js
+  one)~~ — `app/favicon.ico` was confirmed to still be create-next-app's
+  default (exact stock file size). Replaced with `app/icon.tsx` +
+  `app/apple-icon.tsx` (Next's code-generated icon convention, same
+  `next/og` `ImageResponse` approach `opengraph-image.tsx` already
+  used) — reuses the real navbar brand mark (white rounded square,
+  black bell, `components/layout/navbar.tsx`) instead of inventing a
+  new design. Old static `favicon.ico` deleted so there's one source of
+  truth. Also caught and fixed while verifying with a real
+  `npm run build`: the nested `graphify/` tool (gitignored, not part of
+  ModeAlert) was still inside `tsconfig.json`'s default `**/*.ts`
+  include, breaking local production builds on its own broken test
+  fixtures — added to `tsconfig.json`'s `exclude`. Same build also
+  caught `opengraph-image.tsx`'s hardcoded "League of Legends ·
+  Valorant · Destiny 2 · TFT" line — same stale-game-list bug as above,
+  fixed to `${GAMES_WITH_PROVIDER.size} games, one inbox`.
 
 - ~~Stale "4 games" copy in indexed/shared content~~ — found while
   looking for the next task: the game count grew to 11 real providers

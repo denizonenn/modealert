@@ -1,5 +1,7 @@
 import { ImageResponse } from "next/og"
 
+import { GAMES_WITH_PROVIDER } from "@/lib/constants/games"
+
 export const alt = "ModeAlert — Never miss a limited-time game event"
 export const size = { width: 1200, height: 630 }
 export const contentType = "image/png"
@@ -56,7 +58,7 @@ export default async function Image() {
             color: "#71717a",
           }}
         >
-          League of Legends · Valorant · Destiny 2 · TFT
+          {GAMES_WITH_PROVIDER.size} games, one inbox
         </div>
       </div>
     ),
