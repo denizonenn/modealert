@@ -1,9 +1,6 @@
 import { NextRequest } from "next/server";
 
-import {
-  countRecentHits,
-  recordHit,
-} from "@/lib/repositories/rate-limit.repository";
+import { checkAndRecordHit } from "@/lib/repositories/rate-limit.repository";
 
 // Vercel sets this on every request; falls back to "unknown" for
 // local/non-proxied requests rather than throwing (a rate limit check
@@ -27,9 +24,10 @@ interface RateLimitOptions {
 }
 
 // Fixed-window counter, Postgres-backed (see docs/06_DECISIONS.md
-// ADR-045 for why not Redis). Records the hit as soon as it's counted
-// so concurrent requests in the same window still can't slip past the
-// limit.
+// ADR-045 for why not Redis). The count check and the hit record are
+// done atomically (advisory-lock-protected, see the repository
+// function) — real concurrent requests for the same key genuinely
+// can't slip past the limit as a burst, not just "usually can't."
 export async function checkRateLimit({
   key,
   limit,
@@ -37,13 +35,5 @@ export async function checkRateLimit({
 }: RateLimitOptions): Promise<boolean> {
   const windowStart = new Date(Date.now() - windowMs);
 
-  const count = await countRecentHits(key, windowStart);
-
-  if (count >= limit) {
-    return false;
-  }
-
-  await recordHit(key);
-
-  return true;
+  return checkAndRecordHit(key, windowStart, limit);
 }
