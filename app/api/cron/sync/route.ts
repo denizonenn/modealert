@@ -1,3 +1,5 @@
+import { timingSafeEqual } from "crypto";
+
 import {
   NextRequest,
   NextResponse,
@@ -11,6 +13,20 @@ import {
 import { weeklyDigestService } from "@/lib/services/weekly-digest.service";
 import { logger } from "@/lib/logger/logger";
 
+// Same length-check-then-timingSafeEqual pattern already used for the
+// unsubscribe HMAC and the Lemon Squeezy webhook signature — a plain
+// !== leaks a timing side-channel on this bearer-token comparison.
+function isValidCronAuth(authHeader: string | null): boolean {
+  const expected = Buffer.from(`Bearer ${env.CRON_SECRET}`);
+  const actual = Buffer.from(authHeader ?? "");
+
+  if (expected.length !== actual.length) {
+    return false;
+  }
+
+  return timingSafeEqual(expected, actual);
+}
+
 export async function GET(
   request: NextRequest
 ) {
@@ -19,10 +35,7 @@ export async function GET(
       "authorization"
     );
 
-  if (
-    authHeader !==
-    `Bearer ${env.CRON_SECRET}`
-  ) {
+  if (!isValidCronAuth(authHeader)) {
     return NextResponse.json(
       {
         success: false,
