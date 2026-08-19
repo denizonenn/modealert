@@ -225,6 +225,35 @@ Need
   göre erken optimizasyon olurdu): ayrı bir queue/worker altyapısı,
   başarısızlık için otomatik alarm/bildirim.
 
+Done (2026-08-19)
+
+- ~~Magic-link sign-in email was Auth.js's generic unbranded
+  default~~ — every other real email (notification, digest, admin
+  alert) had a branded template, but the sign-in link — often the
+  very first email a new user gets — was still Auth.js's built-in
+  "Sign in to modealert.vercel.app" plain template. Overrode
+  `sendVerificationRequest` in `auth.ts` with the same Resend call the
+  built-in provider makes, using a new `buildMagicLinkHtml` template.
+  Verified with a real test send via the Resend API.
+
+Pending Deniz's action
+
+- **`EMAIL_FROM` has never been set — every email ever sent by this
+  app (notifications, weekly digest, admin alerts, magic-link
+  sign-in) comes from Resend's shared sandbox address,
+  `onboarding@resend.dev`**, not a real ModeAlert-branded address.
+  Found while reviewing outgoing email quality (2026-08-19) — this
+  was already flagged once before (docs/06_DECISIONS.md, Resend
+  section) but never resolved. Can't fix in code: `modealert.vercel.app`
+  is a shared Vercel subdomain, Deniz doesn't control its DNS, so no
+  SPF/DKIM records can be added there — Resend domain verification
+  needs a real domain Deniz owns (e.g. buying `modealert.app` or
+  similar, a cost decision) with its DNS pointed at Resend's records.
+  Once he has one, add it to Resend, set `EMAIL_FROM` in both `.env`
+  and Vercel to `ModeAlert <notifications@<that-domain>>`, done — no
+  further code change needed, `EMAIL_FROM` is already read from env
+  everywhere real emails are sent.
+
 Future — bilinçli olarak ertelendi
 
 - **Discord** — Türkiye'de erişim sorunu var, en sona bırakıldı
