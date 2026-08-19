@@ -22,6 +22,25 @@ export const profileSchema = z.object({
   name: z.string().trim().min(1).max(50),
 });
 
+// Empty string clears the webhook (disconnects Discord notifications)
+// — everything else must be a real Discord webhook URL, checked
+// against Discord's own documented URL shape so a pasted mistake
+// (e.g. the channel URL instead of the webhook URL) fails validation
+// immediately instead of silently never delivering.
+export const discordWebhookSchema = z.object({
+  discordWebhookUrl: z
+    .string()
+    .trim()
+    .refine(
+      (value) =>
+        value === "" ||
+        /^https:\/\/(discord|discordapp)\.com\/api\/webhooks\/\d+\/[\w-]+$/.test(
+          value
+        ),
+      "Must be a real Discord webhook URL (or empty to disconnect)."
+    ),
+});
+
 export const notificationActionSchema = z.object({
   id: z.string().min(1).optional(),
   falsePositive: z.boolean().optional(),

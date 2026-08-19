@@ -63,12 +63,22 @@ export const notificationTriggerService = {
             id: user.id,
 
             email: user.email,
+
+            discordWebhookUrl:
+              user.discordWebhookUrl,
           };
 
           for (const provider of providers) {
             if (
               provider.id === "email" &&
               user.emailOptOut
+            ) {
+              continue;
+            }
+
+            if (
+              provider.id === "discord" &&
+              !user.discordWebhookUrl
             ) {
               continue;
             }

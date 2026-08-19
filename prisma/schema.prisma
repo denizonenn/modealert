@@ -20,6 +20,7 @@ model User {
   lockedUntil         DateTime?
 
   emailOptOut         Boolean        @default(false)
+  discordWebhookUrl   String?
 
   plan                       String    @default("FREE")
   lemonSqueezyCustomerId     String?

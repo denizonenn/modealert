@@ -10,10 +10,15 @@ import {
   emailNotificationProvider,
 } from "../email/email.provider";
 
+import {
+  discordNotificationProvider,
+} from "../discord/discord.provider";
+
 const providers: NotificationProvider[] =
   [
     consoleNotificationProvider,
     emailNotificationProvider,
+    discordNotificationProvider,
   ];
 
 export function registerNotificationProvider(

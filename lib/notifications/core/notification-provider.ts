@@ -10,6 +10,8 @@ export interface NotificationRecipient {
   id: string;
 
   email: string;
+
+  discordWebhookUrl?: string | null;
 }
 
 export interface NotificationProvider {

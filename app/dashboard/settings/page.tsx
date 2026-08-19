@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
 import { Lock, Mail, Trash2, Sparkles, User } from "lucide-react"
+import { SiDiscord } from "react-icons/si"
 
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
@@ -23,6 +24,7 @@ interface Account {
   name: string | null
   hasPassword: boolean
   emailOptOut: boolean
+  discordWebhookUrl: string | null
   plan: Plan
   subscriptionStatus: string | null
   subscriptionRenewsAt: string | null
@@ -416,6 +418,143 @@ function NotificationsSection({
   )
 }
 
+function DiscordSection({
+  account,
+  onUpdated,
+}: {
+  account: Account
+  onUpdated: (discordWebhookUrl: string | null) => void
+}) {
+  const [webhookUrl, setWebhookUrl] = useState(
+    account.discordWebhookUrl ?? ""
+  )
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
+
+  const [testing, setTesting] = useState(false)
+  const [testResult, setTestResult] = useState<
+    "ok" | "failed" | null
+  >(null)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+
+    setError(null)
+    setSuccess(false)
+    setTestResult(null)
+
+    const trimmed = webhookUrl.trim()
+
+    setSubmitting(true)
+
+    try {
+      const response = await fetch("/api/account/discord-webhook", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ discordWebhookUrl: trimmed }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setError(data.error ?? "Something went wrong.")
+        return
+      }
+
+      setSuccess(true)
+      onUpdated(trimmed || null)
+    } catch {
+      setError("Something went wrong. Please try again.")
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleTest() {
+    setTesting(true)
+    setTestResult(null)
+
+    try {
+      const response = await fetch("/api/account/discord-webhook/test", {
+        method: "POST",
+      })
+
+      setTestResult(response.ok ? "ok" : "failed")
+    } catch {
+      setTestResult("failed")
+    } finally {
+      setTesting(false)
+    }
+  }
+
+  return (
+    <Section
+      title="Discord notifications"
+      description="Paste a Discord webhook URL (from your server's Integrations → Webhooks settings) to get event updates posted there too."
+    >
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3">
+          <SiDiscord className="h-4 w-4 shrink-0 text-zinc-500" />
+          <input
+            type="url"
+            placeholder="https://discord.com/api/webhooks/..."
+            aria-label="Discord webhook URL"
+            value={webhookUrl}
+            onChange={(e) => setWebhookUrl(e.target.value)}
+            className="h-10 w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"
+          />
+        </div>
+
+        {error && <p className="text-sm text-red-400">{error}</p>}
+        {success && (
+          <p className="text-sm text-emerald-400">
+            {webhookUrl.trim()
+              ? "Discord webhook saved."
+              : "Discord webhook disconnected."}
+          </p>
+        )}
+
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            type="submit"
+            disabled={
+              submitting ||
+              webhookUrl.trim() === (account.discordWebhookUrl ?? "")
+            }
+            className="w-fit bg-white text-black hover:bg-zinc-200"
+          >
+            {submitting ? "Saving..." : "Save"}
+          </Button>
+
+          {account.discordWebhookUrl && (
+            <Button
+              type="button"
+              variant="outline"
+              disabled={testing}
+              onClick={handleTest}
+              className="w-fit border-white/15 bg-white/5 text-white hover:bg-white/10"
+            >
+              {testing ? "Sending..." : "Send test message"}
+            </Button>
+          )}
+
+          {testResult === "ok" && (
+            <span className="text-sm text-emerald-400">
+              Sent — check your Discord channel.
+            </span>
+          )}
+          {testResult === "failed" && (
+            <span className="text-sm text-red-400">
+              Failed to send. Double-check the webhook URL.
+            </span>
+          )}
+        </div>
+      </form>
+    </Section>
+  )
+}
+
 function DangerZone() {
   const [confirming, setConfirming] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -549,6 +688,15 @@ export default function SettingsPage() {
               onUpdated={(emailOptOut) =>
                 setAccount((prev) =>
                   prev ? { ...prev, emailOptOut } : prev
+                )
+              }
+            />
+
+            <DiscordSection
+              account={account}
+              onUpdated={(discordWebhookUrl) =>
+                setAccount((prev) =>
+                  prev ? { ...prev, discordWebhookUrl } : prev
                 )
               }
             />
