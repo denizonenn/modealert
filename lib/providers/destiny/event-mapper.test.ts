@@ -53,6 +53,82 @@ describe("destiny mapActiveMilestones", () => {
     expect(events).toHaveLength(1);
     expect(events[0].id).toBe("destiny-milestone-123");
   });
+
+  it("prefixes a grounded summary before Bungie's own flavor-text description", () => {
+    const events = mapActiveMilestones(
+      { "123": { milestoneHash: 123 } },
+      {
+        "123": {
+          displayProperties: {
+            name: "Vault of Glass",
+            description: "Beneath Venus, evil stirs…",
+          },
+        },
+      }
+    );
+
+    expect(events[0].description).toBe(
+      "Vault of Glass — an active Destiny 2 weekly milestone. Beneath Venus, evil stirs…"
+    );
+  });
+
+  it("falls back to just the grounded summary when Bungie provides no description", () => {
+    const events = mapActiveMilestones(
+      { "123": { milestoneHash: 123 } },
+      { "123": { displayProperties: { name: "Weekly Clan Engrams" } } }
+    );
+
+    expect(events[0].description).toBe(
+      "Weekly Clan Engrams — an active Destiny 2 weekly milestone."
+    );
+  });
+
+  it("stays LIVE when a milestone has no startDate/endDate at all", () => {
+    const events = mapActiveMilestones(
+      { "123": { milestoneHash: 123 } },
+      { "123": { displayProperties: { name: "Weekly Raid" } } },
+      new Date("2026-08-19T12:00:00.000Z")
+    );
+
+    expect(events[0].status).toBe("LIVE");
+  });
+
+  it("derives UPCOMING/LIVE/ENDED from a milestone's real startDate/endDate window", () => {
+    const milestones = {
+      "123": {
+        milestoneHash: 123,
+        startDate: "2026-08-18T17:00:00.000Z",
+        endDate: "2026-08-25T17:00:00.000Z",
+      },
+    };
+    const definitions = {
+      "123": { displayProperties: { name: "Weekly Raid" } },
+    };
+
+    expect(
+      mapActiveMilestones(
+        milestones,
+        definitions,
+        new Date("2026-08-17T00:00:00.000Z")
+      )[0].status
+    ).toBe("UPCOMING");
+
+    expect(
+      mapActiveMilestones(
+        milestones,
+        definitions,
+        new Date("2026-08-19T12:00:00.000Z")
+      )[0].status
+    ).toBe("LIVE");
+
+    expect(
+      mapActiveMilestones(
+        milestones,
+        definitions,
+        new Date("2026-08-26T00:00:00.000Z")
+      )[0].status
+    ).toBe("ENDED");
+  });
 });
 
 describe("destiny mapIronBanner", () => {

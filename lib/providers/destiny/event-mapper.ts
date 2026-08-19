@@ -31,12 +31,29 @@ export function mapPlatformStatus(
   ];
 }
 
+// Bungie's own `displayProperties.description` on most raid/dungeon
+// milestones is dramatic flavor text (e.g. "Beneath Venus, evil
+// stirs…", "He waits in the dark below.") — real Bungie copy, but it
+// doesn't say what the entry actually IS to someone who doesn't
+// already know the raid. Every summary is prefixed with a real,
+// grounded sentence; the flavor text (when present) is kept after it
+// rather than discarded, since it's still real official content.
+function buildMilestoneDescription(
+  name: string,
+  bungieDescription: string | undefined
+): string {
+  const summary = `${name} — an active Destiny 2 weekly milestone.`;
+
+  return bungieDescription
+    ? `${summary} ${bungieDescription}`
+    : summary;
+}
+
 export function mapActiveMilestones(
   milestones: DestinyPublicMilestonesResponse,
-  definitions: DestinyMilestoneDefinitionTable
+  definitions: DestinyMilestoneDefinitionTable,
+  now: Date = new Date()
 ): ProviderEvent[] {
-  const now = new Date();
-
   return Object.values(milestones)
     .map((milestone): ProviderEvent | null => {
       const displayProperties =
@@ -48,14 +65,31 @@ export function mapActiveMilestones(
         return null;
       }
 
+      // Confirmed live 2026-08-19 by fetching Bungie's Public
+      // Milestones endpoint directly: most entries carry a real
+      // 7-day startDate/endDate window (e.g. 2026-08-18 → 2026-08-25)
+      // that this mapper was silently ignoring, always reporting
+      // LIVE regardless of the real window. A couple of entries have
+      // neither field (structurally undated milestones), which stay
+      // LIVE the way they always have.
+      const status: ProviderEventStatus =
+        milestone.startDate && milestone.endDate
+          ? computeMilestoneStatus(
+              milestone.startDate,
+              milestone.endDate,
+              now
+            )
+          : "LIVE";
+
       return {
         id: `destiny-milestone-${milestone.milestoneHash}`,
         gameId: GAME_IDS.DESTINY_2,
         title: name,
-        description:
-          displayProperties?.description ||
-          `${name} — an active weekly Destiny 2 milestone.`,
-        status: "LIVE",
+        description: buildMilestoneDescription(
+          name,
+          displayProperties?.description
+        ),
+        status,
         category: EVENT_CATEGORIES.ROTATION_MILESTONE,
         isLimitedTime: true,
         trackedUsers: 0,
@@ -63,6 +97,25 @@ export function mapActiveMilestones(
       };
     })
     .filter((event): event is ProviderEvent => event !== null);
+}
+
+function computeMilestoneStatus(
+  startDate: string,
+  endDate: string,
+  now: Date
+): ProviderEventStatus {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  if (now < start) {
+    return "UPCOMING";
+  }
+
+  if (now > end) {
+    return "ENDED";
+  }
+
+  return "LIVE";
 }
 
 // Iron Banner has no entry in Bungie's Public Milestones API at all
