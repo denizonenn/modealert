@@ -99,13 +99,14 @@ function canonicalModeTitle(
 
 function describeEvent(
   event: CommunityDragonEventHubEntry["event"],
-  title: string
+  title: string,
+  status: ProviderEventStatus
 ): string {
   const base =
     EVENT_HUB_TYPE_LABELS[event.eventHubType] ??
     "League of Legends event.";
 
-  const description = event.localizedEventSubtitle
+  let description = event.localizedEventSubtitle
     ? `${event.localizedEventSubtitle} — ${base}`
     : base;
 
@@ -113,7 +114,11 @@ function describeEvent(
     event.eventHubType === "kSeasonPass" &&
     isUnconfirmedRotatingModeWrapper(title)
   ) {
-    return `${description} This is the battle-pass window only — whether the mode itself is in rotation today isn't something Riot exposes a reliable signal for yet.`;
+    description = `${description} This is the battle-pass window only — whether the mode itself is in rotation today isn't something Riot exposes a reliable signal for yet.`;
+  }
+
+  if (status === "TRACKING" && event.progressEndDate) {
+    return `${description} Pass progress has closed — the shop stays open until ${new Date(event.endDate).toLocaleDateString()} for remaining purchases, but no more track progress can be earned.`;
   }
 
   return description;
@@ -189,10 +194,21 @@ function deriveSeriesKey(
   return undefined;
 }
 
+// `progressEndDate` (when present) is the real, live-in-the-response
+// date pass-progress stops being earnable — confirmed via WebSearch
+// against Riot's own event-pass announcements (e.g. Hall of Legends
+// 2024: "runs until July 15, Pass Progress end date of July 8", which
+// matches this feed's real startDate/progressEndDate/endDate for that
+// exact entry). `endDate` is later, a claim-only tail where the event
+// shop stays open but no more progress can be earned — distinct
+// enough from a plain LIVE window to surface as TRACKING, same
+// "sub-phase within one window" pattern as Foxhole's resistance phase
+// (see foxhole/event-mapper.ts).
 function computeStatus(
   startDate: string,
   endDate: string,
-  now: Date
+  now: Date,
+  progressEndDate?: string
 ): ProviderEventStatus {
   const start = new Date(startDate);
   const end = new Date(endDate);
@@ -203,6 +219,13 @@ function computeStatus(
 
   if (now > end) {
     return "ENDED";
+  }
+
+  if (
+    progressEndDate &&
+    now > new Date(progressEndDate)
+  ) {
+    return "TRACKING";
   }
 
   return "LIVE";
@@ -242,6 +265,13 @@ function toProviderEvent(
 
   const title = canonicalModeTitle(rawTitle) ?? rawTitle;
 
+  const status = computeStatus(
+    event.startDate,
+    event.endDate,
+    now,
+    event.progressEndDate
+  );
+
   return {
     id: `communitydragon-event-${event.eventId}`,
 
@@ -249,13 +279,9 @@ function toProviderEvent(
 
     title,
 
-    description: describeEvent(event, title),
+    description: describeEvent(event, title, status),
 
-    status: computeStatus(
-      event.startDate,
-      event.endDate,
-      now
-    ),
+    status,
 
     category: categorizeEvent(event, title),
 
@@ -379,7 +405,8 @@ export function toDisplayEvents(
       status: computeStatus(
         event.startDate,
         event.endDate,
-        now
+        now,
+        event.progressEndDate
       ),
 
       startDate: event.startDate,

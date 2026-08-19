@@ -247,6 +247,63 @@ describe("normalizeEventHub", () => {
     expect(event.category).toBe("SEASON_PASS");
   });
 
+  it("marks an event TRACKING when now is past progressEndDate but before endDate", () => {
+    const [event] = normalizeEventHub(
+      [
+        entry(
+          "pass",
+          "2026-07-29T18:00:00.000Z",
+          "2026-09-23T06:59:00.000Z",
+          {
+            localizedShortName: "Classic Pass: Act I",
+            eventHubType: "kDemaciaPass",
+            progressEndDate: "2026-08-01T00:00:00.000Z",
+          }
+        ),
+      ],
+      now
+    );
+
+    expect(event.status).toBe("TRACKING");
+    expect(event.description).toContain("Pass progress has closed");
+  });
+
+  it("stays LIVE when now is before progressEndDate", () => {
+    const [event] = normalizeEventHub(
+      [
+        entry(
+          "pass",
+          "2026-07-29T18:00:00.000Z",
+          "2026-09-23T06:59:00.000Z",
+          {
+            localizedShortName: "Classic Pass: Act I",
+            eventHubType: "kDemaciaPass",
+            progressEndDate: "2026-09-01T00:00:00.000Z",
+          }
+        ),
+      ],
+      now
+    );
+
+    expect(event.status).toBe("LIVE");
+    expect(event.description).not.toContain("Pass progress has closed");
+  });
+
+  it("ignores a missing progressEndDate and stays LIVE for the full window", () => {
+    const [event] = normalizeEventHub(
+      [
+        entry(
+          "no-progress-field",
+          "2026-08-01T00:00:00.000Z",
+          "2026-08-10T00:00:00.000Z"
+        ),
+      ],
+      now
+    );
+
+    expect(event.status).toBe("LIVE");
+  });
+
   it("categorizes a regular event-hub entry as PLAYABLE by default", () => {
     const [event] = normalizeEventHub(
       [

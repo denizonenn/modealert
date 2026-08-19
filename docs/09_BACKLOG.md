@@ -599,6 +599,33 @@ Full rationale, the URF-specific reasoning, and the per-provider
 category mapping: docs/06_DECISIONS.md ADR-023/ADR-024/ADR-025/
 ADR-026/ADR-027/ADR-028/ADR-029.
 
+Done (2026-08-19)
+
+- **CommunityDragon's `progressEndDate` field, unused since it was
+  first declared** — found while auditing every provider's client/
+  types against its event-mapper for the same class of gap as
+  Warframe's ADR-052 fields (`vaultTrader`/`steelPath`): `types.ts`
+  declared `progressEndDate?: string` on every event-hub entry, the
+  real live response includes it for every season/Demacia pass (e.g.
+  "Season 3: Act I", "Classic Pass: Act I"), but nothing ever read it
+  — pure/pass status was computed from `startDate`/`endDate` only.
+  Confirmed via WebSearch what it actually means before shipping
+  anything (this project's bar for inferred semantics, not just "a
+  date exists"): it's Riot's real "Pass Progress end date" — the
+  point track-progress stops being earnable, with the event/shop
+  staying open a bit longer until the real `endDate`. Cross-checked
+  against the live data file's own Hall of Legends 2024 entry (start
+  Jun 12, progressEnd Jul 9 ≈ Jul 8 PT, end Jul 15) against Riot's own
+  published "runs until July 15, Pass Progress end date of July 8" —
+  exact match. `computeStatus()` now returns `TRACKING` (same
+  "sub-phase within one live window" pattern as Foxhole's resistance
+  phase) between `progressEndDate` and `endDate`, with a real
+  description ("Pass progress has closed — the shop stays open until
+  {endDate}..."). No visible change today (the currently-live "Season
+  3: Act I" pass's `progressEndDate` is 2026-10-06, still weeks out) —
+  this only changes behavior once a pass actually enters its claim-
+  only tail. 3 new tests in `normalizer.test.ts`.
+
 Future
 
 - ~~A few CommunityDragon event-hub sub-types (e.g. "Classic Pass
