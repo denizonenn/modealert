@@ -53,7 +53,9 @@ export default function GameCard({
 
           <p className="text-sm text-zinc-400">
             {isLive
-              ? `${game.supportedEvents} supported events`
+              ? `${game.supportedEvents} supported event${
+                  game.supportedEvents === 1 ? "" : "s"
+                }`
               : "Tracking coming soon"}
           </p>
         </div>
@@ -66,7 +68,7 @@ export default function GameCard({
               {game.activeUsers}
             </div>
             <div className="text-xs text-zinc-500">
-              players tracking
+              {game.activeUsers === "1" ? "player tracking" : "players tracking"}
             </div>
           </div>
         ) : (
