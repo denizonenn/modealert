@@ -67,8 +67,17 @@ export function mapActiveActs(
 ): ProviderEvent[] {
   const now = new Date();
 
+  // Riot's content-service `acts` array mixes two real, different
+  // things with the same `isActive` flag: the ~2-month Act itself
+  // (`type: "act"`) and its parent Episode container (`type:
+  // "episode"`, spans several Acts, stays active for much longer).
+  // Both flagged active at once — confirmed live 2026-08-19 ("V26"
+  // episode + "ACT V" act, both isActive: true — mapping both
+  // produced two events simultaneously claiming to be "the current
+  // competitive act", a real contradiction. Only the Act is what
+  // that description actually describes.
   return content.acts
-    .filter((act) => act.isActive)
+    .filter((act) => act.isActive && act.type === "act")
     .map((act) => ({
       id: `valorant-act-${act.id}`,
 

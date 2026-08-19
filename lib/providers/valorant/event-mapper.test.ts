@@ -50,6 +50,30 @@ describe("valorant mapActiveActs", () => {
     expect(events[0].status).toBe("LIVE");
   });
 
+  it("excludes the active parent episode, keeping only the active act (both can be isActive: true simultaneously)", () => {
+    const events = mapActiveActs({
+      acts: [
+        {
+          id: "ep-1",
+          parentId: "00000000-0000-0000-0000-000000000000",
+          type: "episode",
+          name: "V26",
+          isActive: true,
+        },
+        {
+          id: "act-2",
+          parentId: "ep-1",
+          type: "act",
+          name: "ACT V",
+          isActive: true,
+        },
+      ],
+    });
+
+    expect(events).toHaveLength(1);
+    expect(events[0].title).toBe("ACT V");
+  });
+
   it("prefers the en-US localized name when available", () => {
     const events = mapActiveActs({
       acts: [
