@@ -981,6 +981,59 @@ Completed
   differentiator (one watchlist instead of a tracker per game),
   instead of a generic/stale 4-game description.
 
+Done (2026-08-19) — second "think like a founder" pass
+
+Ran a dedicated audit of business/ops gaps beyond marketing copy and
+provider integrations (both already extensively covered this
+session) — what would a VC or experienced startup CEO flag. Four
+concrete, buildable findings, all shipped same day:
+
+- **Churn tracking** — Premium cancellation was a silent DB sync;
+  ADR-046 built full acquisition-funnel visibility but nothing on the
+  attrition side. `PREMIUM_CANCELLED` now tracked on the
+  `subscription_cancelled` webhook event, shown as a separate
+  "Cancellations" row in `/admin`'s Funnel panel (kept out of the
+  acquisition `ANALYTICS_FUNNEL_ORDER` sequence on purpose).
+- **GDPR data export** — account deletion (Art. 17) already existed
+  as a real self-service button; there was no "give me a copy of what
+  you have on me" (Art. 20). New `GET /api/account/export`
+  (session-gated) returns a JSON download of profile/watchlist/
+  game-follows/notification history, all from repository functions
+  that already existed. "Download my data" button added to Settings.
+  Also caught and fixed a real, unrelated privacy-policy inaccuracy
+  while in this section: it told users to email to delete their
+  account, when Settings has had a real self-service delete button
+  for a while.
+- **In-app feedback widget** — the only way to reach Deniz before
+  this was finding an email buried in the ToS. New `Feedback` model +
+  navbar widget (signed-in users, same Popover pattern as the
+  notification bell) — persists to DB and best-effort emails
+  `ADMIN_EMAILS`, rate-limited (5/hour/user). New admin panel lists
+  the last 20 submissions.
+- **Rate limit gap (security finding, fixed same pass)** — Discord's
+  new "Send test message" button (shipped earlier this session) had
+  no rate limit despite the Postgres-backed limiter already existing
+  and used for login/register — a signed-in user could spam-click it
+  to hammer any Discord webhook URL with unlimited POSTs. Capped at
+  5/10min/user.
+- Also added `public/.well-known/security.txt` (RFC 9116) — cheap,
+  standard trust signal for security researchers, didn't exist.
+
+Not pursued (real product decisions, not something to build blind)
+
+- **Referral program** — confirmed zero referral mechanics exist
+  anywhere in the codebase. Genuinely the biggest build of the 5
+  audit findings, and needs a real decision from Deniz first (reward
+  structure — credit, free month, cash — and fraud/abuse guardrails),
+  not something to guess at.
+- **Deeper admin business metrics** (MRR, subscriber count, churn
+  rate over time, retention cohorts) — `/admin` currently shows
+  provider health + a 30-day acquisition/cancellation funnel, no
+  revenue view (Lemon Squeezy's own dashboard covers that today) and
+  no day-2/day-7 retention cohorting. Real feature, bigger lift than
+  the 4 shipped above — revisit once there's real signup volume to
+  make a cohort view meaningful.
+
 Future
 
 - Anonymous/pre-signup funnel tracking (landing page → signup) —
