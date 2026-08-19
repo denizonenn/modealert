@@ -89,23 +89,33 @@ Status: ✅
 
 ## Riot Local Client
 
-Status: 🟡
+Status: 🔴 (düzeltildi, 2026-08-19 — bkz. Technical Debt'teki
+"Riot endpoint discovery" notu)
 
 Scope: Kişiselleştirme amaçlı (bkz. docs/06_DECISIONS.md ADR-001).
 Event keşfi LCU üzerinden YAPILMAZ.
 
-Completed
+**Doküman/kod tutarsızlığı bulundu ve düzeltildi (2026-08-19):** bu
+bölüm "connect to LCU / authentication / gameflow endpoint / current
+summoner" için ✅ diyordu ama repo'da (kod ve git history'de) hiç LCU
+kodu yok — muhtemelen çok erken bir prototip aşamasından kalma, hiç
+doğru olmamış bir kayıt. Ayrıca LCU mimari olarak sadece **localhost**'ta
+(kullanıcının kendi bilgisayarında League Client açıkken) erişilebilir
+— ModeAlert'in Vercel serverless sync mimarisinden asla ulaşılamaz.
+Bunu gerçekten inşa etmek ayrı bir companion app veya browser extension
+gerektirir, yani bu proje kapsamında zaten var olan ama henüz
+planlanmamış **P2 — Browser Extension** / **P3 — Desktop** bölümlerinin
+işi — mevcut "sync service" mimarisiyle yapılamaz, Technical Debt
+maddesi olarak sahte bir "eksik kod" izlenimi veriyordu. Deniz bu
+yöne (companion app/extension) gitmek isterse ayrı bir mimari kararla
+(yeni ADR) ele alınmalı, körlemesine kod yazılacak bir şey değil.
 
-- connect to LCU
-- authentication
-- gameflow endpoint
-- current summoner
+Remaining (gerçek durum)
 
-Remaining
-
-- endpoint mapping (kişiselleştirme endpoint'leri için)
-- current game context extraction
-- polling abstraction
+- Hiçbir şey inşa edilmedi. Kişiselleştirme (örn. "bağlı hesabını
+  göster") istenirse önce RSO (Riot Sign-On) üzerinden gerçek hesap
+  bağlama gerekiyor — bkz. "Ideas" bölümündeki "Riot account linking
+  (RSO)" notu, zaten production key onayına bloklu.
 
 ---
 
@@ -1354,7 +1364,20 @@ Background sync
 
 Current
 
-- Riot endpoint discovery
+Yok — hepsi ya tamamlandı (aşağıda) ya da Deniz'in aksiyonuna bloklu
+(bkz. "Riot dev API key" notu ve `docs/09_BACKLOG.md`'nin diğer
+"Pending Deniz'in action" bölümleri).
+
+- ~~Riot endpoint discovery~~ — **doküman/kod tutarsızlığı olarak
+  çözüldü (2026-08-19).** Bu madde "P0 — Riot Integration → Riot Local
+  Client" bölümündeki ✅ işaretli LCU çalışmasına (connect/auth/gameflow/
+  current summoner) atıfta bulunuyordu — ama repo'da (kod, git history)
+  hiç LCU kodu bulunamadı, muhtemelen hiç doğru olmamış eski bir kayıt.
+  LCU ayrıca sadece localhost'ta çalışır, Vercel serverless sync'ten
+  hiçbir zaman erişilemez — gerçek bir kod eksikliği değil, yanlış
+  konumlandırılmış bir bölüm. "Riot Local Client" bölümü düzeltildi,
+  gerçek kapsamı (companion app/browser extension gerektirir) P2/P3'e
+  yönlendirildi. Detay için o bölüme bak.
 
 - ~~No input validation, error handling, rate limiting, or security
   headers~~ — **done (2026-08-13, ADR-045).** Full MVP-to-production
