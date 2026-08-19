@@ -4374,3 +4374,128 @@ doğrulanacak — bkz. docs/09_BACKLOG.md.
   (12 → 13 oyun) — şema değişikliği yok, migration gerekmedi.
 - `npx tsc --noEmit`, `npm test` (169/169), `npm run build` — hepsi
   temiz.
+
+---
+
+# ADR-054: Çoklu Dil Desteği (i18n) — TR + EN, `app/[lang]/` + `proxy.ts`
+
+Status: Accepted (Faz 1 tamamlandı, Faz 2 ve 3 açık)
+
+Date: 2026-08-19
+
+## Bağlam
+
+Deniz çoklu dil desteği istedi. Başlamadan önce iki gerçek ürün
+kararı netleştirildi:
+
+**1. Etkinlik içeriği tam olarak çevrilemez.** Takip edilen ~94
+etkinliğin başlık ve açıklamaları üç farklı kaynaktan geliyor:
+- Doğrudan oyun API'sinden gelen üçüncü taraf metinleri (Bungie'nin
+  "Beneath Venus, evil stirs…", Helldivers brifingleri) — kaynağında
+  İngilizce, çevirmek makine çevirisi demek, bu da projenin
+  "uydurma veri yok" ilkesini zedeler.
+- Özel isimler ("Vault of Glass", "Set 18", "ACT V") — zaten
+  çevrilmemeli, oyuncular bunları İngilizce biliyor.
+- **Bizim provider kodunda yazdığımız açıklama cümleleri** ("This
+  week's 3-mission Archon Hunt chain…") — bunlar çevrilebilir, çünkü
+  metnin yazarı biziz.
+
+Deniz "etkinlik içeriği de çevrilsin" dedi, yani üçüncü kategori
+çevrilecek; ilk ikisi kaçınılmaz olarak İngilizce kalacak. Sonuç
+bilinçli olarak karma bir sayfa.
+
+**2. Diller: şimdilik TR + EN.** Altyapı, üçüncü bir dilin sadece bir
+sözlük dosyası + `LOCALES` dizisine tek satır olmasını sağlayacak
+şekilde kuruldu — kod değişikliği gerekmesin.
+
+## Karar
+
+**Next 16'nın kendi App Router i18n deseni kullanıldı** (AGENTS.md
+gereği `node_modules/next/dist/docs/01-app/02-guides/
+internationalization.md` okunarak) — `next-intl` gibi bir kütüphane
+eklenmedi:
+
+- **`app/[lang]/`** — 21 sayfa ve 8 layout buraya taşındı. Locale'e
+  bağlı olmayanlar kökte kaldı: `api/`, `feed.xml`, `sitemap.ts`,
+  `robots.ts`, `opengraph-image`, `icon`, `apple-icon`.
+- **`proxy.ts`** (Next 16'da `middleware.ts`'in yeni adı) — locale
+  algılama + yönlendirme.
+- **`lib/i18n/config.ts`** — `LOCALES`, `LOCALE_LABELS` ve elle
+  yazılmış bir `Accept-Language` çözümleyici. `Negotiator` +
+  `intl-localematcher` bilinçli olarak eklenmedi: iki dillik bir liste
+  için tam spesifikasyon hiçbir şey kazandırmıyor, bu hali bağımlılık
+  eklemiyor ve birim testi yazılabilir (10 test: quality weighting,
+  `tr-TR` → `tr`, `q=0` reddi, gerçek tarayıcı header'ı).
+- **Sözlükler `en.json`'a göre tiplenmiş** (`Dictionary = typeof en`)
+  — `tr.json`'da eksik veya yanlış yazılmış bir anahtar **build
+  hatası**, kullanıcıya gösterilen bir `undefined` değil.
+- **`I18nProvider`** — Client Component'ler `next/root-params`
+  okuyamaz, o yüzden root layout locale + sözlüğü sunucuda çözüp
+  context'e besliyor. Sözlükler küçük JSON, client-side bir i18n
+  runtime'ı göndermekten çok daha ucuz.
+
+### Üç önemli davranış kararı
+
+1. **Açık seçim, tarayıcı tercihini ezer.** Dil değiştirici seçimi bir
+   çereze yazıyor; `proxy.ts` çerezi `Accept-Language`'dan önce
+   okuyor. Aksi halde Türkçe tarayıcılı biri İngilizce sitede asla
+   kalamazdı.
+2. **Desteklenmeyen locale 404 verir**, sessizce İngilizce'ye
+   düşmez — `/de/pricing` Almanca olduğunu iddia eden bir URL'de
+   İngilizce içerik servis etmemeli.
+3. **Makine tarafından okunan yollar önek almaz** (`/api`,
+   `/feed.xml`, `/sitemap.xml`, `/robots.txt`, `/riot.txt`,
+   `/.well-known`). Bunların kanonik URL'leri dışarıda zaten kayıtlı
+   (Riot'un domain doğrulaması, RSS okuyucular, güvenlik
+   araştırmacıları) — `/en/...`'e yönlendirmek onları bozardı.
+
+## Faz 1 — TAMAMLANDI (bu oturum)
+
+Altyapı + `navbar`, `footer`, `feedback-widget`, `/calendar`.
+
+Gerçek dev sunucusuna karşı doğrulandı: `tr-TR` → `/tr`, `en-US` →
+`/en`, `de-DE` → `/en`, çerez `Accept-Language`'ı eziyor,
+`/de/calendar` 404, iki dil de kendi metnini render ediyor,
+`<html lang>` doğru, `api`/`feed`/`sitemap`/`security.txt` hâlâ
+öneksiz çalışıyor.
+
+## KALDIĞIM YER — açık işler
+
+**Faz 2: Kalan ~19 sayfanın arayüz metinleri.** Ana sayfa,
+`/features`, `/games`, `/pricing`, `/statistics`, `/status`,
+`/live`, `/privacy`, `/terms`, `/signin`, `/signup`, `/onboarding`,
+`/dashboard` (+ `notifications`, `settings`), `/events/[slug]`,
+`/games/[slug]`, `/admin`, `/unsubscribed`, `error`/`not-found`.
+Ayrıca `lib/constants/faq.ts` gibi sabit metin dosyaları.
+**Şu an bozuk değiller** — İngilizce render ediyorlar ve içlerindeki
+sabit linkler (`href="/dashboard"`) `proxy.ts` sayesinde kullanıcının
+hatırlanan diline zarifçe yönleniyor (fazladan bir redirect hop'u
+pahasına). Sayfa çevrildikçe `path()` helper'ıyla düzeltilmeli.
+
+**Faz 3: Etkinlik açıklamaları.** Şu an provider'lar açıklamayı hazır
+İngilizce string olarak üretip DB'ye yazıyor. Çevrilebilmesi için
+`Event.description`'ın hazır metin yerine **çeviri anahtarı +
+parametreler** olarak saklanması, çevirinin görüntüleme anında
+yapılması gerekiyor. Bu, 17 provider'ın event-mapper'ını ve
+açıklamanın gösterildiği her yeri etkileyen ayrı bir refactor.
+Üçüncü taraf metinleri (Bungie flavor text, Helldivers brifingleri)
+ve özel isimler bu refactor'dan sonra da İngilizce kalacak.
+
+**Faz 4 (açık, yapılmadı): SEO.** `sitemap.ts` her iki locale'i
+listelemiyor ve sayfalarda `hreflang` alternate etiketleri yok.
+Arama motorlarının iki dili doğru eşlemesi için gerekli.
+
+**Ayrıca açık:** Bildirim e-postaları/Discord mesajları hâlâ sadece
+İngilizce. Kullanıcı başına bir dil tercihi (`User.locale`) ve
+`message-builder`'ın sözlükten okuması gerekiyor — Faz 3'le birlikte
+yapılması mantıklı, çünkü ikisi de aynı "açıklamayı görüntüleme
+anında çevir" mekanizmasına dayanıyor.
+
+## Sonuçlar
+
+- Üçüncü bir dil eklemek: `lib/i18n/dictionaries/<kod>.json` + 
+  `LOCALES`/`LOCALE_LABELS`'a birer satır. Kod değişikliği yok.
+- `app/` içindeki her yeni sayfa artık `app/[lang]/` altına
+  açılmalı, aksi halde locale önekiyle erişilemez.
+- Client Component'lerde locale'li link üretmek için
+  `useI18n().path("/yol")` kullanılmalı, çıplak `href="/yol"` değil.

@@ -413,6 +413,69 @@ Done (2026-08-05)
 
 ---
 
+# P1 — Internationalization (i18n)
+
+Status: 🟡 Faz 1 tamamlandı (2026-08-19, ADR-054) — TR + EN
+
+**Altyapı hazır ve canlıda.** Next 16'nın kendi App Router deseni
+(`app/[lang]/` + `proxy.ts`), harici i18n kütüphanesi eklenmedi.
+Tam gerekçe ve tüm kararlar: docs/06_DECISIONS.md **ADR-054**.
+
+Tamamlandı (Faz 1)
+
+- 21 sayfa + 8 layout `app/[lang]/` altına taşındı; locale'e bağlı
+  olmayanlar (`api/`, `feed.xml`, `sitemap.ts`, `robots.ts`, OG/icon)
+  kökte kaldı.
+- `proxy.ts` — `Accept-Language` algılama + yönlendirme. Açık dil
+  seçimi (çerez) tarayıcı tercihini ezer; makine tarafından okunan
+  yollar (`/api`, `/feed.xml`, `/sitemap.xml`, `/robots.txt`,
+  `/riot.txt`, `/.well-known`) asla önek almaz.
+- `lib/i18n/config.ts` — elle yazılmış `Accept-Language` çözümleyici
+  (10 birim testi), `Negotiator`/`intl-localematcher` bilinçli olarak
+  eklenmedi.
+- Sözlükler `en.json`'a göre tiplenmiş → `tr.json`'daki eksik anahtar
+  **build hatası**, kullanıcıya `undefined` gösterilmiyor.
+- `I18nProvider` (Client Component'ler için) + navbar'da dil
+  değiştirici (okunan sayfada kalır, ana sayfaya atmaz).
+- Desteklenmeyen locale (`/de/...`) 404 verir, sessizce İngilizce'ye
+  düşmez.
+- Çevrildi: navbar, footer, feedback widget, `/calendar`.
+
+Kaldığım yer — açık işler (öncelik sırasıyla)
+
+- **Faz 2 — kalan ~19 sayfanın arayüz metni.** Ana sayfa,
+  `/features`, `/games`, `/pricing`, `/statistics`, `/status`,
+  `/live`, `/privacy`, `/terms`, `/signin`, `/signup`, `/onboarding`,
+  `/dashboard` (+`notifications`, `settings`), `/events/[slug]`,
+  `/games/[slug]`, `/admin`, `/unsubscribed`, `error`/`not-found`,
+  ayrıca `lib/constants/faq.ts` gibi sabit metin dosyaları.
+  **Şu an bozuk değiller** — İngilizce render ediyorlar, içlerindeki
+  sabit linkler `proxy.ts` sayesinde kullanıcının hatırlanan diline
+  zarifçe yönleniyor (bir fazladan redirect pahasına). Sayfa
+  çevrildikçe `useI18n().path()` ile düzeltilmeli.
+- **Faz 3 — etkinlik açıklamaları.** Provider'lar şu an açıklamayı
+  hazır İngilizce string olarak DB'ye yazıyor. Çevrilebilmesi için
+  `Event.description`'ın çeviri anahtarı + parametre olarak
+  saklanması ve görüntüleme anında çevrilmesi gerekiyor — 17
+  provider'ın event-mapper'ını etkileyen ayrı bir refactor. Üçüncü
+  taraf metinleri (Bungie flavor text, Helldivers brifingleri) ve
+  özel isimler ("Vault of Glass", "Set 18") bundan sonra da
+  İngilizce kalacak, bu kaçınılmaz (bkz. ADR-054 Bağlam).
+- **Faz 4 — SEO.** `sitemap.ts` iki locale'i de listelemiyor ve
+  sayfalarda `hreflang` alternate etiketleri yok. Arama motorlarının
+  iki dili doğru eşlemesi için gerekli.
+- **Bildirimler hâlâ sadece İngilizce.** Kullanıcı başına dil
+  tercihi (`User.locale`) + `message-builder`'ın sözlükten okuması
+  gerekiyor. Faz 3 ile birlikte yapılması mantıklı — ikisi de aynı
+  "görüntüleme anında çevir" mekanizmasına dayanıyor.
+
+Yeni dil eklemek
+
+`lib/i18n/dictionaries/<kod>.json` + `LOCALES`/`LOCALE_LABELS`'a
+birer satır. Kod değişikliği gerekmiyor.
+
+---
+
 # P1 — SEO & Discoverability
 
 Status: 🟢 (2026-08-05)

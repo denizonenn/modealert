@@ -201,6 +201,22 @@ kadar.**
   sayısına dayanan açık bir "moat" mesajı (ana sayfa + `/features`).
   Şirket kuruluşu/gerçek kullanıcıya çıkma/fiyat doğrulama gibi
   sadece Deniz'in karar verebileceği maddelere dokunulmadı.
+- **Çoklu dil desteği (i18n) — Faz 1 canlıda (2026-08-19, ADR-054).**
+  TR + EN. Next 16'nın kendi deseni: her sayfa `app/[lang]/` altında,
+  `proxy.ts` (Next 16'da `middleware.ts`'in yeni adı) locale algılayıp
+  yönlendiriyor. Harici i18n kütüphanesi yok.
+  - **Yeni sayfa açarken `app/[lang]/` altına aç**, yoksa dil önekiyle
+    erişilemez.
+  - **Client Component'te locale'li link için `useI18n().path("/yol")`
+    kullan**, çıplak `href="/yol"` değil. Server Component'te
+    `getDictionary()` / `getLocale()`.
+  - Yeni dil eklemek: `lib/i18n/dictionaries/<kod>.json` +
+    `LOCALES`/`LOCALE_LABELS`'a birer satır. Kod değişikliği yok.
+  - **Kaldığım yer:** sadece navbar/footer/feedback widget/`/calendar`
+    çevrildi. Kalan ~19 sayfa hâlâ İngilizce (bozuk değil, linkler
+    zarifçe yönleniyor), etkinlik açıklamaları ve bildirim
+    e-postaları da henüz çevrilmedi, `hreflang`/sitemap SEO işi açık.
+    Tam liste: docs/09_BACKLOG.md → "P1 — Internationalization".
 - Detaylı karar geçmişi için **docs/06_DECISIONS.md** her zaman en
   güncel ve en güvenilir kaynak — yeni bir oturuma başlarken önce
   orayı oku.
