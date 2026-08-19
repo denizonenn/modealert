@@ -20,8 +20,9 @@ import { GAMES_WITH_PROVIDER } from "@/lib/constants/games"
 
 export const metadata: Metadata = {
   title: "Features",
-  description:
-    "See how ModeAlert detects game events across League of Legends, Valorant, Destiny 2, and 8 other games before they're officially announced, and emails you the moment something changes.",
+  description: `See how ModeAlert detects game events across League of Legends, Valorant, Destiny 2, and ${
+    GAMES_WITH_PROVIDER.size - 3
+  } other games before they're officially announced, and alerts you the moment something changes.`,
 }
 
 function getCoreFeatures(gameCount: number) {
@@ -42,7 +43,7 @@ function getCoreFeatures(gameCount: number) {
   },
   {
     title: `${gameCount} games, one inbox`,
-    description: `League of Legends, Valorant, Destiny 2, TFT, Fortnite, Warframe, Path of Exile, Helldivers 2, Foxhole, PUBG, PlanetSide 2 — one watchlist instead of a different tracker, Discord bot, or community site per game.`,
+    description: `League of Legends, Valorant, Destiny 2, TFT, Fortnite, Warframe, Path of Exile, Helldivers 2, Foxhole, PUBG, PlanetSide 2, Final Fantasy XIV, and EA Sports FC — one watchlist instead of a different tracker, Discord bot, or community site per game.`,
     icon: Gamepad2,
     gradient: "linear-gradient(135deg, #ec4899, #f43f5e)",
   },
@@ -63,7 +64,7 @@ function getCoreFeatures(gameCount: number) {
   {
     title: "Privacy first",
     description:
-      "We only store what's needed to send the alerts you asked for — your watchlist and your email. No tracking pixels, no data resale.",
+      "We only store what's needed to send the alerts you asked for — your watchlist, your email, and a Discord webhook URL if you add one. No tracking pixels, no data resale.",
     icon: Shield,
     gradient: "linear-gradient(135deg, #10b981, #14b8a6)",
   },
