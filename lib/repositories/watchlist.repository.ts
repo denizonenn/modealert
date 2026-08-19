@@ -152,26 +152,51 @@ export async function getCommonlyTrackedEventIds(
   }));
 }
 
-export async function countWatchlistsByUser(
-  userId: string
-): Promise<number> {
-  return prisma.watchlist.count({
-    where: {
-      userId,
-    },
-  });
-}
-
-export async function createWatchlist(
+// Combines the free-plan limit check and the insert into one
+// pg_advisory_xact_lock-protected transaction (same pattern as
+// lib/repositories/rate-limit.repository.ts's checkAndRecordHit) —
+// checking the count and creating the row as two separate statements
+// let real concurrent requests for the same user (multiple onboarding
+// picks submitted together, or just fast repeated star-toggle clicks)
+// all read the same pre-insert count and all pass the limit check,
+// letting a free user end up with more than FREE_WATCHLIST_LIMIT
+// tracked events. Returns `{ limitReached: true }` instead of
+// creating the row when the free plan's cap is hit.
+export async function createWatchlistWithLimitCheck(
   userId: string,
-  eventId: string
-) {
-  return prisma.watchlist.create({
-    data: {
-      userId,
-      eventId,
+  eventId: string,
+  freeLimit: number
+): Promise<
+  | { limitReached: true }
+  | { limitReached: false; watchlist: Prisma.WatchlistGetPayload<object> }
+> {
+  return prisma.$transaction(
+    async (tx) => {
+      await tx.$executeRaw(
+        Prisma.sql`SELECT pg_advisory_xact_lock(hashtext(${userId}))`
+      );
+
+      const user = await tx.user.findUnique({
+        where: { id: userId },
+        select: { plan: true },
+      });
+
+      const count = await tx.watchlist.count({
+        where: { userId },
+      });
+
+      if (user?.plan !== "PREMIUM" && count >= freeLimit) {
+        return { limitReached: true as const };
+      }
+
+      const watchlist = await tx.watchlist.create({
+        data: { userId, eventId },
+      });
+
+      return { limitReached: false as const, watchlist };
     },
-  });
+    { maxWait: 10_000, timeout: 10_000 }
+  );
 }
 
 export async function deleteWatchlist(
