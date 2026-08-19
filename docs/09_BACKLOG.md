@@ -1307,6 +1307,27 @@ label; this fallback doesn't currently fire for any real event, so
 there's nothing to fix yet (would be speculative hardening for a type
 that doesn't exist in the data today).
 
+Also caught while browsing the real `/games/league-of-legends` page
+(not just reading code): 5 `Event` rows had gone permanently orphaned
+— ids no current provider emits any more, left behind by earlier
+refactors (`lol-mode-summoners-rift` predates ADR-026's queue split,
+`lol-mode-league-classic`/`lol-mode-aram-mayhem` predate ADR-037's
+move to `lol-client-config`, two `communitydragon-event-*` rows —
+"Classic Player Level"/"Classic Voting Power" — predate ADR-020's
+sentinel-date filter). All 5 sat forever as `ENDED` with a blank
+description, and 2 of them duplicated a real, currently-LIVE entry
+under the same name ("League Classic", "ARAM: Mayhem" both showed
+twice — once real or with the newer entry, once a dead empty
+leftover). Deleted with Deniz's explicit approval (2026-08-19) — 2 of
+the 5 also had a real Watchlist row and 2 Notification rows from an
+actual other user (not just Deniz's own account), which needed
+separate, called-out confirmation before touching since deleting the
+`Event` row required deleting those first (`Watchlist`/`Notification`
+aren't cascade-deleted the way `EventHistory`/`EventChange` are).
+Verified row counts before/after (95 → 90 `Event` rows, matching
+exactly). Not a schema migration — a one-time data cleanup, no
+`prisma/migrations` entry needed.
+
 ---
 
 # P2 — User Accounts
