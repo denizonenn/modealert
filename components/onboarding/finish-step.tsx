@@ -35,30 +35,37 @@ export default function FinishStep() {
     setLimitReached(false)
 
     try {
-      const results = await Promise.all(
-        selectedEvents.map((eventId) =>
-          fetch("/api/watchlists", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              eventId,
-            }),
-          })
-        )
-      )
+      // Sequential on purpose, not Promise.all: watchlistService.create()
+      // checks the free-plan count and inserts as two separate steps,
+      // not one atomic operation. Firing every event concurrently meant
+      // several requests could all read the same pre-insert count at
+      // once and all pass the limit check — a real way to end up with
+      // more than FREE_WATCHLIST_LIMIT rows. Awaiting one at a time
+      // means each insert is committed before the next request reads
+      // the count, and also stops immediately at the limit instead of
+      // firing (and discarding) requests past it.
+      for (const eventId of selectedEvents) {
+        const response = await fetch("/api/watchlists", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            eventId,
+          }),
+        })
 
-      if (results.some((response) => response.status === 402)) {
-        // Whatever fit under the free limit is already saved — this
-        // just stops here instead of claiming full success.
-        track(ANALYTICS_EVENTS.WATCHLIST_LIMIT_HIT, "onboarding")
-        setLimitReached(true)
-        return
-      }
+        if (response.status === 402) {
+          // Whatever fit under the free limit is already saved — this
+          // just stops here instead of claiming full success.
+          track(ANALYTICS_EVENTS.WATCHLIST_LIMIT_HIT, "onboarding")
+          setLimitReached(true)
+          return
+        }
 
-      if (results.some((response) => !response.ok)) {
-        throw new Error("One or more events failed to save.")
+        if (!response.ok) {
+          throw new Error("One or more events failed to save.")
+        }
       }
 
       track(
@@ -94,8 +101,8 @@ export default function FinishStep() {
       </h2>
 
       <p className="mt-2 text-zinc-400">
-        We&apos;ll check for changes automatically and email you the
-        moment something goes live.
+        We&apos;ll check for changes automatically and alert you by
+        email or Discord the moment something goes live.
       </p>
 
       {watchedEvents.length > 0 ? (

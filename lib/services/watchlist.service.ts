@@ -29,6 +29,13 @@ export const watchlistService = {
     return getWatchlistsByEvent(eventId);
   },
 
+  // Check-then-insert, not one atomic operation — safe for the
+  // current one-at-a-time call sites (dashboard star toggle,
+  // onboarding's sequential finish loop), but calling this
+  // concurrently for the same user (e.g. via Promise.all) can race:
+  // multiple calls can read the same pre-insert count and all pass
+  // the limit check. See components/onboarding/finish-step.tsx for
+  // the real incident this caused.
   async create(
     userId: string,
     eventId: string
