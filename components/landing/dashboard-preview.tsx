@@ -133,7 +133,7 @@ export function DashboardPreview({ events, monitoredCount }: Props) {
 
             <div className="flex items-center gap-3">
               <Bell size={18} />
-              Instant email notifications
+              Instant email & Discord alerts
             </div>
 
             <div className="flex items-center gap-3">

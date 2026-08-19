@@ -8,12 +8,12 @@ export const FAQS = [
   },
   {
     question: "Which games are supported?",
-    answer: `${GAMES_WITH_PROVIDER.size} games today — League of Legends, Valorant, Destiny 2, TFT, Fortnite, Warframe, Path of Exile, Helldivers 2, Foxhole, PUBG, and PlanetSide 2 — with more added as new tracking sources come online.`,
+    answer: `${GAMES_WITH_PROVIDER.size} games today — League of Legends, Valorant, Destiny 2, TFT, Fortnite, Warframe, Path of Exile, Helldivers 2, Foxhole, PUBG, PlanetSide 2, Final Fantasy XIV, and EA Sports FC — with more added as new tracking sources come online.`,
   },
   {
     question: "Is ModeAlert free?",
     answer:
-      "Yes — the Free plan tracks up to 5 events with email alerts, no credit card required. Premium ($4.99/mo) adds unlimited tracked events and per-event predictions.",
+      "Yes — the Free plan tracks up to 5 events with email and Discord alerts, no credit card required. Premium ($4.99/mo) adds unlimited tracked events and per-event predictions.",
   },
   {
     question: "How do you detect events before Riot announces them?",
@@ -28,6 +28,6 @@ export const FAQS = [
   {
     question: "How will I be notified?",
     answer:
-      "Email today. Discord and Telegram are on the roadmap.",
+      "Email and Discord today (add a webhook URL in Settings). Telegram is on the roadmap.",
   },
 ]

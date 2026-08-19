@@ -34,9 +34,9 @@ function getCoreFeatures(gameCount: number) {
     gradient: "linear-gradient(135deg, #a855f7, #d946ef)",
   },
   {
-    title: "Instant email alerts",
+    title: "Instant email & Discord alerts",
     description:
-      "Receive a clean, readable email the moment your selected mode or event goes live, ends, or changes status. No dashboard-refreshing required.",
+      "Get a clean, readable email — or a message posted straight to your own Discord server via webhook — the moment your selected mode or event goes live, ends, or changes status. No dashboard-refreshing required.",
     icon: Mail,
     gradient: "linear-gradient(135deg, #3b82f6, #06b6d4)",
   },

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     "The terms for using ModeAlert — a free-to-start game event tracker with an optional Premium plan.",
 }
 
-const LAST_UPDATED = "August 13, 2026"
+const LAST_UPDATED = "August 19, 2026"
 
 export default function TermsPage() {
   return (
@@ -44,9 +44,9 @@ export default function TermsPage() {
             </a>
             ) is an independent, early-access project, built and operated
             by Deniz Önen, that watches public data from game publishers
-            and sends you an email when a game mode or event you&apos;re
-            tracking changes. By creating an account or using the site,
-            you agree to these terms.
+            and alerts you by email or Discord when a game mode or event
+            you&apos;re tracking changes. By creating an account or using
+            the site, you agree to these terms.
           </p>
         </div>
 

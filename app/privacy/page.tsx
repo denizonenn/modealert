@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     "What ModeAlert collects, why, and how to delete it. Plain-language privacy policy — no tracking pixels, no data resale.",
 }
 
-const LAST_UPDATED = "August 13, 2026"
+const LAST_UPDATED = "August 19, 2026"
 
 export default function PrivacyPage() {
   return (
@@ -76,6 +76,12 @@ export default function PrivacyPage() {
               tracking cookies are set.
             </li>
             <li>
+              <span className="text-white">Discord webhook URL</span> —
+              only if you add one in Settings to get alerts posted to
+              your own Discord server. You control that URL; removing it
+              from Settings deletes it from our database.
+            </li>
+            <li>
               <span className="text-white">Subscription status</span> — if
               you upgrade to Premium, we store your plan, subscription
               status, and Lemon Squeezy&apos;s customer/subscription IDs
@@ -117,6 +123,13 @@ export default function PrivacyPage() {
             <li>
               <span className="text-white">Resend</span> — delivers the
               email alerts you sign up for.
+            </li>
+            <li>
+              <span className="text-white">Discord</span> — only if you
+              add a webhook URL in Settings, we send your event alerts
+              directly to that URL. That&apos;s a channel you control on
+              your own server, not a service we otherwise integrate
+              with.
             </li>
             <li>
               <span className="text-white">Google</span> — only if you

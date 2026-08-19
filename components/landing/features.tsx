@@ -9,8 +9,8 @@ import { Bell, Clock3, Gamepad2, Shield, ArrowRight } from "lucide-react"
 function getFeatures(gameCount: number) {
   return [
     {
-      title: "Instant email alerts",
-      description: "Receive a beautiful email the moment your selected mode goes live.",
+      title: "Instant email & Discord alerts",
+      description: "Get a beautiful email, or a message in your own Discord server, the moment your selected mode goes live.",
       icon: Bell,
       gradient: "linear-gradient(135deg, #a855f7, #d946ef)",
     },

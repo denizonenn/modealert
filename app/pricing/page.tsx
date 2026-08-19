@@ -15,12 +15,12 @@ import { FREE_WATCHLIST_LIMIT } from "@/lib/constants/plan"
 
 export const metadata: Metadata = {
   title: "Pricing",
-  description: `ModeAlert is free to start — track up to ${FREE_WATCHLIST_LIMIT} events with email alerts. Upgrade to Premium for unlimited tracking and per-event predictions.`,
+  description: `ModeAlert is free to start — track up to ${FREE_WATCHLIST_LIMIT} events with email and Discord alerts. Upgrade to Premium for unlimited tracking and per-event predictions.`,
 }
 
 const FREE_FEATURES = [
   `Track up to ${FREE_WATCHLIST_LIMIT} events`,
-  "Email alerts on status changes",
+  "Email and Discord alerts on status changes",
   "Live status across every supported game",
 ]
 
