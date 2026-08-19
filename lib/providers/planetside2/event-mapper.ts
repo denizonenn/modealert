@@ -61,14 +61,21 @@ export function mapCurrentAlert(
 
   return [
     {
-      id: `planetside2-alert-${latest.instance_id}`,
+      // Stable id (not instance_id-scoped) so real LIVE/ENDED cycles
+      // accumulate as EventHistory under one row — same pattern as
+      // Foxhole's "War #N" and Destiny's Iron Banner. The instance-
+      // scoped id this used before meant every new Alert became a
+      // brand-new Event row that could never accumulate any real
+      // "times seen" history and would clutter the game page with a
+      // new entry forever — found live 2026-08-19 (7 near-identical
+      // ENDED rows, all "times seen 0").
+      id: "planetside2-alert",
       gameId: GAME_IDS.PLANETSIDE_2,
       title: "Territory Alert",
       description,
       status,
       category: EVENT_CATEGORIES.ROTATION_MILESTONE,
       isLimitedTime: true,
-      seriesKey: "planetside2-alert",
       trackedUsers: 0,
       checkedAt: new Date(),
     },

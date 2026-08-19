@@ -35,7 +35,7 @@ describe("planetside2 mapCurrentAlert", () => {
     );
 
     expect(event.status).toBe("LIVE");
-    expect(event.id).toBe("planetside2-alert-48833");
+    expect(event.id).toBe("planetside2-alert");
     expect(event.description).toContain("Feeling the Heat");
     expect(event.description).toContain("Indar");
     expect(event.description).toContain("expected to end around");
