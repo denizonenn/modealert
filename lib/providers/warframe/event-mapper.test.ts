@@ -143,10 +143,10 @@ describe("warframe mapWarframeEvents — Archimedea", () => {
       ],
     });
 
-    const archimedea = events.find((e) => e.id === "warframe-archimedea");
+    const archimedea = events.find((e) => e.id === "warframe-archimedea-1");
 
     expect(archimedea?.status).toBe("LIVE");
-    expect(archimedea?.title).toBe("Deep Archimedea");
+    expect(archimedea?.title).toBe("Weekly Archimedea");
   });
 
   it("is ENDED outside the activation/expiry window", () => {
@@ -160,7 +160,7 @@ describe("warframe mapWarframeEvents — Archimedea", () => {
       ],
     });
 
-    const archimedea = events.find((e) => e.id === "warframe-archimedea");
+    const archimedea = events.find((e) => e.id === "warframe-archimedea-1");
 
     expect(archimedea?.status).toBe("ENDED");
   });
@@ -169,8 +169,48 @@ describe("warframe mapWarframeEvents — Archimedea", () => {
     const events = mapWarframeEvents({});
 
     expect(
-      events.find((e) => e.id === "warframe-archimedea")
+      events.find((e) => e.id?.startsWith("warframe-archimedea-"))
     ).toBeUndefined();
+  });
+
+  it("emits every concurrent entry instead of silently dropping all but the first", () => {
+    const events = mapWarframeEvents({
+      archimedeas: [
+        {
+          id: "1",
+          activation: iso(-HOUR),
+          expiry: iso(HOUR),
+          type: "C T_ L A B",
+          missions: [
+            { missionType: "Alchemy" },
+            { missionType: "Extermination" },
+            { missionType: "Assassination" },
+          ],
+        },
+        {
+          id: "2",
+          activation: iso(-HOUR),
+          expiry: iso(HOUR),
+          type: "C T_ H E X",
+          missions: [
+            { missionType: "Survival" },
+            { missionType: "Defense" },
+          ],
+        },
+      ],
+    });
+
+    const archimedeas = events.filter((e) =>
+      e.id.startsWith("warframe-archimedea-")
+    );
+
+    expect(archimedeas).toHaveLength(2);
+    expect(archimedeas[0].title).toBe("Weekly Archimedea (Variant 1)");
+    expect(archimedeas[0].description).toContain(
+      "Alchemy → Extermination → Assassination"
+    );
+    expect(archimedeas[1].title).toBe("Weekly Archimedea (Variant 2)");
+    expect(archimedeas[1].description).toContain("Survival → Defense");
   });
 });
 

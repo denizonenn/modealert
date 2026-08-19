@@ -1260,6 +1260,50 @@ Future — richer data per existing game (not just more games)
   Market/store rotation is account-scoped (needs OAuth), same
   personalization-scope exclusion as LCU (ADR-001). Still open.
 
+Done (2026-08-19) — content-quality audit
+
+Ran a dedicated audit of every tracked event's title/description
+copy across all 13 games, from an end user's perspective (does a
+non-player understand what this event IS, not just its jargon name),
+plus a second pass for silently-dropped real data within existing
+providers. Found and fixed real issues:
+
+- **Warframe Archimedea was silently dropping one of two real,
+  concurrent weekly missions** (`archimedeas?.[0]` only ever read the
+  first entry) — worse, the title "Deep Archimedea" was an unverified
+  guess: live-fetched the real API response and confirmed each
+  entry's `type`/`typeKey` field is an obfuscated internal string
+  (`"C T_ L A B"`, `"C T_ H E X"`), not an actual "Deep"/"Temporal"
+  label. Now emits both entries (`warframe-archimedea-{id}`), titled
+  generically ("Weekly Archimedea"), but the description lists their
+  real mission-type sequence (e.g. "Alchemy → Extermination →
+  Assassination") — genuinely differentiates the two without
+  asserting a name the API doesn't actually give us.
+- **3 providers fell back to `undefined` description** when the
+  source API's own description field was empty (Destiny milestones,
+  Helldivers 2 assignments, PoE league) — hit the event card's generic
+  "No description available for this event yet." on real, frequently-
+  tracked events. Each now has a real, grounded fallback string built
+  from the event's own title/type instead.
+- **PlanetSide 2's "Alert" title/description used undefined jargon**
+  — a non-PlanetSide-player has no idea what "an Alert" means. Retitled
+  to "Territory Alert" and the description now defines it
+  ("server-wide territory-control Alert") on first mention instead of
+  just reusing the term.
+- **Valorant's act description just restated the title** without
+  explaining what an "act" structurally is. Now names it as "Valorant's
+  current ~2-month competitive season phase."
+- Also found and fixed, same audit pass: `/live` page and the real
+  notification email template both had hardcoded Turkish copy while
+  the rest of the product is English (see commit `cb177d6`).
+
+Not changed: CommunityDragon's generic `"League of Legends event."`
+fallback for an unmapped `eventHubType` — checked against the real
+live data file, all 4 hub types currently in use already have a real
+label; this fallback doesn't currently fire for any real event, so
+there's nothing to fix yet (would be speculative hardening for a type
+that doesn't exist in the data today).
+
 ---
 
 # P2 — User Accounts

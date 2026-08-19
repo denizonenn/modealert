@@ -76,7 +76,7 @@ export function mapActiveActs(
 
       title: actTitle(act),
 
-      description: `${actTitle(act)} is the current competitive act — new act rank rewards and battle pass content are active.`,
+      description: `${actTitle(act)} is Valorant's current ~2-month competitive season phase — new act rank rewards and battle pass content are live.`,
 
       status: "LIVE" as const,
 

@@ -47,7 +47,7 @@ export function mapCurrentAlert(
       ? new Date(transitionedAt.getTime() + durationMinutes * 60_000)
       : null;
 
-    description = `An Alert is active on ${zoneName} (${eventName})${
+    description = `A server-wide territory-control Alert (${eventName}) is active on ${zoneName}${
       estimatedEnd
         ? `, expected to end around ${estimatedEnd.toUTCString()}`
         : ""
@@ -56,14 +56,14 @@ export function mapCurrentAlert(
     // Alerts trigger from real population/territory conditions, not a
     // fixed schedule — no "next expected" claim, unlike Iron Banner's
     // real announced cadence.
-    description = `No Alert currently active. The last one (${eventName} on ${zoneName}) ended ${transitionedAt.toUTCString()}.`;
+    description = `No territory-control Alert currently active. The last one (${eventName} on ${zoneName}) ended ${transitionedAt.toUTCString()}.`;
   }
 
   return [
     {
       id: `planetside2-alert-${latest.instance_id}`,
       gameId: GAME_IDS.PLANETSIDE_2,
-      title: "Alert",
+      title: "Territory Alert",
       description,
       status,
       category: EVENT_CATEGORIES.ROTATION_MILESTONE,

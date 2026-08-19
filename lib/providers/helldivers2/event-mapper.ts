@@ -20,7 +20,9 @@ export function mapAssignments(
       id: `helldivers2-assignment-${assignment.id}`,
       gameId: GAME_IDS.HELLDIVERS_2,
       title: assignment.title ?? "Major Order",
-      description: assignment.briefing || undefined,
+      description:
+        assignment.briefing ||
+        `${assignment.title ?? "Major Order"} — an active Helldivers 2 community objective.`,
       status: "LIVE" as const,
       category: EVENT_CATEGORIES.PLAYABLE,
       isLimitedTime: true,

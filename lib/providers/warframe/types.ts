@@ -48,6 +48,10 @@ export interface WarframeArchimedea {
   expiry: string;
 
   type?: string;
+
+  missions?: Array<{
+    missionType: string;
+  }>;
 }
 
 export interface WarframeVaultTrader {

@@ -39,7 +39,9 @@ export function mapCurrentLeague(
       id: "poe-current-league",
       gameId: GAME_IDS.PATH_OF_EXILE,
       title: `${current.id} League`,
-      description: current.description || undefined,
+      description:
+        current.description ||
+        `${current.id} — Path of Exile's current temporary challenge league.`,
       status,
       category: EVENT_CATEGORIES.PLAYABLE,
       isLimitedTime: true,

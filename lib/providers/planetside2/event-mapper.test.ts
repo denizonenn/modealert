@@ -60,7 +60,9 @@ describe("planetside2 mapCurrentAlert", () => {
 
     expect(event.status).toBe("ENDED");
     expect(event.description).not.toContain("expected");
-    expect(event.description).toContain("No Alert currently active");
+    expect(event.description).toContain(
+      "No territory-control Alert currently active"
+    );
   });
 
   it("returns no events when there's no history at all", () => {

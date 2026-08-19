@@ -60,7 +60,7 @@ describe("helldivers2 mapAssignments", () => {
     expect(events[0].description).toBe(longBriefing);
   });
 
-  it("falls back to a default title and no description when both are missing", () => {
+  it("falls back to a default title and generic description when both are missing", () => {
     const events = mapAssignments([
       {
         id: 1,
@@ -72,7 +72,9 @@ describe("helldivers2 mapAssignments", () => {
     ]);
 
     expect(events[0].title).toBe("Major Order");
-    expect(events[0].description).toBeUndefined();
+    expect(events[0].description).toBe(
+      "Major Order — an active Helldivers 2 community objective."
+    );
   });
 
   it("maps multiple concurrent assignments independently", () => {

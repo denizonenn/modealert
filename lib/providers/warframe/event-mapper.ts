@@ -119,43 +119,62 @@ function mapArchonHunt(
   ];
 }
 
-// Deep/Temporal Archimedea — weekly-reset endgame missions (3-mission
-// chains, no loadout switching mid-run, unlocked via Search Pulses).
-// Found via WebSearch 2026-08-12 while researching real recurring
-// content across every tracked game; confirmed the field is already
-// in the same worldstate response this provider already fetches
-// (`archimedeas`, real activation/expiry, verified live 2026-08-12 —
-// two concurrent entries sharing one weekly window, most likely Deep
-// + Temporal variants). Only one combined event is emitted since both
-// entries share the same real window and the API doesn't expose a
-// clean human-readable name to tell them apart.
+// Weekly-reset endgame missions (3-mission chains, no loadout
+// switching mid-run, unlocked via Search Pulses). Found via WebSearch
+// 2026-08-12 while researching real recurring content across every
+// tracked game; confirmed the field is already in the same worldstate
+// response this provider already fetches (`archimedeas`, real
+// activation/expiry). Live data has 2 concurrent entries sharing one
+// weekly window — each one's own `type`/`typeKey` field turned out to
+// be an obfuscated internal string (e.g. "C T_ L A B", "C T_ H E X"),
+// not a real "Deep"/"Temporal" label, so a prior version of this code
+// guessed "Deep Archimedea" as the title, which was never actually
+// verified. Fixed 2026-08-19: both entries are now emitted (dropping
+// the second was a real, silent gap — a distinct real mission chain
+// with its own risks/modifiers was going untracked), titled generically
+// since there's no reliable name to tell them apart, but the
+// description now lists their real mission-type sequence (e.g.
+// "Alchemy → Extermination → Assassination"), which the response
+// does expose cleanly and honestly differentiates the two.
 function mapArchimedea(
   archimedeas: WarframeWorldstate["archimedeas"],
   now: Date
 ): ProviderEvent[] {
-  const current = archimedeas?.[0];
-
-  if (!current) {
+  if (!archimedeas || archimedeas.length === 0) {
     return [];
   }
 
-  const active = isWithin(current.activation, current.expiry, now);
+  const multiple = archimedeas.length > 1;
 
-  return [
-    {
-      id: "warframe-archimedea",
+  return archimedeas.map((current, index) => {
+    const active = isWithin(current.activation, current.expiry, now);
+
+    const missionSequence = current.missions
+      ?.map((mission) => mission.missionType)
+      .join(" → ");
+
+    const title = multiple
+      ? `Weekly Archimedea (Variant ${index + 1})`
+      : "Weekly Archimedea";
+
+    const description = active
+      ? `This week's 3-mission Archimedea chain${
+          missionSequence ? `: ${missionSequence}` : ""
+        } — no loadout switching between missions, unlocked with Search Pulses. Resets weekly.`
+      : "Between weekly Archimedea windows.";
+
+    return {
+      id: `warframe-archimedea-${current.id}`,
       gameId: GAME_IDS.WARFRAME,
-      title: "Deep Archimedea",
-      description: active
-        ? "This week's 3-mission Archimedea chain — no loadout switching between missions, unlocked with Search Pulses. Resets weekly."
-        : "Between weekly Archimedea windows.",
+      title,
+      description,
       status: active ? "LIVE" : "ENDED",
       category: EVENT_CATEGORIES.ROTATION_MILESTONE,
       isLimitedTime: true,
       trackedUsers: 0,
       checkedAt: now,
-    },
-  ];
+    };
+  });
 }
 
 // Prime Vault Resurgence — Varzia's rotating shop of previously-vaulted

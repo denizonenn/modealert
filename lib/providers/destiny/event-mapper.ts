@@ -52,7 +52,9 @@ export function mapActiveMilestones(
         id: `destiny-milestone-${milestone.milestoneHash}`,
         gameId: GAME_IDS.DESTINY_2,
         title: name,
-        description: displayProperties?.description || undefined,
+        description:
+          displayProperties?.description ||
+          `${name} — an active weekly Destiny 2 milestone.`,
         status: "LIVE",
         category: EVENT_CATEGORIES.ROTATION_MILESTONE,
         isLimitedTime: true,
