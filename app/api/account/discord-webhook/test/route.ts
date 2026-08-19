@@ -3,8 +3,18 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db/prisma";
 import { withErrorHandling } from "@/lib/api/with-error-handling";
+import { checkRateLimit } from "@/lib/security/rate-limit";
 
 const EMBED_COLOR = 0x9333ea;
+
+// Unlike the real notification path (only fires when a watchlisted
+// event actually changes, at most once per daily cron run), this
+// button lets a signed-in user trigger an on-demand POST to an
+// arbitrary URL directly — without a limit, it's a free repeat-POST
+// tool against any endpoint. Same Postgres-backed limiter already
+// used for login/register (ADR-045).
+const TEST_SEND_LIMIT = 5;
+const TEST_SEND_WINDOW_MS = 10 * 60 * 1000;
 
 export const POST = withErrorHandling(async () => {
   const session = await auth();
@@ -13,6 +23,19 @@ export const POST = withErrorHandling(async () => {
     return NextResponse.json(
       { error: "Unauthorized" },
       { status: 401 }
+    );
+  }
+
+  const allowed = await checkRateLimit({
+    key: `discord-webhook-test:${session.user.id}`,
+    limit: TEST_SEND_LIMIT,
+    windowMs: TEST_SEND_WINDOW_MS,
+  });
+
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Too many test messages — try again in a few minutes." },
+      { status: 429 }
     );
   }
 

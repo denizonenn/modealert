@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
-import { Lock, Mail, Trash2, Sparkles, User } from "lucide-react"
+import { Lock, Mail, Trash2, Sparkles, User, Download } from "lucide-react"
 import { SiDiscord } from "react-icons/si"
 
 import { Navbar } from "@/components/layout/navbar"
@@ -555,6 +555,26 @@ function DiscordSection({
   )
 }
 
+function DataExportSection() {
+  return (
+    <Section
+      title="Your data"
+      description="Download a copy of everything ModeAlert has on your account — profile, watchlist, and notification history — as a JSON file."
+    >
+      <a href="/api/account/export">
+        <Button
+          type="button"
+          variant="outline"
+          className="w-fit border-white/15 bg-white/5 text-white hover:bg-white/10"
+        >
+          <Download className="h-4 w-4" />
+          Download my data
+        </Button>
+      </a>
+    </Section>
+  )
+}
+
 function DangerZone() {
   const [confirming, setConfirming] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -700,6 +720,8 @@ export default function SettingsPage() {
                 )
               }
             />
+
+            <DataExportSection />
 
             <DangerZone />
           </div>

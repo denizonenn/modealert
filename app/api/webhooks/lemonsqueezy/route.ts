@@ -71,6 +71,22 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
         ANALYTICS_EVENTS.PREMIUM_ACTIVATED
       );
     }
+
+    // The mirror image of the line above — ADR-046 built acquisition
+    // funnel visibility but nothing on the attrition side, so a
+    // cancellation was previously a silent DB sync with zero signal
+    // anywhere Deniz could see it. Lemon Squeezy echoes custom_data
+    // (including user_id) on every webhook event for a subscription,
+    // not just its creation.
+    if (
+      parsed.data.meta.event_name === "subscription_cancelled" &&
+      userId
+    ) {
+      await analyticsService.record(
+        userId,
+        ANALYTICS_EVENTS.PREMIUM_CANCELLED
+      );
+    }
   }
 
   return NextResponse.json({ received: true });

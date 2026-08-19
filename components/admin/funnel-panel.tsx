@@ -1,6 +1,7 @@
 import { analyticsService } from "@/lib/services/analytics.service"
 import {
   ANALYTICS_EVENT_LABELS,
+  ANALYTICS_EVENTS,
   ANALYTICS_FUNNEL_ORDER,
   type AnalyticsEventName,
 } from "@/lib/constants/analytics-events"
@@ -42,6 +43,18 @@ export async function FunnelPanel() {
               <span className="text-zinc-500">{byName.get(name) ?? 0}</span>
             </div>
           ))}
+
+          {/* Attrition, not acquisition — kept out of the funnel
+              sequence above but shown in the same window so a
+              cancellation isn't a silent DB sync with zero visibility. */}
+          <div className="mt-2 flex items-center justify-between border-t border-white/10 pt-2 text-sm">
+            <span className="text-zinc-300">
+              {ANALYTICS_EVENT_LABELS[ANALYTICS_EVENTS.PREMIUM_CANCELLED]}
+            </span>
+            <span className="text-red-400">
+              {byName.get(ANALYTICS_EVENTS.PREMIUM_CANCELLED) ?? 0}
+            </span>
+          </div>
         </div>
       )}
     </div>

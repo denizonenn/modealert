@@ -166,14 +166,16 @@ export default function PrivacyPage() {
               dashboard.
             </li>
             <li>
-              To delete your account and all associated data, email{" "}
-              <a
-                href="mailto:denizate@gmail.com"
-                className="text-white underline underline-offset-4 hover:text-zinc-300"
-              >
-                denizate@gmail.com
-              </a>{" "}
-              — we&apos;ll remove it within a reasonable time.
+              <span className="text-white">Download your data</span> —
+              Settings has a &ldquo;Download my data&rdquo; button that
+              gives you a JSON file of your account, watchlist, and
+              notification history, any time, no waiting on a request.
+            </li>
+            <li>
+              <span className="text-white">Delete your account</span> —
+              Settings also has a self-service &ldquo;Delete account&rdquo;
+              button that removes your account and all associated data
+              immediately, no email required.
             </li>
           </ul>
         </div>

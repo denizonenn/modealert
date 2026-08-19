@@ -11,6 +11,7 @@ export const ANALYTICS_EVENTS = {
   SIGNUP_COMPLETED: "signup_completed",
   CHECKOUT_CLICKED: "checkout_clicked",
   PREMIUM_ACTIVATED: "premium_activated",
+  PREMIUM_CANCELLED: "premium_cancelled",
 } as const;
 
 export type AnalyticsEventName =
@@ -23,6 +24,7 @@ export const ANALYTICS_EVENT_LABELS: Record<AnalyticsEventName, string> = {
   signup_completed: "Signup completed",
   checkout_clicked: "Checkout clicked",
   premium_activated: "Premium activated",
+  premium_cancelled: "Premium cancelled",
 };
 
 // Display order for the funnel view — roughly the order a user moves
