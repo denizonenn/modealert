@@ -13,7 +13,7 @@ import { GAMES_WITH_PROVIDER } from "@/lib/constants/games"
 
 export const metadata: Metadata = {
   title: "Supported Games",
-  description: `ModeAlert tracks ${GAMES_WITH_PROVIDER.size} games today — League of Legends, Valorant, Destiny 2, TFT, Fortnite, Warframe, Path of Exile, Helldivers 2, Foxhole, PUBG, PlanetSide 2 — limited-time modes, seasonal events, Night Markets, raid rotations, and special events, all from one watchlist.`,
+  description: `ModeAlert tracks ${GAMES_WITH_PROVIDER.size} games today — League of Legends, Valorant, Destiny 2, TFT, Fortnite, Warframe, Path of Exile, Helldivers 2, Foxhole, PUBG, PlanetSide 2, Final Fantasy XIV, and EA Sports FC — limited-time modes, seasonal events, Night Markets, raid rotations, and special events, all from one watchlist.`,
 }
 
 export default async function GamesPage() {

@@ -19,7 +19,7 @@ const spaceGrotesk = Space_Grotesk({
   display: "swap",
 })
 
-const DEFAULT_DESCRIPTION = `ModeAlert tracks limited-time game events, modes, and battle passes across ${GAMES_WITH_PROVIDER.size} games — League of Legends, Valorant, Destiny 2, TFT, and more — and emails you the moment something changes. No client, no extension, free to start.`
+const DEFAULT_DESCRIPTION = `ModeAlert tracks limited-time game events, modes, and battle passes across ${GAMES_WITH_PROVIDER.size} games — League of Legends, Valorant, Destiny 2, TFT, and more — and alerts you by email or Discord the moment something changes. No client, no extension, free to start.`
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
