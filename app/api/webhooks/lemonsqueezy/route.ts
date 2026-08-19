@@ -6,6 +6,7 @@ import { withErrorHandling } from "@/lib/api/with-error-handling";
 import { lemonSqueezyWebhookSchema } from "@/lib/validation/schemas";
 import { analyticsService } from "@/lib/services/analytics.service";
 import { ANALYTICS_EVENTS } from "@/lib/constants/analytics-events";
+import { PLANS } from "@/lib/constants/plan";
 import { logger } from "@/lib/logger/logger";
 
 const HANDLED_EVENTS = new Set([
@@ -56,36 +57,47 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
   }
 
   if (HANDLED_EVENTS.has(parsed.data.meta.event_name)) {
-    await billingService.syncSubscriptionFromWebhook(parsed.data);
-
-    // The real conversion moment — not subscription_updated, which
-    // also fires on every renewal and would inflate the funnel count.
     const userId = parsed.data.meta.custom_data?.user_id;
 
-    if (
-      parsed.data.meta.event_name === "subscription_created" &&
-      userId
-    ) {
-      await analyticsService.record(
-        userId,
-        ANALYTICS_EVENTS.PREMIUM_ACTIVATED
-      );
-    }
+    // Tracked by comparing the real plan before/after the sync, not
+    // by matching on event_name — webhook providers redeliver on
+    // retry (a timeout on our end doesn't mean Lemon Squeezy won't
+    // resend the identical event), and matching on event_name alone
+    // would double-count a conversion or cancellation on every retry,
+    // inflating exactly the funnel/churn numbers this tracking exists
+    // to keep honest. Comparing real state transitions is naturally
+    // idempotent: re-processing the same event twice sees the same
+    // "before" and "after" plan the second time, so nothing fires.
+    // Also catches subscription_expired/paused as real churn, which
+    // matching only on "subscription_cancelled" missed entirely.
+    const planBefore = userId
+      ? await billingService.getPlan(userId)
+      : null;
 
-    // The mirror image of the line above — ADR-046 built acquisition
-    // funnel visibility but nothing on the attrition side, so a
-    // cancellation was previously a silent DB sync with zero signal
-    // anywhere Deniz could see it. Lemon Squeezy echoes custom_data
-    // (including user_id) on every webhook event for a subscription,
-    // not just its creation.
-    if (
-      parsed.data.meta.event_name === "subscription_cancelled" &&
-      userId
-    ) {
-      await analyticsService.record(
-        userId,
-        ANALYTICS_EVENTS.PREMIUM_CANCELLED
-      );
+    await billingService.syncSubscriptionFromWebhook(parsed.data);
+
+    if (userId) {
+      const planAfter = await billingService.getPlan(userId);
+
+      if (
+        planBefore === PLANS.FREE &&
+        planAfter === PLANS.PREMIUM
+      ) {
+        await analyticsService.record(
+          userId,
+          ANALYTICS_EVENTS.PREMIUM_ACTIVATED
+        );
+      }
+
+      if (
+        planBefore === PLANS.PREMIUM &&
+        planAfter === PLANS.FREE
+      ) {
+        await analyticsService.record(
+          userId,
+          ANALYTICS_EVENTS.PREMIUM_CANCELLED
+        );
+      }
     }
   }
 
