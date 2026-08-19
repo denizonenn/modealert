@@ -7,6 +7,6 @@ export const tftProvider: EventProvider = {
   enabled: true,
 
   async getEvents(): Promise<ProviderEvent[]> {
-    return tftService.getEvents();
+    return tftService.getPlatformStatusEvents();
   },
 };

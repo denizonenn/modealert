@@ -6,6 +6,7 @@ import { communityDragonPbeProvider } from "@/lib/providers/communitydragon/pbe-
 import { valorantProvider } from "@/lib/providers/valorant/provider";
 import { destinyProvider } from "@/lib/providers/destiny/provider";
 import { tftProvider } from "@/lib/providers/tft/provider";
+import { tftSetProvider } from "@/lib/providers/tft/set-provider";
 import { fortniteProvider } from "@/lib/providers/fortnite/provider";
 import { warframeProvider } from "@/lib/providers/warframe/provider";
 import { poeProvider } from "@/lib/providers/poe/provider";
@@ -26,6 +27,7 @@ const providers: EventProvider[] = [
   valorantProvider,
   destinyProvider,
   tftProvider,
+  tftSetProvider,
   fortniteProvider,
   warframeProvider,
   poeProvider,

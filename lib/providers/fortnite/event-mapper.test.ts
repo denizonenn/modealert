@@ -25,4 +25,29 @@ describe("fortnite mapItemShop", () => {
     expect(event.id).toBe("fortnite-item-shop");
     expect(event.gameId).toBe("fortnite");
   });
+
+  it("dedupes repeated item names in the description (real API returns the same name across multiple entries)", () => {
+    const [event] = mapItemShop({
+      hash: "abc",
+      date: "2026-08-06T00:00:00.000Z",
+      entries: [
+        {
+          ...shopEntry("1"),
+          brItems: [{ name: "Frets of Chaos" }],
+        },
+        {
+          ...shopEntry("2"),
+          brItems: [{ name: "Frets of Chaos" }],
+        },
+        {
+          ...shopEntry("3"),
+          brItems: [{ name: "Tecca Bars" }],
+        },
+      ],
+    });
+
+    expect(event.description).toBe(
+      "Featuring: Frets of Chaos, Tecca Bars."
+    );
+  });
 });
