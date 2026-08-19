@@ -27,6 +27,10 @@ export const profileSchema = z.object({
 // against Discord's own documented URL shape so a pasted mistake
 // (e.g. the channel URL instead of the webhook URL) fails validation
 // immediately instead of silently never delivering.
+export const feedbackSchema = z.object({
+  message: z.string().trim().min(1).max(2000),
+});
+
 export const discordWebhookSchema = z.object({
   discordWebhookUrl: z
     .string()

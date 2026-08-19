@@ -13,6 +13,7 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { NotificationBell } from "@/components/layout/notification-bell";
+import { FeedbackWidget } from "@/components/layout/feedback-widget";
 
 const NAV_LINKS = [
   { href: "/features", label: "Features" },
@@ -48,6 +49,7 @@ export function Navbar() {
         </nav>
 
         <div className="ml-auto hidden items-center gap-3 md:flex">
+          {isAuthed && <FeedbackWidget />}
           {isAuthed && <NotificationBell />}
 
           {isAuthed ? (

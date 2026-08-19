@@ -8,6 +8,7 @@ import { SectionEyebrow } from "@/components/shared/section-eyebrow"
 import { ManualSyncPanel } from "@/components/admin/manual-sync-panel"
 import { AdminProviderStatus } from "@/components/admin/admin-provider-status"
 import { FunnelPanel } from "@/components/admin/funnel-panel"
+import { FeedbackPanel } from "@/components/admin/feedback-panel"
 
 import { auth } from "@/auth"
 import { isAdminEmail } from "@/lib/auth/is-admin"
@@ -42,6 +43,7 @@ export default async function AdminPage() {
           <ManualSyncPanel />
           <AdminProviderStatus />
           <FunnelPanel />
+          <FeedbackPanel />
         </div>
       </section>
 
