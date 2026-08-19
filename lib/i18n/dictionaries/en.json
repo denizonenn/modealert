@@ -1,0 +1,64 @@
+{
+  "nav": {
+    "features": "Features",
+    "games": "Games",
+    "pricing": "Pricing",
+    "faq": "FAQ",
+    "live": "Live",
+    "calendar": "Calendar",
+    "dashboard": "Dashboard",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "getStarted": "Get Started",
+    "openMenu": "Open menu",
+    "settings": "Settings",
+    "language": "Language"
+  },
+  "footer": {
+    "builtBy": "© 2026 ModeAlert. Built by Deniz Önen.",
+    "status": "Status",
+    "statistics": "Statistics",
+    "rss": "RSS",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "github": "GitHub"
+  },
+  "common": {
+    "loading": "Loading…",
+    "save": "Save",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "tryAgain": "Try again",
+    "somethingWentWrong": "Something went wrong. Please try again.",
+    "premium": "Premium",
+    "live": "LIVE",
+    "upcoming": "UPCOMING",
+    "tracking": "TRACKING",
+    "ended": "ENDED"
+  },
+  "feedback": {
+    "trigger": "Send feedback",
+    "title": "Send feedback",
+    "hint": "Bug, feature idea, or just a thought — goes straight to Deniz.",
+    "placeholder": "What's on your mind?",
+    "send": "Send",
+    "sending": "Sending...",
+    "thanks": "Thanks!",
+    "thanksBody": "Your feedback was sent — Deniz reads every one.",
+    "ariaLabel": "Feedback message"
+  },
+  "calendar": {
+    "eyebrow": "Calendar",
+    "title": "What's live, ending, or coming back.",
+    "intro": "Every date below is either a live status we're watching right now, or a real estimate — from our own tracked history, or a few researched, published patterns where our own tracking (started 2026-08-04) doesn't have enough of a record yet. Never a guess with nothing behind it.",
+    "liveNow": "Live now",
+    "liveNowEmpty": "Nothing limited-time is live right now.",
+    "estimatedToEnd": "Estimated to end",
+    "estimatedToEndEmpty": "No live event has enough history yet for an estimate.",
+    "typicallyReturns": "Typically returns",
+    "typicallyReturnsEmpty": "No ended event has enough history yet to estimate a return.",
+    "since": "since",
+    "researched": "researched",
+    "metaDescription": "When ModeAlert's tracked limited-time modes and events are expected to end, and when the ended ones typically come back — based on real tracked history and, where researched, published historical patterns."
+  }
+}

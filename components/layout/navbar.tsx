@@ -14,26 +14,29 @@ import {
 } from "@/components/ui/drawer";
 import { NotificationBell } from "@/components/layout/notification-bell";
 import { FeedbackWidget } from "@/components/layout/feedback-widget";
-
-const NAV_LINKS = [
-  { href: "/features", label: "Features" },
-  { href: "/games", label: "Games" },
-  { href: "/pricing", label: "Pricing" },
-  { href: "/#faq", label: "FAQ" },
-  { href: "/live", label: "Live" },
-  { href: "/calendar", label: "Calendar" },
-  { href: "/dashboard", label: "Dashboard" },
-];
+import { LanguageSwitcher } from "@/components/layout/language-switcher";
+import { useI18n } from "@/components/providers/i18n-provider";
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
   const { data: session, status } = useSession();
   const isAuthed = status === "authenticated";
+  const { dict, path } = useI18n();
+
+  const navLinks = [
+    { href: "/features", label: dict.nav.features },
+    { href: "/games", label: dict.nav.games },
+    { href: "/pricing", label: dict.nav.pricing },
+    { href: "/#faq", label: dict.nav.faq },
+    { href: "/live", label: dict.nav.live },
+    { href: "/calendar", label: dict.nav.calendar },
+    { href: "/dashboard", label: dict.nav.dashboard },
+  ];
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-black/70 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center px-6">
-        <Link href="/" className="flex items-center gap-2 font-semibold">
+        <Link href={path("/")} className="flex items-center gap-2 font-semibold">
           <div className="rounded-lg bg-white p-2 text-black">
             <Bell className="h-4 w-4" />
           </div>
@@ -41,21 +44,22 @@ export function Navbar() {
         </Link>
 
         <nav className="ml-10 hidden items-center gap-6 text-sm text-zinc-400 md:flex">
-          {NAV_LINKS.map((link) => (
-            <Link key={link.href} href={link.href} className="hover:text-white">
+          {navLinks.map((link) => (
+            <Link key={link.href} href={path(link.href)} className="hover:text-white">
               {link.label}
             </Link>
           ))}
         </nav>
 
         <div className="ml-auto hidden items-center gap-3 md:flex">
+          <LanguageSwitcher />
           {isAuthed && <FeedbackWidget />}
           {isAuthed && <NotificationBell />}
 
           {isAuthed ? (
             <>
               <Link
-                href="/dashboard/settings"
+                href={path("/dashboard/settings")}
                 className="text-sm text-zinc-400 hover:text-white"
               >
                 {session.user?.name ?? session.user?.email}
@@ -63,21 +67,21 @@ export function Navbar() {
               <Button
                 variant="ghost"
                 className="text-white hover:bg-white/10"
-                onClick={() => signOut({ callbackUrl: "/" })}
+                onClick={() => signOut({ callbackUrl: path("/") })}
               >
-                Sign out
+                {dict.nav.signOut}
               </Button>
             </>
           ) : (
             <>
-              <Link href="/signin">
+              <Link href={path("/signin")}>
                 <Button variant="ghost" className="text-white hover:bg-white/10">
-                  Sign in
+                  {dict.nav.signIn}
                 </Button>
               </Link>
-              <Link href="/onboarding">
+              <Link href={path("/onboarding")}>
                 <Button className="bg-white text-black hover:bg-zinc-200">
-                  Get Started
+                  {dict.nav.getStarted}
                 </Button>
               </Link>
             </>
@@ -94,7 +98,7 @@ export function Navbar() {
               <button
                 type="button"
                 className="ml-auto flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-white md:hidden"
-                aria-label="Open menu"
+                aria-label={dict.nav.openMenu}
               />
             }
           >
@@ -111,12 +115,12 @@ export function Navbar() {
               </div>
 
               <nav className="mt-10 flex flex-col gap-6 text-lg">
-                {NAV_LINKS.map((link) => (
+                {navLinks.map((link) => (
                   <DrawerClose
                     key={link.href}
                     render={
                       <Link
-                        href={link.href}
+                        href={path(link.href)}
                         className="text-zinc-300 hover:text-white"
                       />
                     }
@@ -132,19 +136,19 @@ export function Navbar() {
                     <DrawerClose
                       render={
                         <Link
-                          href="/dashboard/settings"
+                          href={path("/dashboard/settings")}
                           className="flex h-9 w-full items-center justify-center rounded-lg border border-white/10 text-sm font-medium text-white hover:bg-white/10"
                         />
                       }
                     >
-                      Settings
+                      {dict.nav.settings}
                     </DrawerClose>
                     <Button
                       variant="ghost"
                       className="w-full justify-center border border-white/10 text-white hover:bg-white/10"
-                      onClick={() => signOut({ callbackUrl: "/" })}
+                      onClick={() => signOut({ callbackUrl: path("/") })}
                     >
-                      Sign out
+                      {dict.nav.signOut}
                     </Button>
                   </>
                 ) : (
@@ -152,22 +156,22 @@ export function Navbar() {
                     <DrawerClose
                       render={
                         <Link
-                          href="/signin"
+                          href={path("/signin")}
                           className="flex h-9 w-full items-center justify-center rounded-lg border border-white/10 text-sm font-medium text-white hover:bg-white/10"
                         />
                       }
                     >
-                      Sign in
+                      {dict.nav.signIn}
                     </DrawerClose>
                     <DrawerClose
                       render={
                         <Link
-                          href="/onboarding"
+                          href={path("/onboarding")}
                           className="flex h-9 w-full items-center justify-center rounded-lg bg-white text-sm font-medium text-black hover:bg-zinc-200"
                         />
                       }
                     >
-                      Get Started
+                      {dict.nav.getStarted}
                     </DrawerClose>
                   </>
                 )}

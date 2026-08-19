@@ -1,10 +1,14 @@
-import "./globals.css"
+import "../globals.css"
 import type { Metadata } from "next"
+import { notFound } from "next/navigation"
 import { Inter, Space_Grotesk } from "next/font/google"
 
 import { SessionProvider } from "@/components/providers/session-provider"
+import { I18nProvider } from "@/components/providers/i18n-provider"
 import { SITE_URL } from "@/lib/constants/site"
 import { GAMES_WITH_PROVIDER } from "@/lib/constants/games"
+import { LOCALES, isLocale } from "@/lib/i18n/config"
+import { getDictionaryFor } from "@/lib/i18n/dictionaries"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -61,15 +65,36 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+// Every locale is a real, prerenderable route — not resolved at
+// request time.
+export function generateStaticParams() {
+  return LOCALES.map((lang) => ({ lang }));
+}
+
+export default async function RootLayout({
   children,
+  params,
 }: {
   children: React.ReactNode
+  params: Promise<{ lang: string }>
 }) {
+  const { lang } = await params
+
+  // proxy.ts only ever routes real locales here, so anything else is
+  // a hand-typed URL like /de/pricing — a genuine 404, not a reason to
+  // silently serve English at a URL that claims to be German.
+  if (!isLocale(lang)) {
+    notFound()
+  }
+
+  const dict = await getDictionaryFor(lang)
+
   return (
-    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable}`}>
+    <html lang={lang} className={`${inter.variable} ${spaceGrotesk.variable}`}>
       <body className="bg-black text-white antialiased">
-        <SessionProvider>{children}</SessionProvider>
+        <I18nProvider locale={lang} dict={dict}>
+          <SessionProvider>{children}</SessionProvider>
+        </I18nProvider>
       </body>
     </html>
   )

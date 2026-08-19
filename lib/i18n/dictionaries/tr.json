@@ -1,0 +1,64 @@
+{
+  "nav": {
+    "features": "Özellikler",
+    "games": "Oyunlar",
+    "pricing": "Fiyatlandırma",
+    "faq": "SSS",
+    "live": "Canlı",
+    "calendar": "Takvim",
+    "dashboard": "Panel",
+    "signIn": "Giriş yap",
+    "signOut": "Çıkış yap",
+    "getStarted": "Başla",
+    "openMenu": "Menüyü aç",
+    "settings": "Ayarlar",
+    "language": "Dil"
+  },
+  "footer": {
+    "builtBy": "© 2026 ModeAlert. Deniz Önen tarafından yapıldı.",
+    "status": "Durum",
+    "statistics": "İstatistikler",
+    "rss": "RSS",
+    "privacy": "Gizlilik",
+    "terms": "Şartlar",
+    "github": "GitHub"
+  },
+  "common": {
+    "loading": "Yükleniyor…",
+    "save": "Kaydet",
+    "saving": "Kaydediliyor...",
+    "cancel": "Vazgeç",
+    "tryAgain": "Tekrar dene",
+    "somethingWentWrong": "Bir şeyler ters gitti. Lütfen tekrar deneyin.",
+    "premium": "Premium",
+    "live": "CANLI",
+    "upcoming": "YAKLAŞAN",
+    "tracking": "İZLENİYOR",
+    "ended": "BİTTİ"
+  },
+  "feedback": {
+    "trigger": "Geri bildirim gönder",
+    "title": "Geri bildirim gönder",
+    "hint": "Hata, özellik fikri ya da aklındaki herhangi bir şey — doğrudan Deniz'e gider.",
+    "placeholder": "Aklında ne var?",
+    "send": "Gönder",
+    "sending": "Gönderiliyor...",
+    "thanks": "Teşekkürler!",
+    "thanksBody": "Geri bildirimin gönderildi — Deniz hepsini okuyor.",
+    "ariaLabel": "Geri bildirim mesajı"
+  },
+  "calendar": {
+    "eyebrow": "Takvim",
+    "title": "Canlı olan, bitmek üzere olan ve geri dönenler.",
+    "intro": "Aşağıdaki her tarih ya şu anda izlediğimiz canlı bir durum, ya da gerçek bir tahmin — kendi takip geçmişimizden veya kendi kaydımızın (2026-08-04'te başladı) henüz yetmediği yerlerde araştırılmış, yayımlanmış düzenlerden. Asla dayanaksız bir tahmin değil.",
+    "liveNow": "Şu an canlı",
+    "liveNowEmpty": "Şu anda süreli hiçbir şey canlı değil.",
+    "estimatedToEnd": "Tahmini bitiş",
+    "estimatedToEndEmpty": "Hiçbir canlı etkinliğin tahmin için yeterli geçmişi yok.",
+    "typicallyReturns": "Genelde geri döner",
+    "typicallyReturnsEmpty": "Biten hiçbir etkinliğin dönüş tahmini için yeterli geçmişi yok.",
+    "since": "şu tarihten beri",
+    "researched": "araştırıldı",
+    "metaDescription": "ModeAlert'in takip ettiği süreli modların ve etkinliklerin ne zaman bitmesinin beklendiği ve bitenlerin genelde ne zaman geri döndüğü — gerçek takip geçmişine ve araştırıldığı yerlerde yayımlanmış geçmiş düzenlere dayanarak."
+  }
+}

@@ -14,11 +14,15 @@ import { eventPredictionService } from "@/lib/services/event-prediction.service"
 import { billingService } from "@/lib/services/billing.service"
 import { getOpenHistoryStartsByEventIds } from "@/lib/repositories/event-history.repository"
 import { PLANS } from "@/lib/constants/plan"
+import { getDictionary, getLocale } from "@/lib/i18n/dictionaries"
 
-export const metadata: Metadata = {
-  title: "Calendar",
-  description:
-    "When ModeAlert's tracked limited-time modes and events are expected to end, and when the ended ones typically come back — based on real tracked history and, where researched, published historical patterns.",
+export async function generateMetadata(): Promise<Metadata> {
+  const dict = await getDictionary()
+
+  return {
+    title: dict.calendar.eyebrow,
+    description: dict.calendar.metaDescription,
+  }
 }
 
 export const revalidate = 1800
@@ -63,6 +67,8 @@ async function getPredictionFor(event: {
 }
 
 export default async function CalendarPage() {
+  const dict = await getDictionary()
+  const locale = await getLocale()
   const session = await auth()
   const plan = await billingService.getPlan(session?.user?.id)
   const isPremium = plan === PLANS.PREMIUM
@@ -170,25 +176,21 @@ export default async function CalendarPage() {
       <Navbar />
 
       <section className="mx-auto max-w-4xl px-6 pt-20 pb-4 text-center">
-        <SectionEyebrow className="justify-center">Calendar</SectionEyebrow>
+        <SectionEyebrow className="justify-center">{dict.calendar.eyebrow}</SectionEyebrow>
 
         <h1 className="mt-4 text-4xl font-bold tracking-tight md:text-5xl">
-          What&apos;s live, ending, or coming back.
+          {dict.calendar.title}
         </h1>
 
         <p className="mx-auto mt-5 max-w-2xl text-lg text-zinc-400">
-          Every date below is either a live status we&apos;re watching
-          right now, or a real estimate — from our own tracked history,
-          or a few researched, published patterns where our own
-          tracking (started 2026-08-04) doesn&apos;t have enough of a
-          record yet. Never a guess with nothing behind it.
+          {dict.calendar.intro}
         </p>
       </section>
 
       <section className="mx-auto max-w-4xl px-6 py-16 space-y-14">
         <CalendarSection
-          title="Live now"
-          emptyMessage="Nothing limited-time is live right now."
+          title={dict.calendar.liveNow}
+          emptyMessage={dict.calendar.liveNowEmpty}
         >
           {liveNow.map((row) => (
             <CalendarRowView
@@ -196,13 +198,16 @@ export default async function CalendarPage() {
               row={row}
               isPremium={isPremium}
               isPrediction={false}
+              sinceLabel={dict.calendar.since}
+              researchedLabel={dict.calendar.researched}
+              locale={locale}
             />
           ))}
         </CalendarSection>
 
         <CalendarSection
-          title="Estimated to end"
-          emptyMessage="No live event has enough history yet for an estimate."
+          title={dict.calendar.estimatedToEnd}
+          emptyMessage={dict.calendar.estimatedToEndEmpty}
         >
           {endingSoon.map((row) => (
             <CalendarRowView
@@ -210,13 +215,16 @@ export default async function CalendarPage() {
               row={row}
               isPremium={isPremium}
               isPrediction={true}
+              sinceLabel={dict.calendar.since}
+              researchedLabel={dict.calendar.researched}
+              locale={locale}
             />
           ))}
         </CalendarSection>
 
         <CalendarSection
-          title="Typically returns"
-          emptyMessage="No ended event has enough history yet to estimate a return."
+          title={dict.calendar.typicallyReturns}
+          emptyMessage={dict.calendar.typicallyReturnsEmpty}
         >
           {returning.map((row) => (
             <CalendarRowView
@@ -224,6 +232,9 @@ export default async function CalendarPage() {
               row={row}
               isPremium={isPremium}
               isPrediction={true}
+              sinceLabel={dict.calendar.since}
+              researchedLabel={dict.calendar.researched}
+              locale={locale}
             />
           ))}
         </CalendarSection>
@@ -266,10 +277,16 @@ function CalendarRowView({
   row,
   isPremium,
   isPrediction,
+  sinceLabel,
+  researchedLabel,
+  locale,
 }: {
   row: CalendarRow
   isPremium: boolean
   isPrediction: boolean
+  sinceLabel: string
+  researchedLabel: string
+  locale: string
 }) {
   // "Live now" shows a real current status, not a forecast — free for
   // everyone. "Estimated to end"/"Typically returns" are the same
@@ -296,15 +313,15 @@ function CalendarRowView({
       <div className="text-right">
         {row.date && (
           <p className="text-xs text-zinc-300">
-            {isPrediction ? "" : "since "}
-            {row.date.toLocaleDateString(undefined, {
+            {isPrediction ? "" : `${sinceLabel} `}
+            {row.date.toLocaleDateString(locale, {
               month: "short",
               day: "numeric",
             })}
           </p>
         )}
         {row.researched && (
-          <p className="text-[10px] text-zinc-600">researched</p>
+          <p className="text-[10px] text-zinc-600">{researchedLabel}</p>
         )}
       </div>
       <EventStatusBadge status={row.status} />

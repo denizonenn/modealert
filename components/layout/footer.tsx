@@ -1,16 +1,40 @@
+"use client"
+
+import Link from "next/link"
+
+import { useI18n } from "@/components/providers/i18n-provider"
+
 export function Footer() {
+  const { dict, path } = useI18n()
+
+  // feed.xml is deliberately not locale-prefixed — it's a
+  // machine-readable feed with one canonical URL that RSS readers
+  // already hold (see proxy.ts's UNPREFIXED_PATHS).
+  const links = [
+    { href: path("/status"), label: dict.footer.status },
+    { href: path("/statistics"), label: dict.footer.statistics },
+    { href: "/feed.xml", label: dict.footer.rss },
+    { href: path("/privacy"), label: dict.footer.privacy },
+    { href: path("/terms"), label: dict.footer.terms },
+  ]
+
   return (
     <footer className="border-t border-white/10 bg-black/60">
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-8 text-sm text-zinc-500 md:flex-row md:items-center">
-        <p>© 2026 ModeAlert. Built by Deniz Önen.</p>
+        <p>{dict.footer.builtBy}</p>
         <div className="md:ml-auto flex items-center gap-6">
-          <a href="/status" className="hover:text-white">Status</a>
-          <a href="/statistics" className="hover:text-white">Statistics</a>
-          <a href="/feed.xml" className="hover:text-white">RSS</a>
-          <a href="/privacy" className="hover:text-white">Privacy</a>
-          <a href="/terms" className="hover:text-white">Terms</a>
-          <a href="https://github.com/denizonenn/modealert" target="_blank" className="hover:text-white">
-            GitHub
+          {links.map((link) => (
+            <Link key={link.href} href={link.href} className="hover:text-white">
+              {link.label}
+            </Link>
+          ))}
+          <a
+            href="https://github.com/denizonenn/modealert"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-white"
+          >
+            {dict.footer.github}
           </a>
         </div>
       </div>
