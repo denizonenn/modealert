@@ -18,6 +18,10 @@ export const emailOptOutSchema = z.object({
   emailOptOut: z.boolean(),
 });
 
+export const profileSchema = z.object({
+  name: z.string().trim().min(1).max(50),
+});
+
 export const notificationActionSchema = z.object({
   id: z.string().min(1).optional(),
   falsePositive: z.boolean().optional(),

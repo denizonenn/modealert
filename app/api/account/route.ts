@@ -1,9 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db/prisma";
 import { billingService } from "@/lib/services/billing.service";
 import { withErrorHandling } from "@/lib/api/with-error-handling";
+import { parseJsonBody } from "@/lib/validation/parse-body";
+import { profileSchema } from "@/lib/validation/schemas";
 
 export const GET = withErrorHandling(async () => {
   const session = await auth();
@@ -49,6 +51,30 @@ export const GET = withErrorHandling(async () => {
       user.email
     ),
   });
+});
+
+export const PATCH = withErrorHandling(async (request: NextRequest) => {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
+  }
+
+  const parsed = await parseJsonBody(request, profileSchema);
+
+  if (parsed.error) {
+    return parsed.error;
+  }
+
+  await prisma.user.update({
+    where: { id: session.user.id },
+    data: { name: parsed.data.name },
+  });
+
+  return NextResponse.json({ success: true });
 });
 
 export const DELETE = withErrorHandling(async () => {

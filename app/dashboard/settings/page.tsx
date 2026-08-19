@@ -2,8 +2,8 @@
 
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
-import { signOut } from "next-auth/react"
-import { Lock, Mail, Trash2, Sparkles } from "lucide-react"
+import { signOut, useSession } from "next-auth/react"
+import { Lock, Mail, Trash2, Sparkles, User } from "lucide-react"
 
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
@@ -131,6 +131,101 @@ function SubscriptionSection({ account }: { account: Account }) {
           </a>
         )}
       </div>
+    </Section>
+  )
+}
+
+const MAX_NAME_LENGTH = 50
+
+function ProfileSection({
+  account,
+  onUpdated,
+}: {
+  account: Account
+  onUpdated: (name: string) => void
+}) {
+  const { update } = useSession()
+
+  const [name, setName] = useState(account.name ?? "")
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+
+    setError(null)
+    setSuccess(false)
+
+    const trimmed = name.trim()
+
+    if (trimmed.length === 0) {
+      setError("Display name can't be empty.")
+      return
+    }
+
+    setSubmitting(true)
+
+    try {
+      const response = await fetch("/api/account", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: trimmed }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setError(data.error ?? "Something went wrong.")
+        return
+      }
+
+      // Session strategy is JWT — without this, the navbar/dropdown
+      // would keep showing the old name until the next full sign-in.
+      await update({ name: trimmed })
+
+      setSuccess(true)
+      onUpdated(trimmed)
+    } catch {
+      setError("Something went wrong. Please try again.")
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <Section
+      title="Profile"
+      description="The display name shown in the navbar and on notifications."
+    >
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3">
+          <User className="h-4 w-4 shrink-0 text-zinc-500" />
+          <input
+            type="text"
+            required
+            maxLength={MAX_NAME_LENGTH}
+            placeholder="Display name"
+            aria-label="Display name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="h-10 w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"
+          />
+        </div>
+
+        {error && <p className="text-sm text-red-400">{error}</p>}
+        {success && (
+          <p className="text-sm text-emerald-400">Display name updated.</p>
+        )}
+
+        <Button
+          type="submit"
+          disabled={submitting || name.trim() === (account.name ?? "")}
+          className="mt-1 w-fit bg-white text-black hover:bg-zinc-200"
+        >
+          {submitting ? "Saving..." : "Save"}
+        </Button>
+      </form>
     </Section>
   )
 }
@@ -432,6 +527,13 @@ export default function SettingsPage() {
             </Section>
 
             <SubscriptionSection account={account} />
+
+            <ProfileSection
+              account={account}
+              onUpdated={(name) =>
+                setAccount((prev) => (prev ? { ...prev, name } : prev))
+              }
+            />
 
             <PasswordSection
               account={account}

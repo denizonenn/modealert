@@ -144,9 +144,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
 
   callbacks: {
-    jwt({ token, user }) {
+    jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
+      }
+
+      // Lets the client refresh the JWT after an in-place profile edit
+      // (e.g. display name) via useSession().update(...) — otherwise
+      // the JWT session strategy would keep serving the stale name
+      // until the next full sign-in.
+      if (trigger === "update" && session?.name) {
+        token.name = session.name;
       }
 
       return token;

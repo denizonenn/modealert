@@ -401,8 +401,18 @@ Completed
 
 Future
 
-- Per-game landing pages (`/games/league-of-legends`, etc.) if organic
-  search volume ever justifies the extra maintenance surface.
+- ~~Per-game landing pages (`/games/league-of-legends`, etc.)~~ —
+  **already done, stale note removed (2026-08-19).** Checked before
+  building anything: `app/games/[slug]/page.tsx` already is exactly
+  this — real per-game `generateMetadata` (title/description), full
+  event list with stats/predictions, keyed off `Game.slug` (which
+  already holds real values like `league-of-legends`,
+  `final-fantasy-xiv`), and already listed in `app/sitemap.ts`. Live-
+  verified: `https://modealert.vercel.app/games/league-of-legends`
+  returns 200 with real content. This must have shipped alongside
+  `/games/[slug]` itself and the note just never got removed —
+  same class of doc/reality drift as the "Riot Local Client" fix
+  above.
 
 Done (2026-08-18)
 
@@ -1242,7 +1252,22 @@ Completed
 
 Future
 
-- Profiles (avatar/display name editing beyond what OAuth provides)
+- ~~Profiles (display name editing beyond what OAuth provides)~~ —
+  **done (2026-08-19).** `User.name`/`GET /api/account` already
+  returned it but nothing ever read or edited it — same "written but
+  not connected" pattern as `lib/logger/logger.ts`. Added `PATCH
+  /api/account` (`profileSchema`, zod-validated, session-scoped) and a
+  `ProfileSection` on `/dashboard/settings` matching the existing
+  password-section pattern. One real wrinkle: sessions use the JWT
+  strategy, so a saved name wouldn't show up in the navbar (which
+  already reads `session.user.name`) until the next full sign-in —
+  fixed by having `auth.ts`'s `jwt` callback handle Auth.js's
+  `trigger === "update"` case, and the client calls
+  `useSession().update({ name })` right after a successful save.
+  Avatar editing deliberately not built — there's no image upload
+  infra in the app (OAuth-provided avatars are just a URL Google/
+  Discord already host), and adding one would be new infrastructure,
+  not "finishing" this item.
 - Preferences
 - ~~Notification settings~~ — basic version already live via
   `/dashboard/settings`'s email-notifications toggle (`emailOptOut`).
