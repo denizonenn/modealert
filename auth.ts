@@ -143,14 +143,29 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const valid = await bcrypt.compare(password, user.password);
 
         if (!valid) {
-          const attempts = user.failedLoginAttempts + 1;
+          // Atomic increment, not read-then-write: bcrypt.compare
+          // alone (~100-300ms at this cost factor) opens a wide
+          // window for concurrent wrong-password attempts to all
+          // read the same pre-increment count and all compute the
+          // same "+1" — under real concurrency (not just sequential
+          // guesses) the lockout counter could silently never reach
+          // LOCKOUT_THRESHOLD no matter how many real attempts
+          // happened, bypassing the per-account lockout entirely.
+          // `{ increment: 1 }` compiles to an atomic SQL UPDATE, so
+          // every concurrent attempt gets a genuinely distinct
+          // post-increment count back.
+          const updated = await prisma.user.update({
+            where: { id: user.id },
+            data: {
+              failedLoginAttempts: { increment: 1 },
+            },
+          });
 
           await prisma.user.update({
             where: { id: user.id },
             data: {
-              failedLoginAttempts: attempts,
               lockedUntil:
-                attempts >= LOCKOUT_THRESHOLD
+                updated.failedLoginAttempts >= LOCKOUT_THRESHOLD
                   ? new Date(Date.now() + LOCKOUT_DURATION_MS)
                   : null,
             },
