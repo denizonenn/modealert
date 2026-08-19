@@ -139,6 +139,7 @@ export default async function EventDetailPage({ params }: Props) {
       : undefined
 
   const timeline = [...history].reverse()
+  const renderedAt = Date.now()
 
   return (
     <main className="min-h-screen bg-black text-white">
@@ -345,7 +346,7 @@ export default async function EventDetailPage({ params }: Props) {
               timeline.map((entry) => {
                 const duration = entry.endedAt
                   ? entry.endedAt.getTime() - entry.startedAt.getTime()
-                  : Date.now() - entry.startedAt.getTime()
+                  : renderedAt - entry.startedAt.getTime()
 
                 return (
                   <div
@@ -393,10 +394,12 @@ export default async function EventDetailPage({ params }: Props) {
           <div className="mt-6 space-y-2">
             {changes.length === 0 ? (
               <p className="text-sm text-zinc-500">
-                No edits recorded yet — ModeAlert only started tracking
-                this on 2026-08-13, and logs a change the next time this
-                event&apos;s title, description, status, category, or
-                permanence actually differs from what was last synced.
+                No edits recorded yet — ModeAlert&apos;s change-tracking
+                only started logging edits on 2026-08-13 (this event may
+                have been tracked before that), and logs a change the
+                next time this event&apos;s title, description, status,
+                category, or permanence actually differs from what was
+                last synced.
               </p>
             ) : (
               changes.map((change) => (
