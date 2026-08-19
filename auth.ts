@@ -11,6 +11,7 @@ import { env } from "@/lib/config/env";
 import { checkRateLimit, getClientIp } from "@/lib/security/rate-limit";
 import { analyticsService } from "@/lib/services/analytics.service";
 import { ANALYTICS_EVENTS } from "@/lib/constants/analytics-events";
+import { buildMagicLinkHtml } from "@/lib/notifications/email/template";
 
 const LOCKOUT_THRESHOLD = 5;
 const LOCKOUT_DURATION_MS = 15 * 60 * 1000;
@@ -59,6 +60,38 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           Resend({
             apiKey: env.RESEND_API_KEY,
             from: env.EMAIL_FROM,
+            // Auth.js's built-in Resend provider sends a generic,
+            // unbranded default template ("Sign in to
+            // modealert.vercel.app", plain text styling) — every
+            // other real email this app sends (notification, digest,
+            // admin alert) has a branded template, this was the one
+            // gap. Same Resend API call the built-in provider makes,
+            // just with our own subject/HTML.
+            async sendVerificationRequest({ identifier, url, provider }) {
+              const response = await fetch(
+                "https://api.resend.com/emails",
+                {
+                  method: "POST",
+                  headers: {
+                    Authorization: `Bearer ${provider.apiKey}`,
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    from: provider.from,
+                    to: identifier,
+                    subject: "Sign in to ModeAlert",
+                    html: buildMagicLinkHtml(url),
+                    text: `Sign in to ModeAlert: ${url}\n\nThis link expires in 24 hours and can only be used once. If you didn't request this, you can safely ignore this email.`,
+                  }),
+                }
+              );
+
+              if (!response.ok) {
+                throw new Error(
+                  `Resend error: ${JSON.stringify(await response.json())}`
+                );
+              }
+            },
           }),
         ]
       : []),
