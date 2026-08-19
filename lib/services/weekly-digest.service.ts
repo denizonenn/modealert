@@ -47,6 +47,9 @@ export const weeklyDigestService = {
         title: w.event.title,
         status: w.event.status,
         gameName: w.event.game.name,
+        url: w.event.slug
+          ? `${SITE_URL}/events/${w.event.slug}`
+          : undefined,
       }));
 
       if (entries.length === 0) {

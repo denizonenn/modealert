@@ -11,6 +11,7 @@ export interface DigestEntry {
   title: string;
   gameName: string;
   status: string;
+  url?: string;
 }
 
 // Real content only — every row is a currently-tracked event's actual
@@ -24,20 +25,27 @@ export function buildDigestHtml(
   const safeUnsubscribeUrl = escapeHtml(unsubscribeUrl);
 
   const rows = entries
-    .map(
-      (entry) => `
+    .map((entry) => {
+      // Same reasoning as the per-event alert's CTA: a digest you
+      // can't click through from is a dead end. Falls back to plain
+      // text when an event has no slug to link to.
+      const titleCell = entry.url
+        ? `<a href="${escapeHtml(entry.url)}" style="color:#ffffff;text-decoration:none;">${escapeHtml(entry.title)}</a>`
+        : escapeHtml(entry.title);
+
+      return `
         <tr>
           <td style="padding:10px 0;border-top:1px solid #222222;">
             <p style="margin:0;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:#666666;">
               ${escapeHtml(entry.gameName)}
             </p>
             <p style="margin:2px 0 0;font-size:14px;color:#ffffff;">
-              ${escapeHtml(entry.title)}
+              ${titleCell}
               <span style="color:#888888;font-size:12px;"> — ${escapeHtml(entry.status)}</span>
             </p>
           </td>
-        </tr>`
-    )
+        </tr>`;
+    })
     .join("");
 
   return `<!doctype html>

@@ -44,6 +44,7 @@ export async function getDigestRecipients() {
             select: {
               title: true,
               status: true,
+              slug: true,
               game: { select: { name: true } },
             },
           },
