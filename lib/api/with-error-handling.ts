@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { logger } from "@/lib/logger/logger";
+
 type RouteHandler = (
   request: NextRequest,
   context: unknown
@@ -18,7 +20,14 @@ export function withErrorHandling(
     try {
       return await handler(request, context);
     } catch (error) {
-      console.error("[API]", request.method, request.nextUrl.pathname, error);
+      logger.error("Unhandled API route error", {
+        method: request.method,
+        path: request.nextUrl.pathname,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unknown error",
+      });
 
       return NextResponse.json(
         { error: "Something went wrong. Please try again." },

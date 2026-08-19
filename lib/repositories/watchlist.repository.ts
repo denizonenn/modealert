@@ -1,3 +1,5 @@
+import { Prisma } from "@prisma/client";
+
 import { prisma } from "@/lib/db/prisma";
 
 export async function getWatchlistsByUser(
@@ -68,34 +70,22 @@ export async function getRecipientsForEvent(
 export async function getTrackedUserCountsByGame(): Promise<
   Record<string, number>
 > {
-  const rows = await prisma.watchlist.findMany({
-    select: {
-      userId: true,
-      event: {
-        select: {
-          gameId: true,
-        },
-      },
-    },
-  });
+  // Distinct-user-per-game count needs a join (Watchlist has no
+  // gameId of its own) — done as one grouped query so it costs a
+  // single DB round trip and scales with distinct games, not with
+  // pulling every Watchlist row into Node memory to dedupe there.
+  const rows = await prisma.$queryRaw<
+    Array<{ gameId: string; count: bigint }>
+  >(Prisma.sql`
+    SELECT e."gameId" AS "gameId", COUNT(DISTINCT w."userId") AS count
+    FROM "Watchlist" w
+    JOIN "Event" e ON e.id = w."eventId"
+    GROUP BY e."gameId"
+  `);
 
-  const byGame = new Map<string, Set<string>>();
-
-  for (const row of rows) {
-    const gameId = row.event.gameId;
-    const userIds = byGame.get(gameId) ?? new Set<string>();
-
-    userIds.add(row.userId);
-    byGame.set(gameId, userIds);
-  }
-
-  const counts: Record<string, number> = {};
-
-  for (const [gameId, userIds] of byGame) {
-    counts[gameId] = userIds.size;
-  }
-
-  return counts;
+  return Object.fromEntries(
+    rows.map((row) => [row.gameId, Number(row.count)])
+  );
 }
 
 // Real popularity, computed at read time rather than trusted from

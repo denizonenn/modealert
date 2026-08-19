@@ -10,6 +10,8 @@ import {
   checkDatabaseHealth,
 } from "@/lib/db/health";
 
+import { logger } from "@/lib/logger/logger";
+
 export async function GET() {
   try {
     const [providers, database] =
@@ -29,7 +31,12 @@ export async function GET() {
         new Date().toISOString(),
     });
   } catch (error) {
-    console.error(error);
+    logger.error("Provider/database health check failed", {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unknown error",
+    });
 
     return NextResponse.json(
       {

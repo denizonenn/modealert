@@ -1401,9 +1401,44 @@ Current
   (`provider-sync-summarize.test.ts`). Same "pure functions only, no
   mocking" boundary as the rest of the test suite.
 
-- Prisma optimization
+- ~~Prisma optimization~~ — **done (2026-08-19).** Found a real
+  full-table scan while auditing the repository layer:
+  `getTrackedUserCountsByGame()` (`watchlist.repository.ts`) pulled
+  **every** `Watchlist` row into Node memory just to dedupe user ids
+  per game in JS — and it's on the hot path for `gameService.getAllGames()`,
+  called by `/games`, `/api/games` (so every page using the `useGames()`
+  hook — dashboard/onboarding/live), `app/sitemap.ts`, and
+  `dashboard.service.ts`. Cost was already going to grow linearly with
+  every watchlist row ever created, on nearly every page load. Replaced
+  with one grouped `$queryRaw` (`COUNT(DISTINCT userId)` joined to
+  `Event` for `gameId`, static SQL, no interpolated input) — single DB
+  round trip instead of N rows shipped over the wire. Verified against
+  the real DB (`Watchlist` join `Event`, 8 games, real counts matched
+  the pre-change values). Other repository queries audited for the
+  same pattern and found already properly scoped/bounded/`groupBy`'d
+  (see `watchlist.repository.ts`'s other functions, `user.repository.ts`'s
+  `getDigestRecipients`) — this was the one real offender.
 
-- Logging improvements
+- ~~Logging improvements~~ — **done (2026-08-19).** Another "written
+  but not connected" instance: `lib/logger/logger.ts` (structured
+  JSON logs — level/timestamp/message/meta) existed with **zero
+  importers anywhere** — every real error path was still on raw
+  `console.error`/`console.log`, losing structure on Vercel's log
+  viewer. Wired it into every operational log site: `lib/api/
+  with-error-handling.ts` (the wrapper already applied to every
+  mutating route — the single highest-leverage spot), the 6 service-
+  layer error paths (`provider-sync`, `notification-trigger`,
+  `weekly-digest`, `health-alert`, `analytics`) plus its one INFO log
+  (notified-users-count), and the 4 API routes that had their own
+  inline `console.error` (`admin/sync`, `cron/sync`, `providers/health`,
+  `providers/communitydragon/current`, `webhooks/lemonsqueezy`).
+  Deliberately left alone: `lib/notifications/console/console.provider.ts`
+  (that's a real notification *channel*'s human-readable output, not
+  logging infra) and `app/error.tsx`'s `console.error(error)` (a
+  client-side React error boundary — needs the raw `Error` object and
+  its stack trace in browser devtools, not a server-side JSON log
+  line). Verified with a real `npm run build` (all 47 routes compiled
+  clean) plus the full test/typecheck/lint suite.
 
 - ~~Dead "written but not connected" code~~ — **cleaned up
   (2026-08-06).** A sweep for more instances of the pattern that kept

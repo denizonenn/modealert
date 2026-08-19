@@ -17,6 +17,8 @@ import {
   type ProviderSyncOutcome,
 } from "@/lib/services/provider-sync-summarize";
 
+import { logger } from "@/lib/logger/logger";
+
 export const providerSyncService = {
   async syncAll() {
     const syncStartedAt =
@@ -93,9 +95,12 @@ export const providerSyncService = {
                 provider.name
               );
 
-              console.error(
-                `[ProviderSync] ${provider.name} failed:`,
-                error
+              logger.error(
+                "Provider sync failed",
+                {
+                  provider: provider.name,
+                  error: message,
+                }
               );
 
               throw error;

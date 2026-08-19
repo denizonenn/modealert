@@ -6,6 +6,7 @@ import { withErrorHandling } from "@/lib/api/with-error-handling";
 import { lemonSqueezyWebhookSchema } from "@/lib/validation/schemas";
 import { analyticsService } from "@/lib/services/analytics.service";
 import { ANALYTICS_EVENTS } from "@/lib/constants/analytics-events";
+import { logger } from "@/lib/logger/logger";
 
 const HANDLED_EVENTS = new Set([
   "subscription_created",
@@ -47,10 +48,9 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
   if (!parsed.success) {
     // Signed by Lemon Squeezy but a shape we don't recognize — ack it
     // (so they don't retry forever) without acting on it.
-    console.error(
-      "[lemonsqueezy webhook] unrecognized payload shape",
-      parsed.error.issues
-    );
+    logger.error("Unrecognized Lemon Squeezy webhook payload shape", {
+      issues: parsed.error.issues,
+    });
 
     return NextResponse.json({ received: true });
   }

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { isAdminEmail } from "@/lib/auth/is-admin";
 import { providerSyncService } from "@/lib/services/provider-sync.service";
+import { logger } from "@/lib/logger/logger";
 
 export async function POST() {
   const session = await auth();
@@ -24,15 +25,17 @@ export async function POST() {
       durationMs,
     });
   } catch (error) {
-    console.error(error);
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Unknown error";
+
+    logger.error("Manual admin sync failed", { error: message });
 
     return NextResponse.json(
       {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Unknown error",
+        error: message,
       },
       { status: 500 }
     );

@@ -5,6 +5,7 @@ import { buildDigestHtml } from "@/lib/notifications/email/digest-template";
 import { createUnsubscribeToken } from "@/lib/notifications/email/unsubscribe-token";
 import { env } from "@/lib/config/env";
 import { SITE_URL } from "@/lib/constants/site";
+import { logger } from "@/lib/logger/logger";
 
 const resend = env.RESEND_API_KEY
   ? new Resend(env.RESEND_API_KEY)
@@ -63,11 +64,13 @@ export const weeklyDigestService = {
       } catch (error) {
         // One recipient's failure shouldn't stop the rest — same
         // per-recipient isolation as notification-trigger.service.ts.
-        console.error(
-          "[WeeklyDigest] failed to send",
-          recipient.id,
-          error
-        );
+        logger.error("Failed to send weekly digest", {
+          userId: recipient.id,
+          error:
+            error instanceof Error
+              ? error.message
+              : "Unknown error",
+        });
         skipped++;
       }
     }

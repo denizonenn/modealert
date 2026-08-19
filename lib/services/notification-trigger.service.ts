@@ -27,6 +27,7 @@ import {
 } from "@/lib/repositories/watchlist.repository";
 
 import { retry } from "@/lib/utils/retry";
+import { logger } from "@/lib/logger/logger";
 
 const RETRY_ATTEMPTS = 3;
 const RETRY_DELAY_MS = 500;
@@ -126,9 +127,14 @@ export const notificationTriggerService = {
                 }
               );
 
-              console.error(
-                `[Notification] ${provider.name} failed for ${recipient.email} after ${RETRY_ATTEMPTS} attempts:`,
-                error
+              logger.error(
+                "Notification delivery failed after retries",
+                {
+                  provider: provider.name,
+                  recipient: recipient.email,
+                  attempts: RETRY_ATTEMPTS,
+                  error: errorMessage,
+                }
               );
             }
           }
@@ -136,10 +142,9 @@ export const notificationTriggerService = {
       )
     );
 
-    console.log("");
-
-    console.log(
-      `Notified ${recipients.length} users`
-    );
+    logger.info("Notified users of event change", {
+      eventId: event.id,
+      recipients: recipients.length,
+    });
   },
 };

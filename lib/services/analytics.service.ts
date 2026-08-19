@@ -3,6 +3,7 @@ import {
   getEventCounts,
 } from "@/lib/repositories/analytics.repository";
 import type { AnalyticsEventName } from "@/lib/constants/analytics-events";
+import { logger } from "@/lib/logger/logger";
 
 export const analyticsService = {
   async record(
@@ -15,7 +16,13 @@ export const analyticsService = {
     try {
       await createAnalyticsEvent({ userId, name, detail });
     } catch (error) {
-      console.error("[Analytics] failed to record", name, error);
+      logger.error("Failed to record analytics event", {
+        name,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unknown error",
+      });
     }
   },
 

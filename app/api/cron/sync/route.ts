@@ -9,6 +9,7 @@ import {
   providerSyncService,
 } from "@/lib/services/provider-sync.service";
 import { weeklyDigestService } from "@/lib/services/weekly-digest.service";
+import { logger } from "@/lib/logger/logger";
 
 export async function GET(
   request: NextRequest
@@ -54,16 +55,18 @@ export async function GET(
       digest,
     });
   } catch (error) {
-    console.error(error);
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Unknown error";
+
+    logger.error("Daily cron sync failed", { error: message });
 
     return NextResponse.json(
       {
         success: false,
 
-        error:
-          error instanceof Error
-            ? error.message
-            : "Unknown error",
+        error: message,
       },
       {
         status: 500,

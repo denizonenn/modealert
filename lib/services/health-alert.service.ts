@@ -3,6 +3,7 @@ import { Resend } from "resend";
 import { getRecentHealthChecks } from "@/lib/repositories/provider-health-check.repository";
 import { buildAdminAlertHtml } from "@/lib/notifications/email/template";
 import { env } from "@/lib/config/env";
+import { logger } from "@/lib/logger/logger";
 
 const resend = env.RESEND_API_KEY
   ? new Resend(env.RESEND_API_KEY)
@@ -63,6 +64,13 @@ export async function checkAndAlert(providerId: string, providerName: string) {
       ),
     });
   } catch (error) {
-    console.error("[HealthAlert] failed to send alert email", error);
+    logger.error("Failed to send provider outage alert email", {
+      providerId,
+      providerName,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unknown error",
+    });
   }
 }

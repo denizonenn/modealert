@@ -6,6 +6,8 @@ import {
   communityDragonService,
 } from "@/lib/providers/communitydragon/service";
 
+import { logger } from "@/lib/logger/logger";
+
 export async function GET() {
   try {
     const status =
@@ -17,19 +19,20 @@ export async function GET() {
       ...status,
     });
   } catch (error) {
-    console.error(
-      "[CommunityDragon current]",
-      error
-    );
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Unknown error";
+
+    logger.error("CommunityDragon current-status fetch failed", {
+      error: message,
+    });
 
     return NextResponse.json(
       {
         success: false,
 
-        error:
-          error instanceof Error
-            ? error.message
-            : "Unknown error",
+        error: message,
       },
       {
         status: 500,
