@@ -12,6 +12,7 @@ import type {
 } from "@/lib/repositories/event.repository";
 
 import { buildNotificationContent } from "../core/message-builder";
+import { SITE_URL } from "@/lib/constants/site";
 
 const REQUEST_TIMEOUT_MS = 10_000;
 
@@ -49,6 +50,15 @@ export const discordNotificationProvider: NotificationProvider =
           previous
         );
 
+      // Discord renders an embed title as a link when `url` is set —
+      // same reasoning as the email CTA: an alert with nothing to
+      // click is a dead end. Only the already-synced row has a slug,
+      // so a brand-new event gets a plain title rather than a guessed
+      // (404-ing) link.
+      const eventUrl = previous?.slug
+        ? `${SITE_URL}/events/${previous.slug}`
+        : undefined;
+
       const controller = new AbortController();
       const timer = setTimeout(
         () => controller.abort(),
@@ -68,6 +78,7 @@ export const discordNotificationProvider: NotificationProvider =
               embeds: [
                 {
                   title,
+                  ...(eventUrl ? { url: eventUrl } : {}),
                   description: message,
                   color: EMBED_COLOR,
                   footer: { text: "ModeAlert" },

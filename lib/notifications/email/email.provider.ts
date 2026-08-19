@@ -56,6 +56,13 @@ export const emailNotificationProvider: NotificationProvider =
       const unsubscribeUrl =
         `${SITE_URL}/api/unsubscribe?userId=${recipient.id}&token=${unsubscribeToken}`;
 
+      // Only the already-synced row has a slug — a brand-new event
+      // has no DB row yet at notification time, so it gets no link
+      // rather than a guessed (and 404-ing) one.
+      const eventUrl = previous?.slug
+        ? `${SITE_URL}/events/${previous.slug}`
+        : undefined;
+
       await resend.emails.send({
         from: env.EMAIL_FROM,
 
@@ -63,12 +70,15 @@ export const emailNotificationProvider: NotificationProvider =
 
         subject: title,
 
-        text: `${message}\n\nUnsubscribe: ${unsubscribeUrl}`,
+        text: eventUrl
+          ? `${message}\n\nView event: ${eventUrl}\n\nUnsubscribe: ${unsubscribeUrl}`
+          : `${message}\n\nUnsubscribe: ${unsubscribeUrl}`,
 
         html: buildEmailHtml(
           title,
           message,
-          unsubscribeUrl
+          unsubscribeUrl,
+          eventUrl
         ),
       });
     },

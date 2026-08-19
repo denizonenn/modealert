@@ -98,11 +98,23 @@ export function buildMagicLinkHtml(url: string): string {
 export function buildEmailHtml(
   title: string,
   message: string,
-  unsubscribeUrl: string
+  unsubscribeUrl: string,
+  eventUrl?: string
 ): string {
   const safeTitle = escapeHtml(title)
   const safeMessage = escapeHtml(message)
   const safeUnsubscribeUrl = escapeHtml(unsubscribeUrl)
+
+  // Without this the alert is a dead end — it tells you something
+  // changed but gives you nothing to click, so acting on it means
+  // manually finding your way back to the site. Only rendered when
+  // the event actually has a slug to link to.
+  const ctaBlock = eventUrl
+    ? `
+          <a href="${escapeHtml(eventUrl)}" style="display:inline-block;margin-top:20px;background:#ffffff;color:#000000;font-size:14px;font-weight:600;text-decoration:none;padding:10px 20px;border-radius:8px;">
+            View event
+          </a>`
+    : ""
 
   return `<!doctype html>
 <html>
@@ -123,7 +135,7 @@ export function buildEmailHtml(
           </h1>
           <p style="margin:0;color:#aaaaaa;font-size:14px;line-height:1.5;">
             ${safeMessage}
-          </p>
+          </p>${ctaBlock}
         </td>
       </tr>
       <tr>
