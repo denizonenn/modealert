@@ -6,6 +6,14 @@ import { createUnsubscribeToken } from "@/lib/notifications/email/unsubscribe-to
 import { env } from "@/lib/config/env";
 import { SITE_URL } from "@/lib/constants/site";
 import { logger } from "@/lib/logger/logger";
+import { checkRateLimit } from "@/lib/security/rate-limit";
+
+// "At most one digest per user per 6 days" is literally a rate limit,
+// so this reuses the existing Postgres-backed limiter rather than
+// adding a table for it. 6 days, not 7: the guard must not still be
+// active when next Monday's run comes around, but must comfortably
+// cover same-day repeats.
+const DIGEST_ONCE_PER_MS = 6 * 24 * 60 * 60 * 1000;
 
 const resend = env.RESEND_API_KEY
   ? new Resend(env.RESEND_API_KEY)
@@ -42,6 +50,24 @@ export const weeklyDigestService = {
       }));
 
       if (entries.length === 0) {
+        skipped++;
+        continue;
+      }
+
+      // Without this, any second run of the daily cron on a Monday
+      // sends every user a duplicate digest — and there are real ways
+      // that happens: Vercel Cron retries a non-2xx response, and the
+      // endpoint can be triggered manually with CRON_SECRET (which is
+      // exactly how this gap was found, 2026-08-19). Claimed per user
+      // rather than once globally so a run that dies halfway through
+      // still delivers to the users it hadn't reached yet on retry.
+      const notYetSentThisWeek = await checkRateLimit({
+        key: `weekly-digest:${recipient.id}`,
+        limit: 1,
+        windowMs: DIGEST_ONCE_PER_MS,
+      });
+
+      if (!notYetSentThisWeek) {
         skipped++;
         continue;
       }
