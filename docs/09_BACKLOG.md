@@ -254,10 +254,29 @@ Pending Deniz's action
   further code change needed, `EMAIL_FROM` is already read from env
   everywhere real emails are sent.
 
+Done (2026-08-19) — Discord
+
+- ~~Discord~~ — **shipped, webhook-based, not a bot.** A Discord bot
+  can't DM an arbitrary user unless it shares a server with them —
+  building the "real bot" version would mean ModeAlert running its
+  own Discord server just for this. A webhook the user creates
+  themselves (their server's Integrations → Webhooks) needs none of
+  that — plain authenticated POST, same trust/complexity class as
+  email. `User.discordWebhookUrl` (nullable, additive migration),
+  `lib/notifications/discord/discord.provider.ts` (branded embed,
+  no-ops if unset), wired into `notification-trigger.service.ts` with
+  the same per-recipient skip pattern as `emailOptOut`. Settings UI
+  has a "Send test message" button so users can self-verify without
+  depending on ModeAlert's own ability to reach discord.com (still
+  blocked from Deniz's location without a VPN, per ADR-003) — Discord
+  OAuth login itself was verified working (redirect URI added to the
+  Discord app, `/signin` correctly builds and starts the real
+  `discord.com/api/oauth2/authorize` request with the right client
+  id/redirect_uri), just not completable end-to-end from this
+  environment for the same access-blocked reason.
+
 Future — bilinçli olarak ertelendi
 
-- **Discord** — Türkiye'de erişim sorunu var, en sona bırakıldı
-  (Deniz'in isteği)
 - Telegram
 - Push
 
@@ -1453,8 +1472,13 @@ Blocked on Deniz's action
 
 Future
 
-- Discord notifications as a Premium perk, once Discord itself is
-  built (still blocked on Deniz's Turkey/VPN access, see ADR-003).
+- ~~Discord notifications as a Premium perk, once Discord itself is
+  built~~ — Discord notifications shipped 2026-08-19 (see P0
+  Notification Engine), but as a **free** channel, same as email —
+  the paywall differentiates by watchlist limit/predictions, not by
+  notification channel, so gating just Discord behind Premium would
+  be a new, inconsistent rule. Left free by default; revisit only if
+  Deniz specifically wants to change that.
 - Yearly/lifetime pricing tiers (deliberately deferred — Deniz chose
   monthly-only for launch simplicity).
 - First-user acquisition strategy — separate conversation from the
