@@ -1148,7 +1148,10 @@ Evaluated and rejected
   of hard infrastructure blocker as Apex's Discord-linking requirement
   (ADR-005). A proxy service (e.g. RoyaleAPI's) could route around it,
   but that trades one third-party dependency for another, weakening
-  the trust chain. Not pursued.
+  the trust chain. Not pursued. **Reconfirmed 2026-08-19:** Deniz hit
+  the exact same wall trying to register a key (the developer portal
+  requires an allowed IP address up front) — same conclusion, decided
+  not to buy a static-IP proxy add-on just for this.
 - ~~Genshin Impact / HoYoverse games~~ — **researched 2026-08-13.** No
   official HoYoLab public API for events/banners exists. The only
   option found is a community-run "fan API" aggregating calendar data
