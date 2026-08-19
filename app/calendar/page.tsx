@@ -12,6 +12,7 @@ import { auth } from "@/auth"
 import { eventQueryService } from "@/lib/services/event-query.service"
 import { eventPredictionService } from "@/lib/services/event-prediction.service"
 import { billingService } from "@/lib/services/billing.service"
+import { getOpenHistoryStartsByEventIds } from "@/lib/repositories/event-history.repository"
 import { PLANS } from "@/lib/constants/plan"
 
 export const metadata: Metadata = {
@@ -30,8 +31,18 @@ interface CalendarRow {
   slug: string | null
   status: EventStatus
   game: { id: string; name: string; slug: string; logo: string; color: string }
-  date: Date
+  // Null for a live event we have no recorded start for — better to
+  // show nothing than a date that isn't about the event.
+  date: Date | null
   researched: boolean
+}
+
+// Read once per render of this server-rendered, ISR-cached page
+// (revalidate = 1800). Extracted so it reads as a deliberate
+// snapshot of "now" rather than an ambient clock call inside the
+// component body.
+function currentTime(): number {
+  return Date.now()
 }
 
 async function getPredictionFor(event: {
@@ -59,6 +70,19 @@ export default async function CalendarPage() {
   const events = await eventQueryService.getAll()
   const limitedTime = events.filter((event) => event.isLimitedTime)
 
+  // Real "live since" dates from EventHistory. This column used to
+  // show `event.lastChecked` — the last sync timestamp — which, with
+  // a daily sync, meant every single live row displayed today's date,
+  // reading like an event date while carrying no event information at
+  // all.
+  const liveSince = await getOpenHistoryStartsByEventIds(
+    limitedTime
+      .filter((event) => event.status === "LIVE")
+      .map((event) => event.id)
+  )
+
+  const now = currentTime()
+
   const liveNow: CalendarRow[] = []
   const endingSoon: CalendarRow[] = []
   const returning: CalendarRow[] = []
@@ -74,9 +98,7 @@ export default async function CalendarPage() {
           slug: event.slug,
           status,
           game: event.game,
-          date: event.lastChecked
-            ? new Date(event.lastChecked)
-            : new Date(),
+          date: liveSince.get(event.id) ?? null,
           researched: false,
         })
       }
@@ -87,10 +109,15 @@ export default async function CalendarPage() {
 
       const [prediction, nextArrival] = await getPredictionFor(event)
 
+      // A predicted end date that's already passed while the event is
+      // still live means the estimate was simply wrong — showing it
+      // under "Estimated to end" presents a date in the past as a
+      // forecast (seen live: "Mayhem Set 2 — Aug 14" on Aug 19).
       if (
         (status === "LIVE" || status === "TRACKING") &&
         "predictedEndAt" in prediction &&
-        prediction.predictedEndAt
+        prediction.predictedEndAt &&
+        prediction.predictedEndAt.getTime() > now
       ) {
         endingSoon.push({
           id: event.id,
@@ -105,11 +132,15 @@ export default async function CalendarPage() {
         })
       }
 
+      // Same reasoning as above — a "typically returns" date that's
+      // already passed, on an event that's still ENDED, is a stale
+      // estimate, not a forecast.
       if (
         status === "ENDED" &&
         nextArrival.available &&
         "nextExpectedAt" in nextArrival &&
-        nextArrival.nextExpectedAt
+        nextArrival.nextExpectedAt &&
+        nextArrival.nextExpectedAt.getTime() > now
       ) {
         returning.push({
           id: event.id,
@@ -127,8 +158,12 @@ export default async function CalendarPage() {
   )
 
   liveNow.sort((a, b) => a.title.localeCompare(b.title))
-  endingSoon.sort((a, b) => a.date.getTime() - b.date.getTime())
-  returning.sort((a, b) => a.date.getTime() - b.date.getTime())
+  endingSoon.sort(
+    (a, b) => (a.date?.getTime() ?? 0) - (b.date?.getTime() ?? 0)
+  )
+  returning.sort(
+    (a, b) => (a.date?.getTime() ?? 0) - (b.date?.getTime() ?? 0)
+  )
 
   return (
     <main className="min-h-screen bg-black text-white">
@@ -259,12 +294,15 @@ function CalendarRowView({
         <p className="text-xs text-zinc-500">{row.game.name}</p>
       </div>
       <div className="text-right">
-        <p className="text-xs text-zinc-300">
-          {row.date.toLocaleDateString(undefined, {
-            month: "short",
-            day: "numeric",
-          })}
-        </p>
+        {row.date && (
+          <p className="text-xs text-zinc-300">
+            {isPrediction ? "" : "since "}
+            {row.date.toLocaleDateString(undefined, {
+              month: "short",
+              day: "numeric",
+            })}
+          </p>
+        )}
         {row.researched && (
           <p className="text-[10px] text-zinc-600">researched</p>
         )}

@@ -42,6 +42,44 @@ export async function getLatestHistory(
   });
 }
 
+// "Live since" for many events in one query — the calendar needs this
+// for every currently-live row at once, and calling getLatestHistory
+// per event would be one round trip each. Returns only open (still
+// running) occurrences, keyed by eventId.
+export async function getOpenHistoryStartsByEventIds(
+  eventIds: string[]
+): Promise<Map<string, Date>> {
+  if (eventIds.length === 0) {
+    return new Map();
+  }
+
+  const rows = await prisma.eventHistory.findMany({
+    where: {
+      eventId: { in: eventIds },
+      endedAt: null,
+    },
+    select: {
+      eventId: true,
+      startedAt: true,
+    },
+    orderBy: {
+      startedAt: "desc",
+    },
+  });
+
+  const byEventId = new Map<string, Date>();
+
+  // Descending order means the first row seen per event is its most
+  // recent open occurrence.
+  for (const row of rows) {
+    if (!byEventId.has(row.eventId)) {
+      byEventId.set(row.eventId, row.startedAt);
+    }
+  }
+
+  return byEventId;
+}
+
 export async function getHistoryByEvent(
   eventId: string
 ) {
