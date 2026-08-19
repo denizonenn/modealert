@@ -1390,7 +1390,16 @@ Current
   stays untested — same "no mocking framework, pure functions only"
   boundary as the provider tests.
 
-- Scheduler tests
+- ~~Scheduler tests~~ — **done (2026-08-19).** `provider-sync.service.ts`
+  imports `lib/config/env.ts` transitively (DB/repository layer), so it
+  can't be unit-tested directly without a mocking framework (same
+  constraint noted under Notification tests above). Extracted its one
+  piece of pure logic — mapping `Promise.allSettled` results into
+  per-provider outcomes (fulfilled passthrough, `Error`-vs-non-`Error`
+  rejection handling) — into a new side-effect-free module,
+  `lib/services/provider-sync-summarize.ts`, and added 4 tests
+  (`provider-sync-summarize.test.ts`). Same "pure functions only, no
+  mocking" boundary as the rest of the test suite.
 
 - Prisma optimization
 

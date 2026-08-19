@@ -12,6 +12,11 @@ import {
 
 import { checkAndAlert } from "@/lib/services/health-alert.service";
 
+import {
+  summarizeSyncResults,
+  type ProviderSyncOutcome,
+} from "@/lib/services/provider-sync-summarize";
+
 export const providerSyncService = {
   async syncAll() {
     const syncStartedAt =
@@ -23,7 +28,7 @@ export const providerSyncService = {
     const results =
       await Promise.allSettled(
         providers.map(
-          async (provider) => {
+          async (provider): Promise<ProviderSyncOutcome> => {
             if (
               !provider.enabled
             ) {
@@ -100,27 +105,11 @@ export const providerSyncService = {
       );
 
     const providerResults =
-      results.map(
-        (result, index) => {
-          if (
-            result.status ===
-            "fulfilled"
-          ) {
-            return result.value;
-          }
-
-          return {
-            provider:
-              providers[index].name,
-
-            error:
-              result.reason instanceof
-              Error
-                ? result.reason
-                    .message
-                : "Unknown error",
-          };
-        }
+      summarizeSyncResults(
+        providers.map(
+          (provider) => provider.name
+        ),
+        results
       );
 
     return {
