@@ -81,7 +81,8 @@ export function buildEmailHtml(
       </tr>
       <tr>
         <td style="padding-top:16px;font-size:12px;color:#666666;">
-          Bu e-postayı, takip listene eklediğin bir event güncellendiği için alıyorsun.
+          You&apos;re getting this email because an event on your watchlist
+          was updated.
           <a href="${safeUnsubscribeUrl}" style="color:#666666;">Unsubscribe</a>
         </td>
       </tr>

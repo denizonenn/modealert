@@ -33,7 +33,7 @@ interface CurrentStatusResponse {
 }
 
 function formatDate(value: string) {
-  return new Date(value).toLocaleString("tr-TR", {
+  return new Date(value).toLocaleString("en-US", {
     day: "2-digit",
     month: "short",
     hour: "2-digit",
@@ -54,8 +54,8 @@ function EventRow({ event, index = 0 }: { event: LiveEvent; index?: number }) {
         <p className="text-xs text-zinc-500">{event.hubType}</p>
       </div>
       <div className="shrink-0 text-right text-xs text-zinc-400">
-        <p>Başlangıç: {formatDate(event.startDate)}</p>
-        <p>Bitiş: {formatDate(event.endDate)}</p>
+        <p>Starts: {formatDate(event.startDate)}</p>
+        <p>Ends: {formatDate(event.endDate)}</p>
       </div>
     </motion.div>
   )
@@ -83,7 +83,7 @@ export default function LivePage() {
       const json: CurrentStatusResponse = await response.json()
       setData(json)
     } catch {
-      setData({ success: false, error: "İstek başarısız oldu." })
+      setData({ success: false, error: "Request failed." })
     } finally {
       setLoading(false)
     }
@@ -109,11 +109,11 @@ export default function LivePage() {
             All Games — Live Status
           </p>
           <h1 className="mt-3 text-3xl font-bold tracking-tight md:text-4xl">
-            Şu An Ne Var?
+            What&apos;s Happening Right Now?
           </h1>
           <p className="mt-2 text-sm text-zinc-400">
-            Her oyundaki takip edilen modların anlık durumu — aktif (LIVE),
-            yaklaşan, izlenen veya bitmiş.
+            The current status of every tracked mode across every game —
+            live, upcoming, tracking, or ended.
           </p>
         </motion.div>
 
@@ -133,7 +133,7 @@ export default function LivePage() {
                 CommunityDragon — Live Check
               </p>
               <h2 className="mt-3 text-2xl font-bold tracking-tight md:text-3xl">
-                League of Legends&apos;ta Erken Sinyal Detayı
+                Early Signal Detail for League of Legends
               </h2>
             </div>
 
@@ -144,13 +144,13 @@ export default function LivePage() {
               disabled={loading}
             >
               <RefreshCw className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
-              Yenile
+              Refresh
             </Button>
           </motion.div>
 
           {data?.checkedAt && (
             <p className="mt-2 text-xs text-zinc-500">
-              Son kontrol: {formatDate(data.checkedAt)} · Kaynak: raw.communitydragon.org (live + pbe)
+              Last checked: {formatDate(data.checkedAt)} · Source: raw.communitydragon.org (live + pbe)
             </p>
           )}
 
@@ -158,7 +158,7 @@ export default function LivePage() {
           <Card className="mt-8 border-red-500/30 bg-red-500/10 text-white">
             <CardContent className="flex items-center gap-3 py-4">
               <AlertTriangle className="h-5 w-5 text-red-400" />
-              <p className="text-sm">{data.error ?? "Veri alınamadı."}</p>
+              <p className="text-sm">{data.error ?? "Couldn't fetch data."}</p>
             </CardContent>
           </Card>
         )}
@@ -168,7 +168,7 @@ export default function LivePage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <EventStatusBadge status="LIVE" />
-                Şu An Aktif
+                Live Right Now
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -181,7 +181,7 @@ export default function LivePage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-zinc-500">Şu anda aktif event bulunamadı.</p>
+                <p className="text-sm text-zinc-500">No live events right now.</p>
               )}
             </CardContent>
           </Card>
@@ -190,7 +190,7 @@ export default function LivePage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <EventStatusBadge status="UPCOMING" />
-                Yaklaşanlar
+                Upcoming
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -203,7 +203,7 @@ export default function LivePage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-zinc-500">Yaklaşan planlı event bulunamadı.</p>
+                <p className="text-sm text-zinc-500">No upcoming events scheduled.</p>
               )}
             </CardContent>
           </Card>
@@ -215,13 +215,13 @@ export default function LivePage() {
               <Badge variant="outline" className="border-amber-400 text-amber-400">
                 PBE
               </Badge>
-              PBE&apos;de Olup Live&apos;da Olmayanlar (Erken Sinyal)
+              On PBE But Not Live Yet (Early Signal)
             </CardTitle>
           </CardHeader>
           <CardContent>
             {data?.pbeCheckFailed ? (
               <p className="text-sm text-zinc-500">
-                PBE kontrolü şu an başarısız oldu (PBE sunucusu geçici olarak erişilemez olabilir).
+                The PBE check failed just now (the PBE server may be temporarily unreachable).
               </p>
             ) : isInitialLoad ? (
               <SectionSkeleton />
@@ -233,9 +233,9 @@ export default function LivePage() {
               </div>
             ) : (
               <p className="text-sm text-zinc-500">
-                Şu anda PBE&apos;de olup live&apos;da henüz olmayan bir event yok. Bu normal —
-                CDragon&apos;ın event-hub dosyası genelde season pass / battle pass gibi önceden
-                planlanmış içerikleri kapsıyor.
+                Nothing is on PBE that isn&apos;t already live. That&apos;s normal — CDragon&apos;s
+                event-hub file mostly covers pre-planned content like season passes / battle
+                passes.
               </p>
             )}
           </CardContent>
@@ -243,22 +243,22 @@ export default function LivePage() {
 
         <Card className="mt-6 border-white/10 bg-white/5 text-white">
           <CardHeader>
-            <CardTitle>URF Durumu — Neden Burada Görünmüyor?</CardTitle>
+            <CardTitle>URF Status — Why Isn&apos;t It Shown Here?</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm text-zinc-400">
             <p>
-              URF (Ultra Rapid Fire), CommunityDragon&apos;ın{" "}
-              <code className="rounded bg-black/40 px-1">queues.json</code> dosyasında her zaman
-              tanımlı duruyor — bu bir &quot;aktif&quot; sinyali değil, sadece &quot;bu queue tipi
-              var&quot; demek. Riot, URF&apos;ün ne zaman açık olduğunu hiçbir public ya da
-              datamined dosyada önceden yayınlamıyor; bunu sadece patch notlarında veya istemci
-              içi banner ile (rotasyon açıldığı anda) duyuruyor.
+              URF (Ultra Rapid Fire) is always defined in CommunityDragon&apos;s{" "}
+              <code className="rounded bg-black/40 px-1">queues.json</code> file — that&apos;s not
+              an &quot;active&quot; signal, just &quot;this queue type exists.&quot; Riot never
+              publishes when URF is actually open in any public or datamined file ahead of time;
+              they only announce it in patch notes or an in-client banner once the rotation is
+              already live.
             </p>
             <p>
-              Bu yüzden URF için gerçek &quot;erken uyarı&quot; şu an teknik olarak mümkün değil —
-              bu bizim eksiğimiz değil, Riot&apos;un bu veriyi hiçbir yerde önceden
-              yayınlamamasından kaynaklanıyor. Yukarıdaki PBE/Live karşılaştırması, Arena veya
-              Swarm gibi kendi &quot;hub dosyası&quot; olan modlar için gerçek erken sinyal verir.
+              So a real &quot;early warning&quot; for URF isn&apos;t technically possible right
+              now — that&apos;s not a gap on our end, it&apos;s that Riot never publishes this data
+              anywhere in advance. The PBE/Live comparison above gives a real early signal for
+              modes that have their own &quot;hub file,&quot; like Arena or Swarm.
             </p>
           </CardContent>
         </Card>
