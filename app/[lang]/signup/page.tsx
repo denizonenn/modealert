@@ -10,10 +10,12 @@ import { Lock, Mail } from "lucide-react"
 import { Navbar } from "@/components/layout/navbar"
 import { Button } from "@/components/ui/button"
 import { PasswordStrength } from "@/components/ui/password-strength"
+import { useI18n } from "@/components/providers/i18n-provider"
 
 const MIN_PASSWORD_LENGTH = 8
 
 function SignUpForm() {
+  const { dict, path } = useI18n()
   const router = useRouter()
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard"
@@ -43,12 +45,17 @@ function SignUpForm() {
     setError(null)
 
     if (password.length < MIN_PASSWORD_LENGTH) {
-      setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`)
+      setError(
+        dict.auth.passwordMinLength.replace(
+          "{min}",
+          String(MIN_PASSWORD_LENGTH)
+        )
+      )
       return
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords don't match.")
+      setError(dict.auth.passwordsDontMatch)
       return
     }
 
@@ -64,7 +71,7 @@ function SignUpForm() {
       const data = await response.json()
 
       if (!response.ok) {
-        setError(data.error ?? "Something went wrong. Please try again.")
+        setError(data.error ?? dict.auth.somethingWentWrong)
         setSubmitting(false)
         return
       }
@@ -76,14 +83,14 @@ function SignUpForm() {
       })
 
       if (result?.error) {
-        setError("Account created, but sign-in failed. Try signing in below.")
+        setError(dict.auth.accountCreatedSignInFailed)
         setSubmitting(false)
         return
       }
 
       router.push(callbackUrl)
     } catch {
-      setError("Something went wrong. Please try again.")
+      setError(dict.auth.somethingWentWrong)
       setSubmitting(false)
     }
   }
@@ -92,15 +99,15 @@ function SignUpForm() {
     <div className="mx-auto max-w-sm px-6 py-24">
       <div className="text-center">
         <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">
-          Get started
+          {dict.auth.getStarted}
         </p>
 
         <h1 className="mt-3 text-3xl font-bold tracking-tight">
-          Create your account
+          {dict.auth.signUpTitle}
         </h1>
 
         <p className="mt-2 text-sm text-zinc-400">
-          Track every event that matters. No spam, ever.
+          {dict.auth.subtitle}
         </p>
       </div>
 
@@ -115,7 +122,7 @@ function SignUpForm() {
                 onClick={() => signIn("google", { callbackUrl })}
               >
                 <SiGoogle className="h-4 w-4" />
-                Continue with Google
+                {dict.auth.continueWithGoogle}
               </Button>
             )}
 
@@ -127,14 +134,14 @@ function SignUpForm() {
                 onClick={() => signIn("discord", { callbackUrl })}
               >
                 <SiDiscord className="h-4 w-4" />
-                Continue with Discord
+                {dict.auth.continueWithDiscord}
               </Button>
             )}
           </div>
 
           <div className="my-6 flex items-center gap-3 text-xs text-zinc-500">
             <div className="h-px flex-1 bg-white/10" />
-            or
+            {dict.auth.or}
             <div className="h-px flex-1 bg-white/10" />
           </div>
         </>
@@ -150,8 +157,8 @@ function SignUpForm() {
           <input
             type="email"
             required
-            placeholder="you@example.com"
-            aria-label="Email address"
+            placeholder={dict.auth.emailPlaceholder}
+            aria-label={dict.auth.emailAriaLabel}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="h-10 w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"
@@ -164,8 +171,8 @@ function SignUpForm() {
           <input
             type="password"
             required
-            placeholder="Password (min. 8 characters)"
-            aria-label="Password"
+            placeholder={dict.auth.passwordPlaceholderMin}
+            aria-label={dict.auth.passwordAriaLabel}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="h-10 w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"
@@ -184,8 +191,8 @@ function SignUpForm() {
           <input
             type="password"
             required
-            placeholder="Confirm password"
-            aria-label="Confirm password"
+            placeholder={dict.auth.confirmPasswordPlaceholder}
+            aria-label={dict.auth.confirmPasswordAriaLabel}
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             className="h-10 w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"
@@ -199,14 +206,14 @@ function SignUpForm() {
           disabled={submitting}
           className="mt-2 w-full justify-center bg-white text-black hover:bg-zinc-200"
         >
-          {submitting ? "Creating account..." : "Create account"}
+          {submitting ? dict.auth.creatingAccount : dict.auth.createAccount}
         </Button>
       </form>
 
       <p className="mt-8 text-center text-sm text-zinc-400">
-        Already have an account?{" "}
-        <Link href="/signin" className="text-white hover:underline">
-          Sign in
+        {dict.auth.haveAccount}{" "}
+        <Link href={path("/signin")} className="text-white hover:underline">
+          {dict.auth.signInLink}
         </Link>
       </p>
     </div>

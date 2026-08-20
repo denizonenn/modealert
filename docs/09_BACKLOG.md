@@ -536,11 +536,23 @@ Done (2026-08-20) — Faz 2, `/features` + `/pricing`
   `{count}` (oyun sayısı) ve `{limit}` (`FREE_WATCHLIST_LIMIT`) yer
   tutucuları `/en` ve `/tr`'de canlı doğrulandı.
 
+Done (2026-08-20) — Faz 2, `/signin` + `/signup`
+
+- **`/signin` ve `/signup` tam çevrildi.** Yeni paylaşılan `auth`
+  sözlük alanı — iki sayfa da aynı OAuth butonları/e-posta-şifre
+  formu deseninden geldiği için çoğu anahtar ortak (`emailPlaceholder`,
+  `continueWithGoogle`, hata mesajları vb.), sadece başlık/alt başlık
+  sayfaya özel. `password.length < MIN_PASSWORD_LENGTH` hatası
+  `{min}` yer tutucusuyla. Karşılıklı `/signin`⇄`/signup` linkleri
+  `path()` ile locale önekli. `/tr` ve `/en`'de canlı doğrulandı —
+  OAuth butonları, form metinleri, "e-posta bağlantısı" toggle'ı,
+  şifre gücü göstergesi hepsi doğru.
+
 Kaldığım yer — açık işler (öncelik sırasıyla)
 
-- **Faz 2 — kalan ~15 sayfanın arayüz metni.**
+- **Faz 2 — kalan ~13 sayfanın arayüz metni.**
   `/statistics`, `/status`,
-  `/live`, `/privacy`, `/terms`, `/signin`, `/signup`, `/onboarding`,
+  `/live`, `/privacy`, `/terms`, `/onboarding`,
   `/dashboard` (+`notifications`, `settings`), `/events/[slug]`,
   `/games/[slug]`, `/admin`, `/unsubscribed`, `error`/`not-found`.
   Bu arada `/calendar`'ın kendi çıplak-href'lerini de düzeltmeyi

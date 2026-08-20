@@ -9,8 +9,10 @@ import { Mail, Lock } from "lucide-react"
 
 import { Navbar } from "@/components/layout/navbar"
 import { Button } from "@/components/ui/button"
+import { useI18n } from "@/components/providers/i18n-provider"
 
 function SignInForm() {
+  const { dict, path } = useI18n()
   const router = useRouter()
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard"
@@ -62,7 +64,7 @@ function SignInForm() {
     setSending(false)
 
     if (result?.error) {
-      setError("Incorrect email or password.")
+      setError(dict.auth.incorrectCredentials)
       return
     }
 
@@ -73,13 +75,13 @@ function SignInForm() {
     <div className="mx-auto max-w-sm px-6 py-24">
       <div className="text-center">
         <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">
-          Welcome back
+          {dict.auth.welcomeBack}
         </p>
 
-        <h1 className="mt-3 text-3xl font-bold tracking-tight">Sign in</h1>
+        <h1 className="mt-3 text-3xl font-bold tracking-tight">{dict.auth.signInTitle}</h1>
 
         <p className="mt-2 text-sm text-zinc-400">
-          Track every event that matters. No spam, ever.
+          {dict.auth.subtitle}
         </p>
       </div>
 
@@ -94,7 +96,7 @@ function SignInForm() {
                 onClick={() => signIn("google", { callbackUrl })}
               >
                 <SiGoogle className="h-4 w-4" />
-                Continue with Google
+                {dict.auth.continueWithGoogle}
               </Button>
             )}
 
@@ -106,14 +108,14 @@ function SignInForm() {
                 onClick={() => signIn("discord", { callbackUrl })}
               >
                 <SiDiscord className="h-4 w-4" />
-                Continue with Discord
+                {dict.auth.continueWithDiscord}
               </Button>
             )}
           </div>
 
           <div className="my-6 flex items-center gap-3 text-xs text-zinc-500">
             <div className="h-px flex-1 bg-white/10" />
-            or
+            {dict.auth.or}
             <div className="h-px flex-1 bg-white/10" />
           </div>
         </>
@@ -132,8 +134,8 @@ function SignInForm() {
             <input
               type="email"
               required
-              placeholder="you@example.com"
-              aria-label="Email address"
+              placeholder={dict.auth.emailPlaceholder}
+              aria-label={dict.auth.emailAriaLabel}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="h-10 w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"
@@ -145,7 +147,7 @@ function SignInForm() {
             disabled={sending}
             className="w-full justify-center bg-white text-black hover:bg-zinc-200"
           >
-            {sending ? "Sending link..." : "Continue with email"}
+            {sending ? dict.auth.sendingLink : dict.auth.continueWithEmail}
           </Button>
         </form>
       ) : (
@@ -161,8 +163,8 @@ function SignInForm() {
             <input
               type="email"
               required
-              placeholder="you@example.com"
-              aria-label="Email address"
+              placeholder={dict.auth.emailPlaceholder}
+              aria-label={dict.auth.emailAriaLabel}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="h-10 w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"
@@ -175,8 +177,8 @@ function SignInForm() {
             <input
               type="password"
               required
-              placeholder="Password"
-              aria-label="Password"
+              placeholder={dict.auth.passwordPlaceholder}
+              aria-label={dict.auth.passwordAriaLabel}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="h-10 w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"
@@ -190,7 +192,7 @@ function SignInForm() {
             disabled={sending}
             className="w-full justify-center bg-white text-black hover:bg-zinc-200"
           >
-            {sending ? "Signing in..." : "Sign in"}
+            {sending ? dict.auth.signingIn : dict.auth.signIn}
           </Button>
         </form>
       )}
@@ -203,19 +205,18 @@ function SignInForm() {
         className="mt-4 w-full text-center text-xs text-zinc-500 hover:text-white"
       >
         {mode === "magic-link"
-          ? "Prefer a password instead?"
-          : "Prefer an email link instead?"}
+          ? dict.auth.preferPassword
+          : dict.auth.preferEmailLink}
       </button>
 
       <p className="mt-8 text-center text-xs text-zinc-600">
-        By continuing you agree to receive event notifications you signed up
-        for. Unsubscribe anytime.
+        {dict.auth.continuingAgreement}
       </p>
 
       <p className="mt-4 text-center text-sm text-zinc-400">
-        Don&apos;t have an account?{" "}
-        <Link href="/signup" className="text-white hover:underline">
-          Sign up
+        {dict.auth.noAccount}{" "}
+        <Link href={path("/signup")} className="text-white hover:underline">
+          {dict.auth.signUpLink}
         </Link>
       </p>
     </div>
