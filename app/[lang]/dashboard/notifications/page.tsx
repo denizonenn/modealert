@@ -122,6 +122,7 @@ export default function NotificationHistoryPage() {
                 key={notification.id}
                 title={notification.title}
                 message={notification.message}
+                channel={notification.channel}
                 read={notification.read}
                 createdAt={notification.createdAt}
                 falsePositiveReportedAt={

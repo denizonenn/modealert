@@ -48,6 +48,7 @@ export default function NotificationCenter() {
               key={notification.id}
               title={notification.title}
               message={notification.message}
+              channel={notification.channel}
               read={notification.read}
               createdAt={notification.createdAt}
               falsePositiveReportedAt={

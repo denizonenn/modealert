@@ -1,10 +1,12 @@
 "use client";
 
-import { Flag } from "lucide-react";
+import { Flag, Mail } from "lucide-react";
+import { SiDiscord } from "react-icons/si";
 
 interface Props {
   title: string;
   message: string;
+  channel: string;
   read: boolean;
   createdAt: string;
   falsePositiveReportedAt?: string | null;
@@ -12,9 +14,20 @@ interface Props {
   onReportFalsePositive?: () => void;
 }
 
+// A user with both Email and Discord on gets two rows for the same
+// event change, one per channel (see Notification.channel) — without
+// a label they read as unexplained duplicates. Falls back to the raw
+// channel id for any future channel that doesn't have a mapped icon
+// yet, instead of silently showing nothing.
+const CHANNEL_LABELS: Record<string, { label: string; icon: React.ReactNode }> = {
+  email: { label: "Email", icon: <Mail className="h-3 w-3" /> },
+  discord: { label: "Discord", icon: <SiDiscord className="h-3 w-3" /> },
+};
+
 export default function NotificationItem({
   title,
   message,
+  channel,
   read,
   createdAt,
   falsePositiveReportedAt,
@@ -22,6 +35,7 @@ export default function NotificationItem({
   onReportFalsePositive,
 }: Props) {
   const isReported = Boolean(falsePositiveReportedAt);
+  const channelInfo = CHANNEL_LABELS[channel] ?? { label: channel, icon: null };
 
   return (
     <div
@@ -49,8 +63,13 @@ export default function NotificationItem({
 
         <p className="mt-1 text-sm text-zinc-400">{message}</p>
 
-        <p className="mt-2 text-xs text-zinc-500">
+        <p className="mt-2 flex items-center gap-2 text-xs text-zinc-500">
           {new Date(createdAt).toLocaleString()}
+
+          <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2 py-0.5">
+            {channelInfo.icon}
+            {channelInfo.label}
+          </span>
         </p>
       </button>
 

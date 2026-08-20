@@ -272,6 +272,17 @@ re-listed as new findings. One concrete gap found and fixed same day:
   account? sign in" to find the easier option?). Ported the same
   `hasGoogle`/`hasDiscord` provider-detection + button block from
   `/signin` to `/signup` — both pages now offer the same three methods.
+- **Notification history showed unexplained-looking duplicates for
+  users on both Email and Discord** — `/dashboard/notifications` real
+  data showed the same event change twice (e.g. two "War #139 is now
+  LIVE" rows, timestamps a second apart) with nothing distinguishing
+  them. Not a bug: `Notification.channel` already records one row per
+  channel per change (by design — a user with both on gets both), the
+  field was just never rendered. `NotificationItem` now shows a
+  channel pill (Email/Discord, with icon) next to the timestamp, in
+  both the navbar bell dropdown and the full history page. Falls back
+  to the raw channel string for any future channel without a mapped
+  icon yet, instead of rendering nothing.
 
 Pending Deniz's action
 
