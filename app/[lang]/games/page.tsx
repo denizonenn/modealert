@@ -51,7 +51,7 @@ export default async function GamesPage() {
               color: game.color,
               supportedEvents: game.supportedEvents,
               image:
-                findGameKeyArt(game.slug) ??
+                findGameKeyArt(game.id) ??
                 placeholderGameArt(game.shortName, game.color),
             }))}
           />
