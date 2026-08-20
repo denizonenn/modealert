@@ -12,6 +12,7 @@ import { checkRateLimit, getClientIp } from "@/lib/security/rate-limit";
 import { analyticsService } from "@/lib/services/analytics.service";
 import { ANALYTICS_EVENTS } from "@/lib/constants/analytics-events";
 import { buildMagicLinkHtml } from "@/lib/notifications/email/template";
+import { sendWelcomeEmail } from "@/lib/notifications/email/welcome";
 
 const LOCKOUT_THRESHOLD = 5;
 const LOCKOUT_DURATION_MS = 15 * 60 * 1000;
@@ -229,6 +230,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           user.id,
           ANALYTICS_EVENTS.SIGNUP_COMPLETED
         );
+      }
+
+      if (user.email) {
+        // Best-effort — a failed welcome email should never block or
+        // undo an already-created account.
+        try {
+          await sendWelcomeEmail(user.email);
+        } catch (error) {
+          console.error("Failed to send welcome email", error);
+        }
       }
     },
   },

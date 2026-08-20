@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildEmailHtml } from "./template";
+import { buildEmailHtml, buildWelcomeEmailHtml } from "./template";
 
 describe("buildEmailHtml", () => {
   it("embeds title, message, and unsubscribe URL", () => {
@@ -56,5 +56,16 @@ describe("buildEmailHtml", () => {
     expect(html).toContain(
       "Update &lt;script&gt;alert(document.cookie)&lt;/script&gt;"
     );
+  });
+});
+
+describe("buildWelcomeEmailHtml", () => {
+  it("links to onboarding", () => {
+    const html = buildWelcomeEmailHtml(
+      "https://modealert.vercel.app/onboarding"
+    );
+
+    expect(html).toContain("https://modealert.vercel.app/onboarding");
+    expect(html).toContain("Set up your watchlist");
   });
 });

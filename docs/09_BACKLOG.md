@@ -236,6 +236,32 @@ Done (2026-08-19)
   built-in provider makes, using a new `buildMagicLinkHtml` template.
   Verified with a real test send via the Resend API.
 
+Done (2026-08-20) — customer-POV founder pass
+
+Went through the live product as a first-time visitor (not a code
+read) looking for gaps beyond the ones already covered in the two
+prior founder passes (ADR-046, 2026-08-19). Confirmed the previously-
+known blockers (Lemon Squeezy store not created, `EMAIL_FROM` still
+Resend's shared sandbox address, Riot production key pending) are
+still the biggest real gaps and still genuinely blocked on Deniz — not
+re-listed as new findings. One concrete gap found and fixed same day:
+
+- **No welcome email — a new account's first real touch after signup
+  was silence.** Every other lifecycle email (notification, digest,
+  admin alert, magic-link sign-in) has a branded template; account
+  creation itself sent nothing. `buildWelcomeEmailHtml()` (new,
+  `lib/notifications/email/template.ts`) + `sendWelcomeEmail()`
+  (`lib/notifications/email/welcome.ts`, same no-op-if-Resend-unset
+  pattern as every other email path) wired into both real signup
+  paths: `auth.ts`'s `createUser` event (Google/Discord/magic-link)
+  and `/api/auth/register` (email+password) — the same two hook points
+  `SIGNUP_COMPLETED` analytics already uses, so it's guaranteed to
+  fire for every account regardless of method. Links straight to
+  `/onboarding` since a brand-new account has no watchlist yet.
+  Best-effort (try/catch, logged not thrown) — a failed send can never
+  block or undo an already-created account. 1 new test
+  (`template.test.ts`).
+
 Pending Deniz's action
 
 - **`EMAIL_FROM` has never been set — every email ever sent by this

@@ -8,6 +8,7 @@ import { parseJsonBody } from "@/lib/validation/parse-body";
 import { registerSchema } from "@/lib/validation/schemas";
 import { analyticsService } from "@/lib/services/analytics.service";
 import { ANALYTICS_EVENTS } from "@/lib/constants/analytics-events";
+import { sendWelcomeEmail } from "@/lib/notifications/email/welcome";
 
 // Unauthenticated + creates a real DB row, so this is the most
 // abuse-prone route in the app (mass fake account creation, email
@@ -66,6 +67,14 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     ANALYTICS_EVENTS.SIGNUP_COMPLETED,
     "password"
   );
+
+  // Best-effort — a failed welcome email should never fail signup
+  // itself, the account is already created above.
+  try {
+    await sendWelcomeEmail(user.email);
+  } catch (error) {
+    console.error("Failed to send welcome email", error);
+  }
 
   return NextResponse.json({ success: true });
 });

@@ -95,6 +95,53 @@ export function buildMagicLinkHtml(url: string): string {
 </html>`
 }
 
+// First email a new account ever gets, regardless of signup method
+// (Google/Discord/magic-link via auth.ts's createUser event, or
+// email+password via /api/auth/register) — same visual language as
+// the other templates, points straight at onboarding since a
+// brand-new account has no watchlist yet.
+export function buildWelcomeEmailHtml(onboardingUrl: string): string {
+  const safeUrl = escapeHtml(onboardingUrl)
+
+  return `<!doctype html>
+<html>
+  <body style="margin:0;padding:32px;background:#000;font-family:system-ui,sans-serif;color:#fff;">
+    <table style="max-width:480px;margin:0 auto;width:100%;">
+      <tr>
+        <td style="padding-bottom:16px;font-weight:600;font-size:18px;">
+          ModeAlert
+        </td>
+      </tr>
+      <tr>
+        <td style="background:#111111;border:1px solid #222222;border-radius:16px;padding:24px;">
+          <p style="margin:0 0 8px;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:#888888;">
+            Welcome
+          </p>
+          <h1 style="margin:0 0 12px;font-size:20px;">
+            You&apos;re in.
+          </h1>
+          <p style="margin:0 0 20px;color:#aaaaaa;font-size:14px;line-height:1.5;">
+            ModeAlert watches limited-time modes and events across 13
+            games and emails you the moment one you care about goes
+            live, ends, or changes. Pick your games and events to get
+            your first alert.
+          </p>
+          <a href="${safeUrl}" style="display:inline-block;background:#ffffff;color:#000000;font-size:14px;font-weight:600;text-decoration:none;padding:10px 20px;border-radius:8px;">
+            Set up your watchlist
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding-top:16px;font-size:12px;color:#666666;">
+          You&apos;re getting this email because you just created a
+          ModeAlert account.
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`
+}
+
 export function buildEmailHtml(
   title: string,
   message: string,
