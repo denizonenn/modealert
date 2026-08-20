@@ -15,16 +15,18 @@ import { useOnboardingStore } from "@/stores/onboarding-store"
 import { useRequireAuth } from "@/hooks/use-require-auth"
 import { useTrackEvent } from "@/hooks/use-track-event"
 import { ANALYTICS_EVENTS } from "@/lib/constants/analytics-events"
-
-const STEP_TITLES: Record<number, string> = {
-  1: "Which games do you play?",
-  2: "What do you want to track?",
-  3: "Ready to go",
-}
+import { useI18n } from "@/components/providers/i18n-provider"
 
 export default function OnboardingPage() {
+  const { dict } = useI18n()
   const authStatus = useRequireAuth()
   const track = useTrackEvent()
+
+  const STEP_TITLES: Record<number, string> = {
+    1: dict.onboarding.step1Title,
+    2: dict.onboarding.step2Title,
+    3: dict.onboarding.step3Title,
+  }
 
   const {
     step,
@@ -69,7 +71,7 @@ export default function OnboardingPage() {
       <div className="mx-auto max-w-5xl px-6 py-16">
         <div className="text-center">
           <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">
-            Get Started
+            {dict.onboarding.eyebrow}
           </p>
 
           <h1 className="mt-3 text-3xl font-bold tracking-tight md:text-4xl">
@@ -102,7 +104,7 @@ export default function OnboardingPage() {
               className="border border-white/10 text-white hover:bg-white/10 disabled:opacity-30"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
+              {dict.onboarding.back}
             </Button>
 
             <Button
@@ -110,7 +112,7 @@ export default function OnboardingPage() {
               disabled={!canContinue}
               className="rounded-full bg-gradient-brand px-8 text-white disabled:opacity-40"
             >
-              Continue
+              {dict.onboarding.continue}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
@@ -124,7 +126,7 @@ export default function OnboardingPage() {
               className="border border-white/10 text-white hover:bg-white/10"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
+              {dict.onboarding.back}
             </Button>
           </div>
         )}

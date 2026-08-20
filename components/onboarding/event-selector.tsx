@@ -20,6 +20,7 @@ import {
 } from "@/lib/constants/event-category";
 
 import EventCard from "../cards/event-card";
+import { useI18n } from "@/components/providers/i18n-provider";
 
 const STATUS_PRIORITY: Record<string, number> = {
   LIVE: 0,
@@ -41,6 +42,8 @@ const DEFAULT_ROTATIONS: Set<RotationFilter> = new Set(
 );
 
 export default function EventSelector() {
+  const { dict } = useI18n();
+
   const {
     selectedGames,
     selectedEvents,
@@ -136,7 +139,7 @@ export default function EventSelector() {
   if (error) {
     return (
       <p className="mt-10 text-center text-zinc-500">
-        Failed to load events.
+        {dict.onboarding.failedToLoadEvents}
       </p>
     );
   }
@@ -157,8 +160,7 @@ export default function EventSelector() {
 
       {filteredEvents.length === 0 ? (
         <p className="mt-10 text-center text-zinc-500">
-          No events found for your selected games and categories yet —
-          check back soon.
+          {dict.onboarding.noEventsFound}
         </p>
       ) : (
         <div className="mt-8 grid gap-5 md:grid-cols-2">

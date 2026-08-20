@@ -262,5 +262,29 @@
     "createAccount": "Hesap oluştur",
     "haveAccount": "Zaten bir hesabın var mı?",
     "signInLink": "Giriş yap"
+  },
+  "onboarding": {
+    "eyebrow": "Başla",
+    "step1Title": "Hangi oyunları oynuyorsun?",
+    "step2Title": "Neyi takip etmek istiyorsun?",
+    "step3Title": "Hazırsın",
+    "stepGames": "Oyunlar",
+    "stepEvents": "Etkinlikler",
+    "stepFinish": "Bitir",
+    "back": "Geri",
+    "continue": "Devam et",
+    "failedToLoadGames": "Oyunlar yüklenemedi.",
+    "noEventsFound": "Seçtiğin oyunlar ve kategoriler için henüz etkinlik bulunamadı — daha sonra tekrar bak.",
+    "failedToLoadEvents": "Etkinlikler yüklenemedi.",
+    "aboutToTrackOne": "{count} etkinliği takip etmek üzeresin",
+    "aboutToTrackMany": "{count} etkinliği takip etmek üzeresin",
+    "weWillCheck": "Değişiklikleri otomatik olarak kontrol edeceğiz ve bir şey canlıya geçtiği anda seni e-posta veya Discord ile uyaracağız.",
+    "noEventsPicked": "Henüz hiç etkinlik seçmedin — geri dön ve en az bir tane seç.",
+    "savingError": "Listen kaydedilirken bir şeyler ters gitti. Lütfen tekrar dene.",
+    "freePlanLimit": "Free plan {limit} etkinliğe kadar takip sağlar — seçimlerinden sığan kadarını kaydettik.",
+    "upgradeToPremium": "Premium'a yükselt",
+    "forUnlimitedTracking": "sınırsız takip için, ya da sığanla devam et.",
+    "continueToDashboard": "Panele devam et",
+    "startTracking": "Takibe Başla"
   }
 }

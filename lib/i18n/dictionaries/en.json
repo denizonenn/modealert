@@ -262,5 +262,29 @@
     "createAccount": "Create account",
     "haveAccount": "Already have an account?",
     "signInLink": "Sign in"
+  },
+  "onboarding": {
+    "eyebrow": "Get Started",
+    "step1Title": "Which games do you play?",
+    "step2Title": "What do you want to track?",
+    "step3Title": "Ready to go",
+    "stepGames": "Games",
+    "stepEvents": "Events",
+    "stepFinish": "Finish",
+    "back": "Back",
+    "continue": "Continue",
+    "failedToLoadGames": "Failed to load games.",
+    "noEventsFound": "No events found for your selected games and categories yet — check back soon.",
+    "failedToLoadEvents": "Failed to load events.",
+    "aboutToTrackOne": "You're about to track {count} event",
+    "aboutToTrackMany": "You're about to track {count} events",
+    "weWillCheck": "We'll check for changes automatically and alert you by email or Discord the moment something goes live.",
+    "noEventsPicked": "You haven't picked any events yet — go back and select at least one.",
+    "savingError": "Something went wrong saving your watchlist. Please try again.",
+    "freePlanLimit": "The free plan tracks up to {limit} events — we saved as many of your picks as fit.",
+    "upgradeToPremium": "Upgrade to Premium",
+    "forUnlimitedTracking": "for unlimited tracking, or continue with what fit.",
+    "continueToDashboard": "Continue to dashboard",
+    "startTracking": "Start Tracking"
   }
 }

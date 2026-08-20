@@ -5,8 +5,10 @@ import { useGames } from "@/hooks/use-games";
 import { Skeleton } from "@/components/shared/skeleton";
 import { GAMES_WITH_PROVIDER } from "@/lib/constants/games";
 import SelectableGameCard from "../cards/selectable-game-card";
+import { useI18n } from "@/components/providers/i18n-provider";
 
 export default function GameSelector() {
+  const { dict } = useI18n();
   const { selectedGames, toggleGame } = useOnboardingStore();
   const { games, isLoading, error } = useGames();
 
@@ -23,7 +25,7 @@ export default function GameSelector() {
   if (error) {
     return (
       <p className="text-center text-zinc-500">
-        Failed to load games.
+        {dict.onboarding.failedToLoadGames}
       </p>
     );
   }

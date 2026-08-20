@@ -548,11 +548,34 @@ Done (2026-08-20) — Faz 2, `/signin` + `/signup`
   OAuth butonları, form metinleri, "e-posta bağlantısı" toggle'ı,
   şifre gücü göstergesi hepsi doğru.
 
+Done (2026-08-20) — Faz 2, `/onboarding`
+
+- **`/onboarding` (3 adım: Games/Events/Finish) tam çevrildi.** Yeni
+  `onboarding` sözlük alanı. `ONBOARDING_STEPS` artık `Progress.tsx`
+  içinde `dict`'ten kuruluyor — o tek yerden başka kullanılmayan
+  `constants/onboarding.ts` silindi. `FinishStep`'in "Upgrade to
+  Premium" linki `path()` ile locale önekli. `{count}` (kaç etkinlik
+  seçildiği) ve `{limit}` (free plan sınırı) yer tutucuları `/tr` ve
+  `/en`'de canlı doğrulandı. **Bilinçli olarak dokunulmadı:**
+  `CategoryFilterBar`/`RotationFilterBar`'ın kategori isimleri
+  (`lib/constants/event-category.ts`'teki `EVENT_CATEGORY_LABELS`
+  vb.) hâlâ İngilizce — bu dosya onboarding, dashboard ve
+  `/games/[slug]` arasında paylaşılıyor, tek başına ayrı bir iş
+  olarak ele alınmalı (aşağıya eklendi).
+
 Kaldığım yer — açık işler (öncelik sırasıyla)
 
-- **Faz 2 — kalan ~13 sayfanın arayüz metni.**
+- **Paylaşılan kategori/rotasyon filtre etiketleri** —
+  `lib/constants/event-category.ts`'teki `EVENT_CATEGORY_LABELS`,
+  `EVENT_CATEGORY_EXAMPLES`, `ROTATION_FILTER_LABELS` hâlâ sabit
+  İngilizce string'ler; `CategoryFilterBar`/`RotationFilterBar`
+  üzerinden onboarding, dashboard ve muhtemelen `/games/[slug]`'ta
+  kullanılıyor. Fonksiyona çevirip `dict` almalı, tüm çağıranlar
+  güncellenmeli — Faz 2'nin geri kalanından önce veya dashboard'a
+  sıra gelince yapılabilir.
+- **Faz 2 — kalan ~12 sayfanın arayüz metni.**
   `/statistics`, `/status`,
-  `/live`, `/privacy`, `/terms`, `/onboarding`,
+  `/live`, `/privacy`, `/terms`,
   `/dashboard` (+`notifications`, `settings`), `/events/[slug]`,
   `/games/[slug]`, `/admin`, `/unsubscribed`, `error`/`not-found`.
   Bu arada `/calendar`'ın kendi çıplak-href'lerini de düzeltmeyi

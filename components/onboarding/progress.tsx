@@ -2,11 +2,18 @@
 
 import { Check } from "lucide-react";
 
-import { ONBOARDING_STEPS } from "@/constants/onboarding";
 import { useOnboardingStore } from "@/stores/onboarding-store";
+import { useI18n } from "@/components/providers/i18n-provider";
 
 export default function Progress() {
   const { step } = useOnboardingStore();
+  const { dict } = useI18n();
+
+  const ONBOARDING_STEPS = [
+    { id: 1, title: dict.onboarding.stepGames },
+    { id: 2, title: dict.onboarding.stepEvents },
+    { id: 3, title: dict.onboarding.stepFinish },
+  ];
 
   return (
     <div className="mb-14 flex items-center justify-center">

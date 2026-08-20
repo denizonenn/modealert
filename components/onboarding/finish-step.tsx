@@ -13,8 +13,10 @@ import { useTrackEvent } from "@/hooks/use-track-event"
 import { Button } from "@/components/ui/button"
 import { FREE_WATCHLIST_LIMIT } from "@/lib/constants/plan"
 import { ANALYTICS_EVENTS } from "@/lib/constants/analytics-events"
+import { useI18n } from "@/components/providers/i18n-provider"
 
 export default function FinishStep() {
+  const { dict, path } = useI18n()
   const router = useRouter()
   const track = useTrackEvent()
 
@@ -75,9 +77,7 @@ export default function FinishStep() {
       clear()
       router.push("/dashboard")
     } catch {
-      setError(
-        "Something went wrong saving your watchlist. Please try again."
-      )
+      setError(dict.onboarding.savingError)
     } finally {
       setSubmitting(false)
     }
@@ -96,13 +96,14 @@ export default function FinishStep() {
       </div>
 
       <h2 className="mt-6 text-2xl font-semibold">
-        You&apos;re about to track {watchedEvents.length}{" "}
-        {watchedEvents.length === 1 ? "event" : "events"}
+        {(watchedEvents.length === 1
+          ? dict.onboarding.aboutToTrackOne
+          : dict.onboarding.aboutToTrackMany
+        ).replace("{count}", String(watchedEvents.length))}
       </h2>
 
       <p className="mt-2 text-zinc-400">
-        We&apos;ll check for changes automatically and alert you by
-        email or Discord the moment something goes live.
+        {dict.onboarding.weWillCheck}
       </p>
 
       {watchedEvents.length > 0 ? (
@@ -123,8 +124,7 @@ export default function FinishStep() {
         </div>
       ) : (
         <p className="mt-8 text-sm text-zinc-500">
-          You haven&apos;t picked any events yet — go back and select
-          at least one.
+          {dict.onboarding.noEventsPicked}
         </p>
       )}
 
@@ -135,15 +135,17 @@ export default function FinishStep() {
       {limitReached ? (
         <div className="mt-8 space-y-4">
           <p className="text-sm text-zinc-400">
-            The free plan tracks up to {FREE_WATCHLIST_LIMIT} events —
-            we saved as many of your picks as fit.{" "}
+            {dict.onboarding.freePlanLimit.replace(
+              "{limit}",
+              String(FREE_WATCHLIST_LIMIT)
+            )}{" "}
             <Link
-              href="/pricing"
+              href={path("/pricing")}
               className="font-medium text-white hover:underline"
             >
-              Upgrade to Premium
+              {dict.onboarding.upgradeToPremium}
             </Link>{" "}
-            for unlimited tracking, or continue with what fit.
+            {dict.onboarding.forUnlimitedTracking}
           </p>
 
           <Button
@@ -151,7 +153,7 @@ export default function FinishStep() {
             onClick={handleContinueAnyway}
             className="h-12 rounded-full bg-gradient-brand px-10 text-white shadow-[0_0_30px_rgba(168,85,247,0.35)] transition-shadow hover:shadow-[0_0_40px_rgba(168,85,247,0.5)]"
           >
-            Continue to dashboard
+            {dict.onboarding.continueToDashboard}
           </Button>
         </div>
       ) : (
@@ -164,7 +166,7 @@ export default function FinishStep() {
           {submitting ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
-            "Start Tracking"
+            dict.onboarding.startTracking
           )}
         </Button>
       )}
