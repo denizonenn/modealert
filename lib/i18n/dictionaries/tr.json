@@ -180,5 +180,52 @@
         "answer": "Şu an e-posta ve Discord (Ayarlar'dan bir webhook URL'si ekle). Telegram yol haritasında."
       }
     ]
+  },
+  "featuresPage": {
+    "eyebrow": "Özellikler",
+    "title": "ModeAlert'in yaptığı her şey, tek yerde.",
+    "introPre": "ModeAlert tek bir soruyu otomatik olarak yanıtlamak için var:",
+    "introQuote": "“önemsediğim oyun modu az önce canlıya mı geçti?”",
+    "introPost": "İşte bunu tam olarak nasıl yaptığı.",
+    "pbeTitle": "PBE ile erken tespit",
+    "pbeDescription": "League of Legends için, canlı yamayı Riot'un Herkese Açık Beta Ortamı'yla (PBE) karşılaştırıyoruz — yeni modlar ve etkinlikler genellikle resmi olarak yayınlanmadan günler veya haftalar önce orada görünür.",
+    "alertsTitle": "Anında e-posta ve Discord uyarıları",
+    "alertsDescription": "Seçtiğin mod veya etkinlik canlıya geçtiği, bittiği ya da durumu değiştiği anda temiz, okunabilir bir e-posta — ya da webhook üzerinden doğrudan kendi Discord sunucuna gönderilen bir mesaj al. Paneli yenilemene gerek yok.",
+    "gamesTitle": "{count} oyun, tek gelen kutusu",
+    "gamesDescription": "League of Legends, Valorant, Destiny 2, TFT, Fortnite, Warframe, Path of Exile, Helldivers 2, Foxhole, PUBG, PlanetSide 2, Final Fantasy XIV ve EA Sports FC — her oyun için ayrı bir takip aracı, Discord botu ya da topluluk sitesi yerine tek bir liste.",
+    "dailyTitle": "Günde bir kez, otomatik çalışır",
+    "dailyDescription": "Zamanlanmış bir senkronizasyon her kaynağı günde bir kez kontrol eder ve bir önceki sonuçla karşılaştırır — yeni, değişen ve biten etkinlikler sen hiçbir şey yapmadan tespit edilir.",
+    "watchTitle": "Sadece önemli olanı izle",
+    "watchDescription": "Her şey için bildirim almak yerine, her oyun için belirli mod ve etkinlikleri seç — URF, Arena, Night Market, battle pass'ler, gerçekten önemsediğin her ne ise.",
+    "privacyTitle": "Önce gizlilik",
+    "privacyDescription": "Sadece istediğin uyarıları göndermek için gereken şeyi saklarız — listen, e-postan ve eklersen bir Discord webhook URL'si. Takip pikseli yok, veri satışı yok.",
+    "whyEyebrow": "Neden var",
+    "whyTitle": "Asıl sorun, elle kontrol etmek.",
+    "whyPara1": "Süreli modlar tıpkı ortaya çıktıkları gibi, az bir uyarıyla kaybolurlar. Bir mod sosyal medyada gündem olduğunda, süresinin yarısı çoktan geçmiş olabilir. Bir yama notları sayfasını veya bir Twitter akışını her gün yenilemek ölçeklenmez, çoğu oyuncu bunun yerine sadece kaçırır.",
+    "whyPara2": "ModeAlert bunu tersine çevirir: sen oyunu kontrol etmek yerine, kurduğun her başlıkta oyun senin adına günde bir kez kontrol edilir. Sadece listendeki bir şey gerçekten değiştiğinde bizden haber alırsın.",
+    "ctaTitle": "Elle kontrol etmeyi bırakmaya hazır mısın?",
+    "ctaIntro": "Ücretsiz başla. İlk uyarını bir dakikadan kısa sürede kur.",
+    "startTracking": "Takibe Başla",
+    "seeSupportedGames": "Desteklenen oyunları gör"
+  },
+  "pricingPage": {
+    "eyebrow": "Fiyatlandırma",
+    "title": "Basit, düşük sürtünmeli fiyatlandırma.",
+    "intro": "Ücretsiz başla. Sadece bir avuçtan fazla etkinlik takip ediyorsan veya ModeAlert'in etkinlik başına tahminlerini istiyorsan yükselt.",
+    "freeTitle": "Free",
+    "freeFeature1": "{limit} etkinliğe kadar takip",
+    "freeFeature2": "Durum değişikliklerinde e-posta ve Discord uyarıları",
+    "freeFeature3": "Desteklenen her oyunda canlı durum",
+    "getStarted": "Başla",
+    "premiumBadge": "Premium",
+    "premiumTitle": "Premium",
+    "perMonth": "/ ay",
+    "premiumFeature1": "Sınırsız takip edilen etkinlik",
+    "premiumFeature2": "Etkinlik başına tahminler — tahmini bitiş tarihi, ortalama süre, bir modun genelde ne zaman geri döndüğü",
+    "premiumFeature3": "Free'deki her şey",
+    "youreOnPremium": "Premium'dasın",
+    "signInToUpgrade": "Yükseltmek için giriş yap",
+    "upgradeToPremium": "Premium'a yükselt",
+    "upgradesNotLive": "Yükseltmeler henüz aktif değil — daha sonra tekrar bak."
   }
 }

@@ -527,10 +527,19 @@ Done (2026-08-20) — Faz 2, ana sayfa
   akordiyonu (`{count}` interpolasyonu dahil) doğru render ediyor,
   İngilizce tarafta regresyon yok.
 
+Done (2026-08-20) — Faz 2, `/features` + `/pricing`
+
+- **`/features` ve `/pricing` tam çevrildi.** Yeni `featuresPage`/
+  `pricingPage` sözlük alanları. İkisi de zaten async server component
+  olduğu için `getDictionary()`/`getLocale()` eklemek doğrudandı;
+  `/onboarding`, `/games`, `/signin` linkleri artık locale önekli.
+  `{count}` (oyun sayısı) ve `{limit}` (`FREE_WATCHLIST_LIMIT`) yer
+  tutucuları `/en` ve `/tr`'de canlı doğrulandı.
+
 Kaldığım yer — açık işler (öncelik sırasıyla)
 
-- **Faz 2 — kalan ~17 sayfanın arayüz metni.**
-  `/features`, `/pricing`, `/statistics`, `/status`,
+- **Faz 2 — kalan ~15 sayfanın arayüz metni.**
+  `/statistics`, `/status`,
   `/live`, `/privacy`, `/terms`, `/signin`, `/signup`, `/onboarding`,
   `/dashboard` (+`notifications`, `settings`), `/events/[slug]`,
   `/games/[slug]`, `/admin`, `/unsubscribed`, `error`/`not-found`.

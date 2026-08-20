@@ -180,5 +180,52 @@
         "answer": "Email and Discord today (add a webhook URL in Settings). Telegram is on the roadmap."
       }
     ]
+  },
+  "featuresPage": {
+    "eyebrow": "Features",
+    "title": "Everything ModeAlert does, in one place.",
+    "introPre": "ModeAlert exists to answer one question automatically:",
+    "introQuote": "“did the game mode I care about just go live?”",
+    "introPost": "Here's exactly how it does that.",
+    "pbeTitle": "Early detection via PBE",
+    "pbeDescription": "For League of Legends, we compare the live patch against Riot's Public Beta Environment — new modes and events often show up there days or weeks before they officially launch.",
+    "alertsTitle": "Instant email & Discord alerts",
+    "alertsDescription": "Get a clean, readable email — or a message posted straight to your own Discord server via webhook — the moment your selected mode or event goes live, ends, or changes status. No dashboard-refreshing required.",
+    "gamesTitle": "{count} games, one inbox",
+    "gamesDescription": "League of Legends, Valorant, Destiny 2, TFT, Fortnite, Warframe, Path of Exile, Helldivers 2, Foxhole, PUBG, PlanetSide 2, Final Fantasy XIV, and EA Sports FC — one watchlist instead of a different tracker, Discord bot, or community site per game.",
+    "dailyTitle": "Runs daily, automatically",
+    "dailyDescription": "A scheduled sync checks every source once a day and diffs it against what it saw last time — new, changed, and ended events are detected without you doing anything.",
+    "watchTitle": "Watch only what matters",
+    "watchDescription": "Pick specific modes and events per game instead of getting notified about everything — URF, Arena, Night Market, battle passes, whatever you actually care about.",
+    "privacyTitle": "Privacy first",
+    "privacyDescription": "We only store what's needed to send the alerts you asked for — your watchlist, your email, and a Discord webhook URL if you add one. No tracking pixels, no data resale.",
+    "whyEyebrow": "Why it exists",
+    "whyTitle": "Manually checking is the actual problem.",
+    "whyPara1": "Limited-time modes disappear the same way they appear — with little warning. By the time a mode trends on social media, it might already be halfway through its run. Refreshing a patch notes page or a Twitter feed every day doesn't scale, and most players just miss things instead.",
+    "whyPara2": "ModeAlert flips that: instead of you checking on the game, the game gets checked on your behalf, once a day, across every title you've set up. You only hear from us when something on your watchlist actually changes.",
+    "ctaTitle": "Ready to stop checking manually?",
+    "ctaIntro": "Free to start. Set up your first alert in under a minute.",
+    "startTracking": "Start Tracking",
+    "seeSupportedGames": "See supported games"
+  },
+  "pricingPage": {
+    "eyebrow": "Pricing",
+    "title": "Simple, low-friction pricing.",
+    "intro": "Start free. Upgrade only if you're tracking more than a handful of events or want ModeAlert's per-event predictions.",
+    "freeTitle": "Free",
+    "freeFeature1": "Track up to {limit} events",
+    "freeFeature2": "Email and Discord alerts on status changes",
+    "freeFeature3": "Live status across every supported game",
+    "getStarted": "Get started",
+    "premiumBadge": "Premium",
+    "premiumTitle": "Premium",
+    "perMonth": "/ month",
+    "premiumFeature1": "Unlimited tracked events",
+    "premiumFeature2": "Per-event predictions — estimated end date, average duration, when a mode typically comes back",
+    "premiumFeature3": "Everything in Free",
+    "youreOnPremium": "You're on Premium",
+    "signInToUpgrade": "Sign in to upgrade",
+    "upgradeToPremium": "Upgrade to Premium",
+    "upgradesNotLive": "Upgrades aren't live yet — check back soon."
   }
 }

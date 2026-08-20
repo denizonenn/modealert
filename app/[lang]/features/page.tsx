@@ -17,80 +17,81 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { SectionEyebrow } from "@/components/shared/section-eyebrow"
 import { GAMES_WITH_PROVIDER } from "@/lib/constants/games"
+import { getDictionary, getLocale, type Dictionary } from "@/lib/i18n/dictionaries"
 
-export const metadata: Metadata = {
-  title: "Features",
-  description: `See how ModeAlert detects game events across League of Legends, Valorant, Destiny 2, and ${
-    GAMES_WITH_PROVIDER.size - 3
-  } other games before they're officially announced, and alerts you the moment something changes.`,
+export async function generateMetadata(): Promise<Metadata> {
+  const dict = await getDictionary()
+
+  return {
+    title: dict.featuresPage.eyebrow,
+    description: `See how ModeAlert detects game events across League of Legends, Valorant, Destiny 2, and ${
+      GAMES_WITH_PROVIDER.size - 3
+    } other games before they're officially announced, and alerts you the moment something changes.`,
+  }
 }
 
-function getCoreFeatures(gameCount: number) {
+function getCoreFeatures(gameCount: number, dict: Dictionary) {
   return [
   {
-    title: "Early detection via PBE",
-    description:
-      "For League of Legends, we compare the live patch against Riot's Public Beta Environment — new modes and events often show up there days or weeks before they officially launch.",
+    title: dict.featuresPage.pbeTitle,
+    description: dict.featuresPage.pbeDescription,
     icon: Radar,
     gradient: "linear-gradient(135deg, #a855f7, #d946ef)",
   },
   {
-    title: "Instant email & Discord alerts",
-    description:
-      "Get a clean, readable email — or a message posted straight to your own Discord server via webhook — the moment your selected mode or event goes live, ends, or changes status. No dashboard-refreshing required.",
+    title: dict.featuresPage.alertsTitle,
+    description: dict.featuresPage.alertsDescription,
     icon: Mail,
     gradient: "linear-gradient(135deg, #3b82f6, #06b6d4)",
   },
   {
-    title: `${gameCount} games, one inbox`,
-    description: `League of Legends, Valorant, Destiny 2, TFT, Fortnite, Warframe, Path of Exile, Helldivers 2, Foxhole, PUBG, PlanetSide 2, Final Fantasy XIV, and EA Sports FC — one watchlist instead of a different tracker, Discord bot, or community site per game.`,
+    title: dict.featuresPage.gamesTitle.replace("{count}", String(gameCount)),
+    description: dict.featuresPage.gamesDescription,
     icon: Gamepad2,
     gradient: "linear-gradient(135deg, #ec4899, #f43f5e)",
   },
   {
-    title: "Runs daily, automatically",
-    description:
-      "A scheduled sync checks every source once a day and diffs it against what it saw last time — new, changed, and ended events are detected without you doing anything.",
+    title: dict.featuresPage.dailyTitle,
+    description: dict.featuresPage.dailyDescription,
     icon: Clock3,
     gradient: "linear-gradient(135deg, #f59e0b, #f97316)",
   },
   {
-    title: "Watch only what matters",
-    description:
-      "Pick specific modes and events per game instead of getting notified about everything — URF, Arena, Night Market, battle passes, whatever you actually care about.",
+    title: dict.featuresPage.watchTitle,
+    description: dict.featuresPage.watchDescription,
     icon: Bell,
     gradient: "linear-gradient(135deg, #22c55e, #10b981)",
   },
   {
-    title: "Privacy first",
-    description:
-      "We only store what's needed to send the alerts you asked for — your watchlist, your email, and a Discord webhook URL if you add one. No tracking pixels, no data resale.",
+    title: dict.featuresPage.privacyTitle,
+    description: dict.featuresPage.privacyDescription,
     icon: Shield,
     gradient: "linear-gradient(135deg, #10b981, #14b8a6)",
   },
   ]
 }
 
-export default function FeaturesPage() {
-  const CORE_FEATURES = getCoreFeatures(GAMES_WITH_PROVIDER.size)
+export default async function FeaturesPage() {
+  const [dict, locale] = await Promise.all([getDictionary(), getLocale()])
+  const CORE_FEATURES = getCoreFeatures(GAMES_WITH_PROVIDER.size, dict)
 
   return (
     <main className="min-h-screen bg-black text-white">
       <Navbar />
 
       <section className="mx-auto max-w-4xl px-6 pt-20 pb-4 text-center">
-        <SectionEyebrow className="justify-center">Features</SectionEyebrow>
+        <SectionEyebrow className="justify-center">{dict.featuresPage.eyebrow}</SectionEyebrow>
 
         <h1 className="mt-4 text-4xl font-bold tracking-tight md:text-5xl">
-          Everything ModeAlert does, in one place.
+          {dict.featuresPage.title}
         </h1>
 
         <p className="mx-auto mt-5 max-w-2xl text-lg text-zinc-400">
-          ModeAlert exists to answer one question automatically:{" "}
+          {dict.featuresPage.introPre}{" "}
           <span className="text-white">
-            &ldquo;did the game mode I care about just go live?&rdquo;
+            {dict.featuresPage.introQuote}
           </span>{" "}
-          Here&apos;s exactly how it does that.
+          {dict.featuresPage.introPost}
         </p>
       </section>
 
@@ -130,26 +131,19 @@ export default function FeaturesPage() {
       <section className="border-t border-white/10 bg-white/[0.02]">
         <div className="mx-auto max-w-4xl px-6 py-20">
           <SectionEyebrow className="justify-center">
-            Why it exists
+            {dict.featuresPage.whyEyebrow}
           </SectionEyebrow>
 
           <h2 className="mt-4 text-center text-3xl font-bold tracking-tight md:text-4xl">
-            Manually checking is the actual problem.
+            {dict.featuresPage.whyTitle}
           </h2>
 
           <div className="mt-10 space-y-6 text-lg leading-relaxed text-zinc-400">
             <p>
-              Limited-time modes disappear the same way they appear — with
-              little warning. By the time a mode trends on social media, it
-              might already be halfway through its run. Refreshing a patch
-              notes page or a Twitter feed every day doesn&apos;t scale, and
-              most players just miss things instead.
+              {dict.featuresPage.whyPara1}
             </p>
             <p>
-              ModeAlert flips that: instead of you checking on the game, the
-              game gets checked on your behalf, once a day, across every
-              title you&apos;ve set up. You only hear from us when something
-              on your watchlist actually changes.
+              {dict.featuresPage.whyPara2}
             </p>
           </div>
         </div>
@@ -161,30 +155,30 @@ export default function FeaturesPage() {
         </div>
 
         <h2 className="mx-auto mt-6 max-w-2xl text-3xl font-bold tracking-tight md:text-4xl">
-          Ready to stop checking manually?
+          {dict.featuresPage.ctaTitle}
         </h2>
 
         <p className="mx-auto mt-4 max-w-xl text-zinc-400">
-          Free to start. Set up your first alert in under a minute.
+          {dict.featuresPage.ctaIntro}
         </p>
 
         <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <Link href="/onboarding">
+          <Link href={`/${locale}/onboarding`}>
             <Button
               size="lg"
               className="h-12 rounded-full bg-gradient-brand px-8 text-white shadow-[0_0_30px_rgba(168,85,247,0.35)] transition-shadow hover:shadow-[0_0_40px_rgba(168,85,247,0.5)]"
             >
-              Start Tracking
+              {dict.featuresPage.startTracking}
             </Button>
           </Link>
 
-          <Link href="/games">
+          <Link href={`/${locale}/games`}>
             <Button
               size="lg"
               variant="outline"
               className="h-12 rounded-full border-white/15 bg-white/5 px-8 text-white hover:bg-white/10"
             >
-              See supported games
+              {dict.featuresPage.seeSupportedGames}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
