@@ -6,6 +6,7 @@ import { motion } from "framer-motion"
 import { Game } from "@/types/game"
 import { GameIcon } from "@/components/shared/game-icon"
 import { GAMES_WITH_PROVIDER } from "@/lib/constants/games"
+import { useI18n } from "@/components/providers/i18n-provider"
 
 interface Props {
   game: Game
@@ -17,6 +18,7 @@ export default function GameCard({
   index = 0,
 }: Props) {
   const isLive = GAMES_WITH_PROVIDER.has(game.id)
+  const { dict, path } = useI18n()
 
   return (
     <motion.div
@@ -28,7 +30,7 @@ export default function GameCard({
       className="block"
     >
     <Link
-      href={`/games/${game.slug}`}
+      href={path(`/games/${game.slug}`)}
       className={`group relative block overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 transition-colors hover:border-white/20 ${
         isLive ? "" : "opacity-60"
       }`}
@@ -53,10 +55,12 @@ export default function GameCard({
 
           <p className="text-sm text-zinc-400">
             {isLive
-              ? `${game.supportedEvents} supported event${
-                  game.supportedEvents === 1 ? "" : "s"
+              ? `${game.supportedEvents} ${
+                  game.supportedEvents === 1
+                    ? dict.gameCard.supportedEvent
+                    : dict.gameCard.supportedEvents
                 }`
-              : "Tracking coming soon"}
+              : dict.gameCard.trackingComingSoon}
           </p>
         </div>
       </div>
@@ -68,12 +72,14 @@ export default function GameCard({
               {game.activeUsers}
             </div>
             <div className="text-xs text-zinc-500">
-              {game.activeUsers === "1" ? "player tracking" : "players tracking"}
+              {game.activeUsers === "1"
+                ? dict.gameCard.playerTracking
+                : dict.gameCard.playersTracking}
             </div>
           </div>
         ) : (
           <div className="text-xs text-zinc-500">
-            No live provider yet
+            {dict.gameCard.noLiveProvider}
           </div>
         )}
 

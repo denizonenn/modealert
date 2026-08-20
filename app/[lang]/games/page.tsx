@@ -13,16 +13,23 @@ import { gameService } from "@/lib/services/game.service"
 import { eventQueryService } from "@/lib/services/event-query.service"
 import { GAMES_WITH_PROVIDER } from "@/lib/constants/games"
 import { findGameKeyArt, placeholderGameArt } from "@/lib/constants/game-key-art"
+import { getDictionary, getLocale } from "@/lib/i18n/dictionaries"
 
-export const metadata: Metadata = {
-  title: "Supported Games",
-  description: `ModeAlert tracks ${GAMES_WITH_PROVIDER.size} games today — League of Legends, Valorant, Destiny 2, TFT, Fortnite, Warframe, Path of Exile, Helldivers 2, Foxhole, PUBG, PlanetSide 2, Final Fantasy XIV, and EA Sports FC — limited-time modes, seasonal events, Night Markets, raid rotations, and special events, all from one watchlist.`,
+export async function generateMetadata(): Promise<Metadata> {
+  const dict = await getDictionary()
+
+  return {
+    title: dict.games.metaTitle,
+    description: `ModeAlert tracks ${GAMES_WITH_PROVIDER.size} games today — League of Legends, Valorant, Destiny 2, TFT, Fortnite, Warframe, Path of Exile, Helldivers 2, Foxhole, PUBG, PlanetSide 2, Final Fantasy XIV, and EA Sports FC — limited-time modes, seasonal events, Night Markets, raid rotations, and special events, all from one watchlist.`,
+  }
 }
 
 export default async function GamesPage() {
-  const [games, events] = await Promise.all([
+  const [games, events, dict, locale] = await Promise.all([
     gameService.getAllGames(),
     eventQueryService.getAll(),
+    getDictionary(),
+    getLocale(),
   ])
 
   const eventsByGame: Record<
@@ -45,17 +52,15 @@ export default async function GamesPage() {
 
       <section className="mx-auto max-w-4xl px-6 pt-20 pb-4 text-center">
         <SectionEyebrow className="justify-center">
-          Supported Games
+          {dict.games.eyebrow}
         </SectionEyebrow>
 
         <h1 className="mt-4 text-4xl font-bold tracking-tight md:text-5xl">
-          One watchlist. Every game event.
+          {dict.games.title}
         </h1>
 
         <p className="mx-auto mt-5 max-w-2xl text-lg text-zinc-400">
-          Track limited-time modes, seasonal events, Night Markets, Twitch
-          Drops, beta access, special rotations and much more — across every
-          game below.
+          {dict.games.intro}
         </p>
       </section>
 
@@ -80,7 +85,7 @@ export default async function GamesPage() {
       <section className="mx-auto max-w-7xl px-6 py-16">
         {games.length === 0 ? (
           <p className="text-center text-zinc-500">
-            No games available right now — check back soon.
+            {dict.games.noGames}
           </p>
         ) : (
           <GamesGridSearch games={games} />
@@ -90,43 +95,41 @@ export default async function GamesPage() {
       <section className="border-t border-white/10 bg-white/[0.02]">
         <div className="mx-auto max-w-4xl px-6 py-20 text-center">
           <SectionEyebrow className="justify-center">
-            More games, over time
+            {dict.games.pluginEyebrow}
           </SectionEyebrow>
 
           <h2 className="mt-4 text-3xl font-bold tracking-tight md:text-4xl">
-            Every game is a plugin.
+            {dict.games.pluginTitle}
           </h2>
 
           <p className="mx-auto mt-5 max-w-2xl text-lg text-zinc-400">
-            ModeAlert&apos;s tracking system is built so adding a new game
-            doesn&apos;t require rebuilding anything — new titles get added
-            as new tracking sources come online.
+            {dict.games.pluginIntro}
           </p>
         </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-6 py-24 text-center">
         <h2 className="mx-auto max-w-2xl text-3xl font-bold tracking-tight md:text-4xl">
-          Pick your games, get notified.
+          {dict.games.ctaTitle}
         </h2>
 
         <p className="mx-auto mt-4 max-w-xl text-zinc-400">
-          Free to start. Set up your first alert in under a minute.
+          {dict.games.ctaIntro}
         </p>
 
         <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <Link href="/onboarding">
+          <Link href={`/${locale}/onboarding`}>
             <Button
               size="lg"
               className="h-12 rounded-full bg-gradient-brand px-8 text-white shadow-[0_0_30px_rgba(168,85,247,0.35)] transition-shadow hover:shadow-[0_0_40px_rgba(168,85,247,0.5)]"
             >
-              Start Tracking
+              {dict.games.startTracking}
             </Button>
           </Link>
 
-          <Link href="/features">
+          <Link href={`/${locale}/features`}>
             <InteractiveHoverButton
-              text="See all features"
+              text={dict.games.seeAllFeatures}
               className="h-12 w-auto rounded-full border-white/15 bg-white/5 px-8 text-white"
             />
           </Link>

@@ -60,5 +60,34 @@
     "since": "since",
     "researched": "researched",
     "metaDescription": "When ModeAlert's tracked limited-time modes and events are expected to end, and when the ended ones typically come back — based on real tracked history and, where researched, published historical patterns."
+  },
+  "gameCard": {
+    "supportedEvent": "supported event",
+    "supportedEvents": "supported events",
+    "trackingComingSoon": "Tracking coming soon",
+    "playerTracking": "player tracking",
+    "playersTracking": "players tracking",
+    "noLiveProvider": "No live provider yet"
+  },
+  "games": {
+    "metaTitle": "Supported Games",
+    "eyebrow": "Supported Games",
+    "title": "One watchlist. Every game event.",
+    "intro": "Track limited-time modes, seasonal events, Night Markets, Twitch Drops, beta access, special rotations and much more — across every game below.",
+    "searchPlaceholder": "Search games...",
+    "searchAriaLabel": "Search games",
+    "noSearchResults": "No games match “{query}”.",
+    "noGames": "No games available right now — check back soon.",
+    "pluginEyebrow": "More games, over time",
+    "pluginTitle": "Every game is a plugin.",
+    "pluginIntro": "ModeAlert's tracking system is built so adding a new game doesn't require rebuilding anything — new titles get added as new tracking sources come online.",
+    "ctaTitle": "Pick your games, get notified.",
+    "ctaIntro": "Free to start. Set up your first alert in under a minute.",
+    "startTracking": "Start Tracking",
+    "seeAllFeatures": "See all features",
+    "carouselTrackedEvent": "tracked event",
+    "carouselTrackedEvents": "tracked events",
+    "carouselActiveEvents": "active events",
+    "carouselNoEvents": "No tracked events for this game right now."
   }
 }

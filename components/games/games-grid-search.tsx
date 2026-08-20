@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 
 import GameCard from "@/components/cards/game-card";
+import { useI18n } from "@/components/providers/i18n-provider";
 
 import type { Game } from "@/types/game";
 
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export function GamesGridSearch({ games }: Props) {
+  const { dict } = useI18n();
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
@@ -34,8 +36,8 @@ export function GamesGridSearch({ games }: Props) {
 
           <input
             type="text"
-            placeholder="Search games..."
-            aria-label="Search games"
+            placeholder={dict.games.searchPlaceholder}
+            aria-label={dict.games.searchAriaLabel}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="h-10 w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"
@@ -45,7 +47,7 @@ export function GamesGridSearch({ games }: Props) {
 
       {filtered.length === 0 ? (
         <p className="text-center text-zinc-500">
-          No games match &ldquo;{query}&rdquo;.
+          {dict.games.noSearchResults.replace("{query}", query)}
         </p>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">

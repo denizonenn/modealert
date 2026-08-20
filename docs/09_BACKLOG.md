@@ -487,17 +487,39 @@ Tamamlandı (Faz 1)
   değiştirici (okunan sayfada kalır, ana sayfaya atmaz).
 - Desteklenmeyen locale (`/de/...`) 404 verir, sessizce İngilizce'ye
   düşmez.
-- Çevrildi: navbar, footer, feedback widget, `/calendar`.
+- Çevrildi: navbar, footer, feedback widget, `/calendar`, `/games`
+  (2026-08-20, aşağıya bkz.).
+
+Done (2026-08-20) — Faz 2, `/games`
+
+- **`/games` sayfası ve paylaşılan `GameCard`.** Yeni `games`/
+  `gameCard` sözlük alanları (`en.json`/`tr.json`) — eyebrow/başlık/
+  intro, arama kutusu, "her oyun bir eklenti" bölümü, CTA butonları,
+  key-art carousel'in event rozetleri ve "N tracked event(s)"/"active
+  events" metinleri. `GameCard` paylaşılan bileşen olduğu için ana
+  sayfanın "Supported Games" bölümü de bedavaya çevrildi.
+  **Ayrıca gerçek bir bug bulundu ve düzeltildi:** `GameCard`,
+  `GamesKeyArtCarousel` içindeki event linkleri ve `/games`'in kendi
+  CTA linkleri (`/onboarding`, `/features`) çıplak `href="/yol"`
+  kullanıyordu — CLAUDE.md'nin `useI18n().path()` kuralının tam
+  belirttiği hata. `/calendar`'da (Faz 1'den, "tamamlandı" sayılan bir
+  sayfa) da aynı deseni fark ettim — kırık değil (`proxy.ts` fazladan
+  bir redirect ile telafi ediyor) ama gereksiz bir round-trip. `/games`
+  ve dokunduğum bileşenlerde düzeltildi (client component'lerde
+  `path()`, server component'te `getLocale()` ile elle `/${locale}/...`
+  kuruluyor); `/calendar`'daki eşdeğeri henüz dokunulmadı, Faz 2'nin
+  geri kalanıyla birlikte ele alınmalı.
 
 Kaldığım yer — açık işler (öncelik sırasıyla)
 
-- **Faz 2 — kalan ~19 sayfanın arayüz metni.** Ana sayfa,
-  `/features`, `/games`, `/pricing`, `/statistics`, `/status`,
+- **Faz 2 — kalan ~18 sayfanın arayüz metni.** Ana sayfa,
+  `/features`, `/pricing`, `/statistics`, `/status`,
   `/live`, `/privacy`, `/terms`, `/signin`, `/signup`, `/onboarding`,
   `/dashboard` (+`notifications`, `settings`), `/events/[slug]`,
   `/games/[slug]`, `/admin`, `/unsubscribed`, `error`/`not-found`,
-  ayrıca `lib/constants/faq.ts` gibi sabit metin dosyaları.
-  **Şu an bozuk değiller** — İngilizce render ediyorlar, içlerindeki
+  ayrıca `lib/constants/faq.ts` gibi sabit metin dosyaları. Bu arada
+  `/calendar`'ın kendi çıplak-href'lerini de düzeltmeyi unutma (yukarı
+  bak). **Şu an bozuk değiller** — İngilizce render ediyorlar, içlerindeki
   sabit linkler `proxy.ts` sayesinde kullanıcının hatırlanan diline
   zarifçe yönleniyor (bir fazladan redirect pahasına). Sayfa
   çevrildikçe `useI18n().path()` ile düzeltilmeli.

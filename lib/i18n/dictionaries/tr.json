@@ -60,5 +60,34 @@
     "since": "şu tarihten beri",
     "researched": "araştırıldı",
     "metaDescription": "ModeAlert'in takip ettiği süreli modların ve etkinliklerin ne zaman bitmesinin beklendiği ve bitenlerin genelde ne zaman geri döndüğü — gerçek takip geçmişine ve araştırıldığı yerlerde yayımlanmış geçmiş düzenlere dayanarak."
+  },
+  "gameCard": {
+    "supportedEvent": "desteklenen etkinlik",
+    "supportedEvents": "desteklenen etkinlik",
+    "trackingComingSoon": "Takip yakında geliyor",
+    "playerTracking": "kişi takip ediyor",
+    "playersTracking": "kişi takip ediyor",
+    "noLiveProvider": "Henüz canlı bir kaynak yok"
+  },
+  "games": {
+    "metaTitle": "Desteklenen Oyunlar",
+    "eyebrow": "Desteklenen Oyunlar",
+    "title": "Tek liste. Her oyun etkinliği.",
+    "intro": "Süreli modları, sezonluk etkinlikleri, Night Market'leri, Twitch Drops'ları, beta erişimlerini, özel rotasyonları ve çok daha fazlasını — aşağıdaki her oyunda takip et.",
+    "searchPlaceholder": "Oyun ara...",
+    "searchAriaLabel": "Oyun ara",
+    "noSearchResults": "“{query}” ile eşleşen oyun yok.",
+    "noGames": "Şu anda kullanılabilir oyun yok — daha sonra tekrar bak.",
+    "pluginEyebrow": "Zamanla daha fazla oyun",
+    "pluginTitle": "Her oyun bir eklenti.",
+    "pluginIntro": "ModeAlert'in takip sistemi, yeni bir oyun eklemek hiçbir şeyi yeniden inşa etmeyi gerektirmeyecek şekilde kuruldu — yeni takip kaynakları geldikçe yeni oyunlar eklenir.",
+    "ctaTitle": "Oyunlarını seç, haberdar ol.",
+    "ctaIntro": "Ücretsiz başla. İlk uyarını bir dakikadan kısa sürede kur.",
+    "startTracking": "Takibe Başla",
+    "seeAllFeatures": "Tüm özellikleri gör",
+    "carouselTrackedEvent": "takip edilen etkinlik",
+    "carouselTrackedEvents": "takip edilen etkinlik",
+    "carouselActiveEvents": "aktif etkinlikler",
+    "carouselNoEvents": "Bu oyun için şu anda takip edilen bir etkinlik yok."
   }
 }

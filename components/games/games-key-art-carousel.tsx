@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { HeroCarousel, type HeroCarouselItem } from "@/components/ui/hero-carousel";
+import { useI18n } from "@/components/providers/i18n-provider";
 
 export interface GamesKeyArtCarouselGame {
   id: string;
@@ -35,7 +36,15 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 export function GamesKeyArtCarousel({ games, eventsByGame }: Props) {
+  const { dict, path } = useI18n();
   const [activeIndex, setActiveIndex] = React.useState(0);
+
+  const STATUS_LABELS: Record<string, string> = {
+    LIVE: dict.common.live,
+    TRACKING: dict.common.tracking,
+    UPCOMING: dict.common.upcoming,
+    ENDED: dict.common.ended,
+  };
 
   const items: HeroCarouselItem[] = games.map((game) => ({
     id: game.id,
@@ -44,8 +53,8 @@ export function GamesKeyArtCarousel({ games, eventsByGame }: Props) {
     accent: game.color,
     meta: [
       game.supportedEvents === 1
-        ? "1 tracked event"
-        : `${game.supportedEvents} tracked events`,
+        ? `1 ${dict.games.carouselTrackedEvent}`
+        : `${game.supportedEvents} ${dict.games.carouselTrackedEvents}`,
     ],
   }));
 
@@ -80,12 +89,12 @@ export function GamesKeyArtCarousel({ games, eventsByGame }: Props) {
               transition={{ duration: 0.3 }}
             >
               <h3 className="text-sm font-mono uppercase tracking-[0.2em] text-zinc-500">
-                {activeGame?.name} — active events
+                {activeGame?.name} — {dict.games.carouselActiveEvents}
               </h3>
 
               {activeEvents.length === 0 ? (
                 <p className="mt-4 text-zinc-500">
-                  No tracked events for this game right now.
+                  {dict.games.carouselNoEvents}
                 </p>
               ) : (
                 <div className="mt-5 flex flex-wrap gap-3">
@@ -97,7 +106,7 @@ export function GamesKeyArtCarousel({ games, eventsByGame }: Props) {
                             STATUS_STYLES[event.status] ?? "bg-zinc-700 text-zinc-300"
                           }`}
                         >
-                          {event.status}
+                          {STATUS_LABELS[event.status] ?? event.status}
                         </span>
                         <span className="text-sm font-medium text-white">
                           {event.title}
@@ -108,7 +117,7 @@ export function GamesKeyArtCarousel({ games, eventsByGame }: Props) {
                     return event.slug ? (
                       <Link
                         key={event.id}
-                        href={`/events/${event.slug}`}
+                        href={path(`/events/${event.slug}`)}
                         className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 py-1.5 pl-1.5 pr-4 transition-colors hover:border-white/20 hover:bg-white/10"
                       >
                         {content}
