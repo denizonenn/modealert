@@ -1,15 +1,17 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { ArrowRight } from "lucide-react"
 
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
+import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button"
 import { SectionEyebrow } from "@/components/shared/section-eyebrow"
 import GameCard from "@/components/cards/game-card"
+import { GamesKeyArtCarousel } from "@/components/games/games-key-art-carousel"
 
 import { gameService } from "@/lib/services/game.service"
 import { GAMES_WITH_PROVIDER } from "@/lib/constants/games"
+import { findGameKeyArt, placeholderGameArt } from "@/lib/constants/game-key-art"
 
 export const metadata: Metadata = {
   title: "Supported Games",
@@ -38,6 +40,23 @@ export default async function GamesPage() {
           game below.
         </p>
       </section>
+
+      {games.length > 0 && (
+        <section className="mx-auto max-w-7xl px-6 pb-16">
+          <GamesKeyArtCarousel
+            games={games.map((game) => ({
+              id: game.id,
+              name: game.name,
+              shortName: game.shortName,
+              color: game.color,
+              supportedEvents: game.supportedEvents,
+              image:
+                findGameKeyArt(game.slug) ??
+                placeholderGameArt(game.shortName, game.color),
+            }))}
+          />
+        </section>
+      )}
 
       <section className="mx-auto max-w-7xl px-6 py-16">
         {games.length === 0 ? (
@@ -91,14 +110,10 @@ export default async function GamesPage() {
           </Link>
 
           <Link href="/features">
-            <Button
-              size="lg"
-              variant="outline"
-              className="h-12 rounded-full border-white/15 bg-white/5 px-8 text-white hover:bg-white/10"
-            >
-              See all features
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
+            <InteractiveHoverButton
+              text="See all features"
+              className="h-12 w-auto rounded-full border-white/15 bg-white/5 px-8 text-white"
+            />
           </Link>
         </div>
       </section>

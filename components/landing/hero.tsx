@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ArrowRight, Zap } from "lucide-react";
+import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button"
+import { Zap } from "lucide-react";
 import { DashboardPreview, type PreviewEvent } from "./dashboard-preview"
 import { StatsBar } from "./stats-bar"
 import Link from "next/link"
@@ -113,10 +114,12 @@ export async function Hero() {
             </Button>
           </Link>
 
-          <Button size="lg" variant="outline" className="h-12 rounded-full border-white/15 bg-white/5 px-8 text-white hover:bg-white/10">
-            View supported games
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+          <Link href="/games">
+            <InteractiveHoverButton
+              text="View supported games"
+              className="h-12 w-auto rounded-full border-white/15 bg-white/5 px-8 text-white"
+            />
+          </Link>
         </div>
 
         <StatsBar gameCount={gameCount} eventCount={monitoredCount} />
