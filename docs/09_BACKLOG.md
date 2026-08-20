@@ -261,6 +261,17 @@ re-listed as new findings. One concrete gap found and fixed same day:
   Best-effort (try/catch, logged not thrown) — a failed send can never
   block or undo an already-created account. 1 new test
   (`template.test.ts`).
+- **`/signup` had no Google/Discord buttons, `/signin` did.** The
+  primary "Get Started"/"Sign up" CTA funneled every new visitor into
+  typing an email + password + confirm-password, while the page for
+  *returning* users offered one-click OAuth. Not a dead end (Auth.js
+  creates a new account on a first-time OAuth sign-in regardless of
+  which page triggers it), but real friction on the page whose whole
+  job is minimizing signup friction, and an inconsistency a new user
+  has no reason to work around (why would they click "already have an
+  account? sign in" to find the easier option?). Ported the same
+  `hasGoogle`/`hasDiscord` provider-detection + button block from
+  `/signin` to `/signup` — both pages now offer the same three methods.
 
 Pending Deniz's action
 
