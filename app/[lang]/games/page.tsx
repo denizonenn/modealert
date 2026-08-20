@@ -6,7 +6,7 @@ import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button"
 import { SectionEyebrow } from "@/components/shared/section-eyebrow"
-import GameCard from "@/components/cards/game-card"
+import { GamesGridSearch } from "@/components/games/games-grid-search"
 import { GamesKeyArtCarousel } from "@/components/games/games-key-art-carousel"
 
 import { gameService } from "@/lib/services/game.service"
@@ -83,11 +83,7 @@ export default async function GamesPage() {
             No games available right now — check back soon.
           </p>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {games.map((game, index) => (
-              <GameCard key={game.id} game={game} index={index} />
-            ))}
-          </div>
+          <GamesGridSearch games={games} />
         )}
       </section>
 

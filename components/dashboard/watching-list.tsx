@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react"
 import Link from "next/link"
+import { Search } from "lucide-react"
 
 import EventStatusCard from "./event-status-card"
 
@@ -205,6 +206,8 @@ export default function WatchingList() {
   const [selectedGameId, setSelectedGameId] =
     useState<string | null>(null)
 
+  const [query, setQuery] = useState("")
+
   const [selectedCategories, setSelectedCategories] = useState<
     Set<EventCategory>
   >(DEFAULT_CATEGORIES)
@@ -262,6 +265,20 @@ export default function WatchingList() {
     )
   }, [events])
 
+  const searchedEvents = useMemo(() => {
+    const q = query.trim().toLowerCase()
+
+    if (!q) {
+      return events
+    }
+
+    return events.filter(
+      (event) =>
+        event.title.toLowerCase().includes(q) ||
+        event.game.name.toLowerCase().includes(q)
+    )
+  }, [events, query])
+
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -281,10 +298,10 @@ export default function WatchingList() {
   }
 
   const filteredEvents = selectedGameId
-    ? events.filter(
+    ? searchedEvents.filter(
         (event) => event.game.id === selectedGameId
       )
-    : events
+    : searchedEvents
 
   // "Your Watchlist" shows everything the user already chose to track,
   // regardless of category — the filter only narrows the "All Events"
@@ -314,6 +331,21 @@ export default function WatchingList() {
         selectedGameId={selectedGameId}
         onSelect={setSelectedGameId}
       />
+
+      <div className="mb-8 max-w-sm">
+        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 transition-colors focus-within:border-white/30 focus-within:ring-2 focus-within:ring-white/15">
+          <Search className="h-4 w-4 shrink-0 text-zinc-500" />
+
+          <input
+            type="text"
+            placeholder="Search events..."
+            aria-label="Search events"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="h-10 w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"
+          />
+        </div>
+      </div>
 
       <div className="space-y-14">
         {followedGames.length > 0 && (

@@ -630,9 +630,23 @@ Done (2026-08-18, ADR-051)
   event-independent "trackable unit" exists at that level (queue data
   already lives inside events, not a separate entity).
 
+Done (2026-08-20)
+
+- **Search** — with 13 games and 55+ events, neither `/games` nor the
+  dashboard's "All Events"/watchlist had a way to jump straight to a
+  known name; only category/game/rotation filter chips existed.
+  `GamesGridSearch` (client component wrapping the existing `GameCard`
+  grid) filters `/games` by game name. `WatchingList` gained a search
+  box that filters by event title or game name, composing with the
+  existing game/category/rotation filters rather than replacing them.
+  Both are pure client-side `.filter()` over data already fetched — no
+  new API route or index needed at this scale.
+
 Future
 
-- Custom filters
+- Custom filters (saved combinations of the existing category/
+  rotation/game filters) — no user has asked for this yet, revisit if
+  the plain filter bars stop being enough.
 
 ---
 
