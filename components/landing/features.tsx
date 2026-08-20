@@ -5,30 +5,32 @@ import { motion } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { SectionEyebrow } from "@/components/shared/section-eyebrow"
 import { Bell, Clock3, Gamepad2, Shield, ArrowRight } from "lucide-react"
+import { useI18n } from "@/components/providers/i18n-provider"
+import type { Dictionary } from "@/lib/i18n/dictionaries"
 
-function getFeatures(gameCount: number) {
+function getFeatures(gameCount: number, dict: Dictionary) {
   return [
     {
-      title: "Instant email & Discord alerts",
-      description: "Get a beautiful email, or a message in your own Discord server, the moment your selected mode goes live.",
+      title: dict.features.alertsTitle,
+      description: dict.features.alertsDescription,
       icon: Bell,
       gradient: "linear-gradient(135deg, #a855f7, #d946ef)",
     },
     {
-      title: "Daily detection",
-      description: "Our cron system checks for mode changes automatically, once a day.",
+      title: dict.features.dailyTitle,
+      description: dict.features.dailyDescription,
       icon: Clock3,
       gradient: "linear-gradient(135deg, #3b82f6, #06b6d4)",
     },
     {
-      title: `${gameCount} games, one inbox`,
-      description: `One watchlist for everything you play, instead of a separate tracker, Discord bot, or community site per game.`,
+      title: dict.features.gamesTitle.replace("{count}", String(gameCount)),
+      description: dict.features.gamesDescription,
       icon: Gamepad2,
       gradient: "linear-gradient(135deg, #ec4899, #f43f5e)",
     },
     {
-      title: "Privacy first",
-      description: "We only store the preferences needed to send the alerts you request.",
+      title: dict.features.privacyTitle,
+      description: dict.features.privacyDescription,
       icon: Shield,
       gradient: "linear-gradient(135deg, #10b981, #14b8a6)",
     },
@@ -36,16 +38,17 @@ function getFeatures(gameCount: number) {
 }
 
 export function Features({ gameCount }: { gameCount: number }) {
-  const features = getFeatures(gameCount)
+  const { dict, path } = useI18n()
+  const features = getFeatures(gameCount, dict)
   return (
     <section id="features" className="mx-auto max-w-7xl px-6 py-24">
       <div className="max-w-3xl">
-        <SectionEyebrow>Features</SectionEyebrow>
+        <SectionEyebrow>{dict.features.eyebrow}</SectionEyebrow>
         <h2 className="mt-3 text-3xl font-bold tracking-tight md:text-5xl">
-          Built for players who hate missing limited-time content.
+          {dict.features.title}
         </h2>
         <p className="mt-4 text-lg text-zinc-400">
-          ModeAlert watches game rotations and event schedules so you dont have to. Set your preferences once and let the system do the rest.
+          {dict.features.intro}
         </p>
       </div>
 
@@ -87,10 +90,10 @@ export function Features({ gameCount }: { gameCount: number }) {
       </div>
 
       <Link
-        href="/features"
+        href={path("/features")}
         className="mt-8 inline-flex items-center gap-1.5 text-sm font-medium text-zinc-400 hover:text-white"
       >
-        See all features
+        {dict.features.seeAllFeatures}
         <ArrowRight className="h-4 w-4" />
       </Link>
     </section>

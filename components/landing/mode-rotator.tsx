@@ -3,6 +3,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
+import { useI18n } from "@/components/providers/i18n-provider";
+
 const modes = [
   { game: "League of Legends", event: "URF" },
   { game: "League of Legends", event: "Arena" },
@@ -14,6 +16,7 @@ const modes = [
 ];
 
 export function ModeRotator() {
+  const { dict } = useI18n();
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
@@ -38,7 +41,7 @@ export function ModeRotator() {
           className="flex items-center gap-3"
         >
           <span className="text-zinc-400">
-            Never ask
+            {dict.home.modeRotatorNeverAsk}
           </span>
 
           <span className="font-semibold text-white">
@@ -46,7 +49,7 @@ export function ModeRotator() {
           </span>
 
           <span className="text-zinc-400">
-            is back?
+            {dict.home.modeRotatorIsBack}
           </span>
 
           <span className="text-zinc-600">

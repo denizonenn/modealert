@@ -510,15 +510,32 @@ Done (2026-08-20) — Faz 2, `/games`
   kuruluyor); `/calendar`'daki eşdeğeri henüz dokunulmadı, Faz 2'nin
   geri kalanıyla birlikte ele alınmalı.
 
+Done (2026-08-20) — Faz 2, ana sayfa
+
+- **Ana sayfa tam çevrildi:** Hero (rozet, başlık, CTA'lar,
+  `ModeRotator`, `StatsBar`, `DashboardPreview`), `SupportedGames`,
+  `Features`, `HowItWorks`, `Cta`, `Faq`. Yeni `home`/`supportedGames`/
+  `features`/`howItWorks`/`cta`/`faqPage` sözlük alanları. FAQ içeriği
+  artık `lib/constants/faq.ts` yerine `dict.faqPage.items`'tan geliyor
+  (JSON-LD için `app/[lang]/page.tsx`'te, ekran için `Faq.tsx`'te —
+  aynı `{count}` yer tutucusu ikisinde de `GAMES_WITH_PROVIDER.size`
+  ile dolduruluyor); artık kullanılmayan `lib/constants/faq.ts`
+  silindi, iki ayrı kopya kalmasın diye. `Hero` async server component
+  olduğu için `getDictionary()`/`getLocale()` çağırıyor; `/onboarding`,
+  `/games`, `/features`, `/dashboard` linkleri artık locale önekli.
+  `/en` ve `/tr`'de canlı doğrulandı — rozetler, başlıklar, FAQ
+  akordiyonu (`{count}` interpolasyonu dahil) doğru render ediyor,
+  İngilizce tarafta regresyon yok.
+
 Kaldığım yer — açık işler (öncelik sırasıyla)
 
-- **Faz 2 — kalan ~18 sayfanın arayüz metni.** Ana sayfa,
+- **Faz 2 — kalan ~17 sayfanın arayüz metni.**
   `/features`, `/pricing`, `/statistics`, `/status`,
   `/live`, `/privacy`, `/terms`, `/signin`, `/signup`, `/onboarding`,
   `/dashboard` (+`notifications`, `settings`), `/events/[slug]`,
-  `/games/[slug]`, `/admin`, `/unsubscribed`, `error`/`not-found`,
-  ayrıca `lib/constants/faq.ts` gibi sabit metin dosyaları. Bu arada
-  `/calendar`'ın kendi çıplak-href'lerini de düzeltmeyi unutma (yukarı
+  `/games/[slug]`, `/admin`, `/unsubscribed`, `error`/`not-found`.
+  Bu arada `/calendar`'ın kendi çıplak-href'lerini de düzeltmeyi
+  unutma (yukarı
   bak). **Şu an bozuk değiller** — İngilizce render ediyorlar, içlerindeki
   sabit linkler `proxy.ts` sayesinde kullanıcının hatırlanan diline
   zarifçe yönleniyor (bir fazladan redirect pahasına). Sayfa

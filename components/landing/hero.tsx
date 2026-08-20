@@ -11,6 +11,7 @@ import KineticGrid from "@/components/ui/kinetic-grid"
 import { eventQueryService } from "@/lib/services/event-query.service"
 import { GAMES_WITH_PROVIDER } from "@/lib/constants/games"
 import { categorySortKey } from "@/lib/constants/event-category"
+import { getDictionary, getLocale } from "@/lib/i18n/dictionaries"
 
 const STATUS_ORDER: Record<string, number> = {
   LIVE: 0,
@@ -75,7 +76,12 @@ async function getPreviewData(): Promise<{
 }
 
 export async function Hero() {
-  const { events, monitoredCount, gameCount } = await getPreviewData()
+  const [{ events, monitoredCount, gameCount }, dict, locale] =
+    await Promise.all([
+      getPreviewData(),
+      getDictionary(),
+      getLocale(),
+    ])
 
   return (
     <KineticGrid globalColor="brand" className="text-white">
@@ -87,42 +93,49 @@ export async function Hero() {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
           </span>
-          Live — {gameCount} games / {monitoredCount} events tracked
+          {dict.home.liveBadge
+            .replace("{games}", String(gameCount))
+            .replace("{events}", String(monitoredCount))}
         </div>
 
         <Badge className="mb-6 border border-white/10 bg-white/10 text-white hover:bg-white/15">
-          <Zap className="mr-2 h-3 w-3" /> Daily mode detection
+          <Zap className="mr-2 h-3 w-3" /> {dict.home.dailyDetection}
         </Badge>
         <ModeRotator />
 
         <h1 className="max-w-4xl text-5xl font-bold tracking-tight md:text-7xl">
-          Never miss your{" "}
+          {dict.home.heroTitlePre}{" "}
           <span className="text-gradient-brand">
-            favorite game modes
+            {dict.home.heroTitleHighlight}
           </span>{" "}
-          again.
+          {dict.home.heroTitlePost}
         </h1>
 
         <p className="mt-6 max-w-2xl text-lg text-zinc-400 md:text-xl">
-          Get instant alerts when URF, Arena, Night Market, Iron Banner and other limited-time events go live.
+          {dict.home.heroSubtitle}
         </p>
 
         <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-          <Link href="/onboarding">
+          <Link href={`/${locale}/onboarding`}>
             <Button className="h-12 rounded-full bg-gradient-brand px-8 text-white shadow-[0_0_30px_rgba(168,85,247,0.35)] transition-shadow hover:shadow-[0_0_40px_rgba(168,85,247,0.5)]">
-              Start Tracking
+              {dict.home.startTracking}
             </Button>
           </Link>
 
-          <Link href="/games">
+          <Link href={`/${locale}/games`}>
             <InteractiveHoverButton
-              text="View supported games"
+              text={dict.home.viewSupportedGames}
               className="h-12 w-auto rounded-full border-white/15 bg-white/5 px-8 text-white"
             />
           </Link>
         </div>
 
-        <StatsBar gameCount={gameCount} eventCount={monitoredCount} />
+        <StatsBar
+          gameCount={gameCount}
+          eventCount={monitoredCount}
+          gamesLabel={dict.home.gamesTracked}
+          eventsLabel={dict.home.eventsMonitored}
+        />
 
         <div className="relative w-full max-w-6xl">
           <span className="absolute -top-2 -left-2 h-6 w-6 border-t-2 border-l-2 border-white/25" />

@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 import { GAME_BRAND_ICONS } from "@/components/shared/game-brand-icons";
+import { useI18n } from "@/components/providers/i18n-provider";
 
 export interface PreviewEvent {
   gameId: string;
@@ -30,6 +31,14 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 export function DashboardPreview({ events, monitoredCount }: Props) {
+  const { dict } = useI18n();
+
+  const STATUS_LABELS: Record<string, string> = {
+    LIVE: dict.common.live,
+    TRACKING: dict.common.tracking,
+    UPCOMING: dict.common.upcoming,
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 40 }}
@@ -45,9 +54,9 @@ export function DashboardPreview({ events, monitoredCount }: Props) {
           </div>
 
           <div>
-            <h3 className="font-semibold">ModeAlert Dashboard</h3>
+            <h3 className="font-semibold">{dict.home.dashboardTitle}</h3>
             <p className="text-sm text-zinc-500">
-              Live event monitoring
+              {dict.home.dashboardSubtitle}
             </p>
           </div>
         </div>
@@ -59,7 +68,7 @@ export function DashboardPreview({ events, monitoredCount }: Props) {
 
           {events.length === 0 ? (
             <p className="text-sm text-zinc-500">
-              Waiting on the next sync — real events will show up here.
+              {dict.home.dashboardEmpty}
             </p>
           ) : (
             events.map((event) => {
@@ -104,7 +113,7 @@ export function DashboardPreview({ events, monitoredCount }: Props) {
                     <div
                       className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold text-black ${STATUS_STYLES[event.status] ?? "bg-zinc-500"}`}
                     >
-                      {event.status}
+                      {STATUS_LABELS[event.status] ?? event.status}
                     </div>
 
                   </div>
@@ -120,7 +129,7 @@ export function DashboardPreview({ events, monitoredCount }: Props) {
           <div className="flex items-center gap-3">
             <CheckCircle2 className="text-emerald-400" />
             <span className="font-semibold">
-              Monitoring automatically
+              {dict.home.dashboardMonitoringAuto}
             </span>
           </div>
 
@@ -128,17 +137,17 @@ export function DashboardPreview({ events, monitoredCount }: Props) {
 
             <div className="flex items-center gap-3">
               <Clock3 size={18} />
-              Checks automatically, once a day
+              {dict.home.dashboardChecksDaily}
             </div>
 
             <div className="flex items-center gap-3">
               <Bell size={18} />
-              Instant email & Discord alerts
+              {dict.home.dashboardInstantAlerts}
             </div>
 
             <div className="flex items-center gap-3">
               <Gamepad2 size={18} />
-              Multi-game support
+              {dict.home.dashboardMultiGame}
             </div>
 
           </div>
@@ -150,7 +159,7 @@ export function DashboardPreview({ events, monitoredCount }: Props) {
             </p>
 
             <p className="mt-2 text-sm text-zinc-400">
-              Events currently monitored
+              {dict.home.dashboardEventsMonitored}
             </p>
 
           </div>

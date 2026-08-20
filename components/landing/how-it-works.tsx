@@ -4,44 +4,52 @@ import { motion } from "framer-motion"
 import { SectionEyebrow } from "@/components/shared/section-eyebrow"
 import { Bell, Gamepad2, ListChecks } from "lucide-react"
 import { GAMES_WITH_PROVIDER } from "@/lib/constants/games"
+import { useI18n } from "@/components/providers/i18n-provider"
+import type { Dictionary } from "@/lib/i18n/dictionaries"
 
-const STEPS = [
-  {
-    icon: Gamepad2,
-    title: "Pick your games",
-    description: `Select from ${GAMES_WITH_PROVIDER.size} supported games — League of Legends, Valorant, Destiny 2, TFT, and more. Add new games any time.`,
-  },
-  {
-    icon: ListChecks,
-    title: "Choose what to track",
-    description:
-      "URF, Arena, Night Market, seasonal passes — watch exactly the modes and events you care about.",
-  },
-  {
-    icon: Bell,
-    title: "Get notified instantly",
-    description:
-      "We check once a day. The moment something changes, you get an email — no manual checking, ever.",
-  },
-]
+function getSteps(dict: Dictionary) {
+  return [
+    {
+      icon: Gamepad2,
+      title: dict.howItWorks.step1Title,
+      description: dict.howItWorks.step1Description.replace(
+        "{count}",
+        String(GAMES_WITH_PROVIDER.size)
+      ),
+    },
+    {
+      icon: ListChecks,
+      title: dict.howItWorks.step2Title,
+      description: dict.howItWorks.step2Description,
+    },
+    {
+      icon: Bell,
+      title: dict.howItWorks.step3Title,
+      description: dict.howItWorks.step3Description,
+    },
+  ]
+}
 
 export function HowItWorks() {
+  const { dict } = useI18n()
+  const steps = getSteps(dict)
+
   return (
     <section className="mx-auto max-w-7xl px-6 py-24">
       <div className="text-center">
         <SectionEyebrow className="justify-center">
-          How It Works
+          {dict.howItWorks.eyebrow}
         </SectionEyebrow>
 
         <h2 className="mt-4 text-4xl font-bold tracking-tight">
-          Three steps. Zero maintenance.
+          {dict.howItWorks.title}
         </h2>
       </div>
 
       <div className="relative mt-16 grid gap-10 md:grid-cols-3">
         <div className="absolute top-8 left-0 right-0 hidden h-px bg-gradient-brand opacity-20 md:block" />
 
-        {STEPS.map((step, index) => {
+        {steps.map((step, index) => {
           const Icon = step.icon
 
           return (
@@ -58,7 +66,7 @@ export function HowItWorks() {
               </div>
 
               <span className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-zinc-600">
-                Step {index + 1}
+                {dict.howItWorks.step} {index + 1}
               </span>
 
               <h3 className="mt-2 text-xl font-semibold">

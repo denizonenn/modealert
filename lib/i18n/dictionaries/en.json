@@ -89,5 +89,96 @@
     "carouselTrackedEvents": "tracked events",
     "carouselActiveEvents": "active events",
     "carouselNoEvents": "No tracked events for this game right now."
+  },
+  "home": {
+    "liveBadge": "Live — {games} games / {events} events tracked",
+    "dailyDetection": "Daily mode detection",
+    "modeRotatorNeverAsk": "Never ask",
+    "modeRotatorIsBack": "is back?",
+    "heroTitlePre": "Never miss your",
+    "heroTitleHighlight": "favorite game modes",
+    "heroTitlePost": "again.",
+    "heroSubtitle": "Get instant alerts when URF, Arena, Night Market, Iron Banner and other limited-time events go live.",
+    "startTracking": "Start Tracking",
+    "viewSupportedGames": "View supported games",
+    "gamesTracked": "Games tracked",
+    "eventsMonitored": "Events monitored",
+    "dashboardTitle": "ModeAlert Dashboard",
+    "dashboardSubtitle": "Live event monitoring",
+    "dashboardEmpty": "Waiting on the next sync — real events will show up here.",
+    "dashboardMonitoringAuto": "Monitoring automatically",
+    "dashboardChecksDaily": "Checks automatically, once a day",
+    "dashboardInstantAlerts": "Instant email & Discord alerts",
+    "dashboardMultiGame": "Multi-game support",
+    "dashboardEventsMonitored": "Events currently monitored"
+  },
+  "supportedGames": {
+    "eyebrow": "Supported Games",
+    "title1": "One platform.",
+    "title2": "Every game event.",
+    "intro": "Track limited-time modes, seasonal events, Night Markets, Twitch Drops, beta access, special rotations and much more.",
+    "failedToLoad": "Failed to load games.",
+    "seeAllGames": "See all games"
+  },
+  "features": {
+    "eyebrow": "Features",
+    "title": "Built for players who hate missing limited-time content.",
+    "intro": "ModeAlert watches game rotations and event schedules so you don't have to. Set your preferences once and let the system do the rest.",
+    "seeAllFeatures": "See all features",
+    "alertsTitle": "Instant email & Discord alerts",
+    "alertsDescription": "Get a beautiful email, or a message in your own Discord server, the moment your selected mode goes live.",
+    "dailyTitle": "Daily detection",
+    "dailyDescription": "Our cron system checks for mode changes automatically, once a day.",
+    "gamesTitle": "{count} games, one inbox",
+    "gamesDescription": "One watchlist for everything you play, instead of a separate tracker, Discord bot, or community site per game.",
+    "privacyTitle": "Privacy first",
+    "privacyDescription": "We only store the preferences needed to send the alerts you request."
+  },
+  "howItWorks": {
+    "eyebrow": "How It Works",
+    "title": "Three steps. Zero maintenance.",
+    "step": "Step",
+    "step1Title": "Pick your games",
+    "step1Description": "Select from {count} supported games — League of Legends, Valorant, Destiny 2, TFT, and more. Add new games any time.",
+    "step2Title": "Choose what to track",
+    "step2Description": "URF, Arena, Night Market, seasonal passes — watch exactly the modes and events you care about.",
+    "step3Title": "Get notified instantly",
+    "step3Description": "We check once a day. The moment something changes, you get an email — no manual checking, ever."
+  },
+  "cta": {
+    "title": "Stop refreshing. Start tracking.",
+    "intro": "Free to start. Set up your first alert in under a minute.",
+    "startTracking": "Start Tracking",
+    "viewDashboard": "View the dashboard"
+  },
+  "faqPage": {
+    "eyebrow": "FAQ",
+    "title": "Questions, answered.",
+    "items": [
+      {
+        "question": "How often does ModeAlert check for updates?",
+        "answer": "Automatically, once a day — you never have to refresh a page or check a launcher yourself."
+      },
+      {
+        "question": "Which games are supported?",
+        "answer": "{count} games today — League of Legends, Valorant, Destiny 2, TFT, Fortnite, Warframe, Path of Exile, Helldivers 2, Foxhole, PUBG, PlanetSide 2, Final Fantasy XIV, and EA Sports FC — with more added as new tracking sources come online."
+      },
+      {
+        "question": "Is ModeAlert free?",
+        "answer": "Yes — the Free plan tracks up to 5 events with email and Discord alerts, no credit card required. Premium ($4.99/mo) adds unlimited tracked events and per-event predictions."
+      },
+      {
+        "question": "How do you detect events before Riot announces them?",
+        "answer": "We compare live game data against Riot's public test environment (PBE), which usually receives new content days or weeks before it goes live — giving you the earliest signal available."
+      },
+      {
+        "question": "Do I need to install anything?",
+        "answer": "No. ModeAlert is entirely web-based — no client, no browser extension, no background app."
+      },
+      {
+        "question": "How will I be notified?",
+        "answer": "Email and Discord today (add a webhook URL in Settings). Telegram is on the roadmap."
+      }
+    ]
   }
 }

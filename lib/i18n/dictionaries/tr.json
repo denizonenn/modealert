@@ -89,5 +89,96 @@
     "carouselTrackedEvents": "takip edilen etkinlik",
     "carouselActiveEvents": "aktif etkinlikler",
     "carouselNoEvents": "Bu oyun için şu anda takip edilen bir etkinlik yok."
+  },
+  "home": {
+    "liveBadge": "Canlı — {games} oyun / {events} etkinlik takip ediliyor",
+    "dailyDetection": "Günlük mod tespiti",
+    "modeRotatorNeverAsk": "Bir daha",
+    "modeRotatorIsBack": "geri geldi mi diye sorma",
+    "heroTitlePre": "En sevdiğin",
+    "heroTitleHighlight": "oyun modlarını",
+    "heroTitlePost": "asla kaçırma.",
+    "heroSubtitle": "URF, Arena, Night Market, Iron Banner ve diğer süreli etkinlikler canlıya geçtiği anda anında uyarı al.",
+    "startTracking": "Takibe Başla",
+    "viewSupportedGames": "Desteklenen oyunları gör",
+    "gamesTracked": "Takip edilen oyun",
+    "eventsMonitored": "İzlenen etkinlik",
+    "dashboardTitle": "ModeAlert Paneli",
+    "dashboardSubtitle": "Canlı etkinlik izleme",
+    "dashboardEmpty": "Bir sonraki senkronizasyon bekleniyor — gerçek etkinlikler burada görünecek.",
+    "dashboardMonitoringAuto": "Otomatik izleniyor",
+    "dashboardChecksDaily": "Günde bir kez otomatik kontrol ediyor",
+    "dashboardInstantAlerts": "Anında e-posta ve Discord uyarıları",
+    "dashboardMultiGame": "Çoklu oyun desteği",
+    "dashboardEventsMonitored": "Şu anda izlenen etkinlik"
+  },
+  "supportedGames": {
+    "eyebrow": "Desteklenen Oyunlar",
+    "title1": "Tek platform.",
+    "title2": "Her oyun etkinliği.",
+    "intro": "Süreli modları, sezonluk etkinlikleri, Night Market'leri, Twitch Drops'ları, beta erişimlerini, özel rotasyonları ve çok daha fazlasını takip et.",
+    "failedToLoad": "Oyunlar yüklenemedi.",
+    "seeAllGames": "Tüm oyunları gör"
+  },
+  "features": {
+    "eyebrow": "Özellikler",
+    "title": "Süreli içerikleri kaçırmaktan nefret eden oyuncular için tasarlandı.",
+    "intro": "ModeAlert, oyun rotasyonlarını ve etkinlik takvimlerini senin yerine izler. Tercihlerini bir kez ayarla, gerisini sisteme bırak.",
+    "seeAllFeatures": "Tüm özellikleri gör",
+    "alertsTitle": "Anında e-posta ve Discord uyarıları",
+    "alertsDescription": "Seçtiğin mod canlıya geçtiği anda güzel bir e-posta veya kendi Discord sunucunda bir mesaj al.",
+    "dailyTitle": "Günlük tespit",
+    "dailyDescription": "Zamanlanmış sistemimiz mod değişikliklerini günde bir kez otomatik olarak kontrol eder.",
+    "gamesTitle": "{count} oyun, tek gelen kutusu",
+    "gamesDescription": "Her oyun için ayrı bir takip aracı, Discord botu ya da topluluk sitesi yerine, oynadığın her şey için tek bir liste.",
+    "privacyTitle": "Önce gizlilik",
+    "privacyDescription": "Sadece istediğin uyarıları göndermek için gereken tercihleri saklarız."
+  },
+  "howItWorks": {
+    "eyebrow": "Nasıl Çalışır",
+    "title": "Üç adım. Sıfır bakım.",
+    "step": "Adım",
+    "step1Title": "Oyunlarını seç",
+    "step1Description": "{count} desteklenen oyun arasından seç — League of Legends, Valorant, Destiny 2, TFT ve daha fazlası. İstediğin zaman yeni oyun ekle.",
+    "step2Title": "Neyi takip edeceğini seç",
+    "step2Description": "URF, Arena, Night Market, sezonluk pass'ler — sadece önemsediğin mod ve etkinlikleri izle.",
+    "step3Title": "Anında haberdar ol",
+    "step3Description": "Günde bir kez kontrol ediyoruz. Bir şey değiştiği anda e-posta alırsın — asla elle kontrol etmen gerekmez."
+  },
+  "cta": {
+    "title": "Yenilemeyi bırak. Takibe başla.",
+    "intro": "Ücretsiz başla. İlk uyarını bir dakikadan kısa sürede kur.",
+    "startTracking": "Takibe Başla",
+    "viewDashboard": "Paneli görüntüle"
+  },
+  "faqPage": {
+    "eyebrow": "SSS",
+    "title": "Sorular, yanıtlandı.",
+    "items": [
+      {
+        "question": "ModeAlert güncellemeleri ne sıklıkla kontrol ediyor?",
+        "answer": "Otomatik olarak, günde bir kez — sayfayı yenilemene veya bir launcher'ı kendin kontrol etmene hiç gerek kalmaz."
+      },
+      {
+        "question": "Hangi oyunlar destekleniyor?",
+        "answer": "Bugün {count} oyun — League of Legends, Valorant, Destiny 2, TFT, Fortnite, Warframe, Path of Exile, Helldivers 2, Foxhole, PUBG, PlanetSide 2, Final Fantasy XIV ve EA Sports FC — yeni takip kaynakları geldikçe daha fazlası eklenir."
+      },
+      {
+        "question": "ModeAlert ücretsiz mi?",
+        "answer": "Evet — Free plan, e-posta ve Discord uyarılarıyla birlikte 5 etkinliğe kadar takip sağlar, kredi kartı gerekmez. Premium (aylık 4.99$) sınırsız takip edilen etkinlik ve etkinlik başına tahminler ekler."
+      },
+      {
+        "question": "Etkinlikleri Riot duyurmadan önce nasıl tespit ediyorsunuz?",
+        "answer": "Canlı oyun verisini Riot'un genellikle yeni içeriği canlıya geçmeden günler veya haftalar önce alan herkese açık test ortamıyla (PBE) karşılaştırıyoruz — sana mevcut en erken sinyali veriyor."
+      },
+      {
+        "question": "Bir şey kurmam gerekiyor mu?",
+        "answer": "Hayır. ModeAlert tamamen web tabanlı — istemci yok, tarayıcı eklentisi yok, arka planda çalışan uygulama yok."
+      },
+      {
+        "question": "Nasıl haberdar edileceğim?",
+        "answer": "Şu an e-posta ve Discord (Ayarlar'dan bir webhook URL'si ekle). Telegram yol haritasında."
+      }
+    ]
   }
 }
