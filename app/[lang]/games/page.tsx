@@ -10,6 +10,7 @@ import GameCard from "@/components/cards/game-card"
 import { GamesKeyArtCarousel } from "@/components/games/games-key-art-carousel"
 
 import { gameService } from "@/lib/services/game.service"
+import { eventQueryService } from "@/lib/services/event-query.service"
 import { GAMES_WITH_PROVIDER } from "@/lib/constants/games"
 import { findGameKeyArt, placeholderGameArt } from "@/lib/constants/game-key-art"
 
@@ -19,7 +20,24 @@ export const metadata: Metadata = {
 }
 
 export default async function GamesPage() {
-  const games = await gameService.getAllGames()
+  const [games, events] = await Promise.all([
+    gameService.getAllGames(),
+    eventQueryService.getAll(),
+  ])
+
+  const eventsByGame: Record<
+    string,
+    { id: string; title: string; status: string; slug: string | null }[]
+  > = {}
+
+  for (const event of events) {
+    ;(eventsByGame[event.gameId] ??= []).push({
+      id: event.id,
+      title: event.title,
+      status: event.status,
+      slug: event.slug,
+    })
+  }
 
   return (
     <main className="min-h-screen bg-black text-white">
@@ -42,7 +60,7 @@ export default async function GamesPage() {
       </section>
 
       {games.length > 0 && (
-        <section className="mx-auto max-w-7xl px-6 pb-16">
+        <section className="pt-10">
           <GamesKeyArtCarousel
             games={games.map((game) => ({
               id: game.id,
@@ -54,6 +72,7 @@ export default async function GamesPage() {
                 findGameKeyArt(game.id) ??
                 placeholderGameArt(game.shortName, game.color),
             }))}
+            eventsByGame={eventsByGame}
           />
         </section>
       )}
