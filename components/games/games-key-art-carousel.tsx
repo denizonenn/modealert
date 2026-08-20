@@ -54,7 +54,7 @@ export function GamesKeyArtCarousel({ games, eventsByGame }: Props) {
 
   return (
     <div className="relative w-full">
-      <div className="h-[100svh] w-full">
+      <div className="relative h-[100svh] w-full">
         <HeroCarousel
           items={items}
           index={activeIndex}
@@ -63,9 +63,13 @@ export function GamesKeyArtCarousel({ games, eventsByGame }: Props) {
           autoplay
           autoplayDelay={4500}
         />
+
+        {/* Pre-fades the carousel's own bottom edge to black so the events
+            panel right below reads as attached, not a hard-cut seam. */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-black" />
       </div>
 
-      <div className="border-b border-white/10 bg-black">
+      <div className="-mt-px bg-black">
         <div className="mx-auto max-w-7xl px-6 py-14">
           <AnimatePresence mode="wait">
             <motion.div
