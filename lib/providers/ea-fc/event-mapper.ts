@@ -2,6 +2,7 @@ import type { ProviderEvent, ProviderEventStatus } from "../core/provider";
 
 import { GAME_IDS } from "@/lib/constants/games";
 import { EVENT_CATEGORIES } from "@/lib/constants/event-category";
+import { renderEventDescription } from "@/lib/i18n/event-descriptions";
 
 import { FUT_GG_SENTINEL_YEAR_CUTOFF } from "./constants";
 
@@ -34,9 +35,13 @@ export function mapSbcActivity(sbcs: FutGgSbc[]): ProviderEvent[] {
         ).endTime
       : null;
 
-  const description = nearestEnd
-    ? `${realTimeBoxed.length} real, time-boxed Squad Building Challenge${realTimeBoxed.length === 1 ? "" : "s"} live right now on FUT.GG — the next one expires ${new Date(nearestEnd).toISOString().slice(0, 10)}.`
-    : "No time-boxed Squad Building Challenges currently active.";
+  const descriptionKey = nearestEnd ? "eaFc.sbcActive" : "eaFc.sbcInactive";
+  const descriptionParams = nearestEnd
+    ? {
+        count: realTimeBoxed.length,
+        nearestEndDate: new Date(nearestEnd).toISOString().slice(0, 10),
+      }
+    : {};
 
   return [
     {
@@ -46,7 +51,13 @@ export function mapSbcActivity(sbcs: FutGgSbc[]): ProviderEvent[] {
 
       title: `Squad Building Challenges (${realTimeBoxed.length} active)`,
 
-      description,
+      description: renderEventDescription(
+        descriptionKey,
+        descriptionParams,
+        "en"
+      )!,
+      descriptionKey,
+      descriptionParams,
 
       status,
 

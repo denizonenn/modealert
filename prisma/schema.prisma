@@ -99,6 +99,17 @@ model Event {
 
   title         String
   description   String?
+
+  // When a provider's description is entirely ModeAlert-authored (no
+  // raw third-party text mixed in), it also sets these two so the
+  // description can be translated at display time — `description`
+  // itself stays the guaranteed English fallback (used as-is when a
+  // provider mixes in real third-party text, e.g. a Bungie milestone
+  // blurb or a Helldivers briefing, which can never be translated).
+  // See docs/06_DECISIONS.md ADR-054 "Faz 3".
+  descriptionKey    String?
+  descriptionParams Json?
+
   slug          String?        @unique
   status        String
   category      String         @default("PLAYABLE")

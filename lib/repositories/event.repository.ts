@@ -192,6 +192,9 @@ export async function upsertEvent(
     description:
       event.description ?? null,
 
+    descriptionKey: event.descriptionKey ?? null,
+    descriptionParams: event.descriptionParams,
+
     slug: buildEventSlug(event),
 
     status: event.status,

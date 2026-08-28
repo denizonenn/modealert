@@ -1,6 +1,10 @@
 import type { ProviderEvent, ProviderEventStatus } from "../core/provider";
 import { GAME_IDS } from "@/lib/constants/games";
 import { EVENT_CATEGORIES } from "@/lib/constants/event-category";
+import {
+  renderEventDescription,
+  type EventDescriptionParams,
+} from "@/lib/i18n/event-descriptions";
 import type {
   Ps2MetagameEventDefinitionResponse,
   Ps2WorldEventResponse,
@@ -36,7 +40,8 @@ export function mapCurrentAlert(
 
   const transitionedAt = new Date(Number(latest.timestamp) * 1000);
 
-  let description: string;
+  let descriptionKey: string;
+  let descriptionParams: EventDescriptionParams;
 
   if (isLive) {
     const durationMinutes = definition?.duration_minutes
@@ -47,16 +52,22 @@ export function mapCurrentAlert(
       ? new Date(transitionedAt.getTime() + durationMinutes * 60_000)
       : null;
 
-    description = `A server-wide territory-control Alert (${eventName}) is active on ${zoneName}${
-      estimatedEnd
-        ? `, expected to end around ${estimatedEnd.toUTCString()}`
-        : ""
-    } — detected from Daybreak's live world_event data.`;
+    descriptionKey = "planetside2.alertLive";
+    descriptionParams = {
+      eventName,
+      zoneName,
+      estimatedEnd: estimatedEnd?.toISOString(),
+    };
   } else {
     // Alerts trigger from real population/territory conditions, not a
     // fixed schedule — no "next expected" claim, unlike Iron Banner's
     // real announced cadence.
-    description = `No territory-control Alert currently active. The last one (${eventName} on ${zoneName}) ended ${transitionedAt.toUTCString()}.`;
+    descriptionKey = "planetside2.alertEnded";
+    descriptionParams = {
+      eventName,
+      zoneName,
+      endedAt: transitionedAt.toISOString(),
+    };
   }
 
   return [
@@ -72,7 +83,13 @@ export function mapCurrentAlert(
       id: "planetside2-alert",
       gameId: GAME_IDS.PLANETSIDE_2,
       title: "Territory Alert",
-      description,
+      description: renderEventDescription(
+        descriptionKey,
+        descriptionParams,
+        "en"
+      )!,
+      descriptionKey,
+      descriptionParams,
       status,
       category: EVENT_CATEGORIES.ROTATION_MILESTONE,
       isLimitedTime: true,

@@ -27,6 +27,7 @@ import {
 } from "@/lib/constants/event-category"
 import { getDictionary, getLocale } from "@/lib/i18n/dictionaries"
 import type { Dictionary } from "@/lib/i18n/dictionaries"
+import { resolveEventDescription } from "@/lib/i18n/event-descriptions"
 
 function fieldLabel(field: string, dict: Dictionary): string {
   const t = dict.eventDetailPage
@@ -76,6 +77,7 @@ export async function generateMetadata({
   const { slug } = await params
   const event = await eventQueryService.getBySlug(slug)
   const dict = await getDictionary()
+  const locale = await getLocale()
 
   if (!event) {
     return { title: dict.eventDetailPage.notFoundTitle }
@@ -84,7 +86,7 @@ export async function generateMetadata({
   return {
     title: `${event.title} — ${event.game.name}`,
     description:
-      event.description ??
+      resolveEventDescription(event, locale) ??
       dict.eventDetailPage.metaDescription
         .replace("{title}", event.title)
         .replace("{game}", event.game.name),
@@ -102,6 +104,7 @@ export default async function EventDetailPage({ params }: Props) {
   const dict = await getDictionary()
   const locale = await getLocale()
   const t = dict.eventDetailPage
+  const description = resolveEventDescription(event, locale)
 
   // Some events (e.g. every "Mayhem Set N" pass window, every "Season
   // N: Act X" battle pass) are real, successive occurrences of the
@@ -218,9 +221,9 @@ export default async function EventDetailPage({ params }: Props) {
           )}
         </div>
 
-        {event.description && (
+        {description && (
           <p className="mt-4 max-w-2xl text-sm text-zinc-400">
-            {event.description}
+            {description}
           </p>
         )}
 

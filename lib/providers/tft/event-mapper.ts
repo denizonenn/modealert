@@ -1,6 +1,7 @@
 import type { ProviderEvent, ProviderEventStatus } from "../core/provider";
 import { GAME_IDS } from "@/lib/constants/games";
 import { EVENT_CATEGORIES } from "@/lib/constants/event-category";
+import { renderEventDescription } from "@/lib/i18n/event-descriptions";
 import type { TftPlatformStatusResponse, TftSetsResponse } from "./types";
 
 export function mapPlatformStatus(
@@ -11,15 +12,24 @@ export function mapPlatformStatus(
       ? "TRACKING"
       : "LIVE";
 
+  const descriptionKey =
+    providerStatus === "TRACKING"
+      ? "riot.platformMaintenance"
+      : "riot.platformOperational";
+  const descriptionParams = { region: status.id, unit: "server" };
+
   return [
     {
       id: `tft-platform-${status.id}`,
       gameId: GAME_IDS.TFT,
       title: "Platform Status",
-      description:
-        providerStatus === "TRACKING"
-          ? `Riot has an active maintenance window on the ${status.id} server.`
-          : `${status.id} server is operating normally, no maintenance scheduled.`,
+      description: renderEventDescription(
+        descriptionKey,
+        descriptionParams,
+        "en"
+      )!,
+      descriptionKey,
+      descriptionParams,
       status: providerStatus,
       category: EVENT_CATEGORIES.PLATFORM_STATUS,
       isLimitedTime: false,
@@ -55,7 +65,9 @@ export function mapCurrentSet(
       id: `tft-set-${currentSet}`,
       gameId: GAME_IDS.TFT,
       title: `Set ${currentSet}`,
-      description: `The current live Teamfight Tactics set, detected from Riot's own game data (the highest set number present in the live client files) — not an announcement-date guess.`,
+      description: renderEventDescription("tft.setDescription", {}, "en")!,
+      descriptionKey: "tft.setDescription",
+      descriptionParams: {},
       status: "LIVE",
       category: EVENT_CATEGORIES.ROTATION_MILESTONE,
       isLimitedTime: true,

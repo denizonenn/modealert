@@ -1,6 +1,7 @@
 import type { ProviderEvent, ProviderEventStatus } from "../core/provider";
 
 import { EVENT_CATEGORIES } from "@/lib/constants/event-category";
+import { renderEventDescription } from "@/lib/i18n/event-descriptions";
 
 import type { SteamAppDetailsResponse } from "./types";
 
@@ -29,17 +30,32 @@ export function mapSteamSale(
   const status: ProviderEventStatus =
     priceOverview.discount_percent > 0 ? "LIVE" : "ENDED";
 
-  const description =
+  const descriptionKey =
+    status === "LIVE" ? "steamSales.discounted" : "steamSales.fullPrice";
+  const descriptionParams =
     status === "LIVE"
-      ? `${priceOverview.discount_percent}% off on Steam right now (${priceOverview.final / 100} ${priceOverview.currency}).`
-      : `Not currently discounted on Steam (${priceOverview.initial / 100} ${priceOverview.currency}).`;
+      ? {
+          discountPercent: priceOverview.discount_percent,
+          price: priceOverview.final / 100,
+          currency: priceOverview.currency,
+        }
+      : {
+          price: priceOverview.initial / 100,
+          currency: priceOverview.currency,
+        };
 
   return [
     {
       id: `steam-sale-${appId}`,
       gameId,
       title: `${gameName} — Steam Sale`,
-      description,
+      description: renderEventDescription(
+        descriptionKey,
+        descriptionParams,
+        "en"
+      )!,
+      descriptionKey,
+      descriptionParams,
       status,
       category: EVENT_CATEGORIES.COSMETIC_SHOP,
       isLimitedTime: true,

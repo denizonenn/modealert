@@ -2,6 +2,7 @@ import type { ProviderEvent, ProviderEventStatus } from "../core/provider";
 
 import { GAME_IDS } from "@/lib/constants/games";
 import { EVENT_CATEGORIES } from "@/lib/constants/event-category";
+import { renderEventDescription } from "@/lib/i18n/event-descriptions";
 
 import type { FfxivGateStatus } from "./types";
 
@@ -13,6 +14,10 @@ export function mapGateStatus(
   const isOpen = gate.status === 1;
   const status: ProviderEventStatus = isOpen ? "LIVE" : "TRACKING";
 
+  const descriptionKey = isOpen
+    ? "ffxiv.platformOperational"
+    : "ffxiv.platformMaintenance";
+
   return [
     {
       id: "ffxiv-platform-status",
@@ -21,9 +26,9 @@ export function mapGateStatus(
 
       title: "Platform Status",
 
-      description: isOpen
-        ? "The login gate is open — servers are operating normally."
-        : "The login gate is closed — maintenance is likely in progress.",
+      description: renderEventDescription(descriptionKey, {}, "en")!,
+      descriptionKey,
+      descriptionParams: {},
 
       status,
 

@@ -2,6 +2,7 @@ import type { ProviderEvent, ProviderEventStatus } from "../core/provider";
 
 import { GAME_IDS } from "@/lib/constants/games";
 import { EVENT_CATEGORIES } from "@/lib/constants/event-category";
+import { renderEventDescription } from "@/lib/i18n/event-descriptions";
 
 import type { WarframeWorldstate } from "./types";
 
@@ -25,16 +26,26 @@ function mapVoidTrader(
     ? `${trader.character} at ${trader.location}`
     : `${trader.character} arriving at ${trader.location}`;
 
-  const description = active
-    ? `${trader.character} is selling rare rotating wares at ${trader.location} for a limited time.`
-    : `${trader.character} is scheduled to arrive at ${trader.location} for a 48-hour visit.`;
+  const descriptionKey = active
+    ? "warframe.voidTraderActive"
+    : "warframe.voidTraderUpcoming";
+  const descriptionParams = {
+    character: trader.character,
+    location: trader.location,
+  };
 
   return [
     {
       id: "warframe-void-trader",
       gameId: GAME_IDS.WARFRAME,
       title,
-      description,
+      description: renderEventDescription(
+        descriptionKey,
+        descriptionParams,
+        "en"
+      )!,
+      descriptionKey,
+      descriptionParams,
       status,
       category: EVENT_CATEGORIES.ROTATION_MILESTONE,
       isLimitedTime: true,
@@ -56,14 +67,23 @@ function mapNightwave(
     ? "LIVE"
     : "TRACKING";
 
+  const descriptionKey = nightwave.active
+    ? "warframe.nightwaveActive"
+    : "warframe.nightwaveIntermission";
+  const descriptionParams = { season: nightwave.season };
+
   return [
     {
       id: "warframe-nightwave",
       gameId: GAME_IDS.WARFRAME,
       title: `Nightwave — Season ${nightwave.season}`,
-      description: nightwave.active
-        ? `Season ${nightwave.season} of Nightwave is active — complete weekly/daily acts for Wolf Creds and rewards.`
-        : `Nightwave Season ${nightwave.season} is between seasons (intermission) — no active acts right now.`,
+      description: renderEventDescription(
+        descriptionKey,
+        descriptionParams,
+        "en"
+      )!,
+      descriptionKey,
+      descriptionParams,
       status,
       category: EVENT_CATEGORIES.SEASON_PASS,
       isLimitedTime: true,
@@ -86,7 +106,13 @@ function mapSortie(
       id: "warframe-sortie",
       gameId: GAME_IDS.WARFRAME,
       title: `Sortie — ${sortie.boss}`,
-      description: `Today's 3-mission Sortie chain ends with a boss fight against ${sortie.boss}. Resets daily.`,
+      description: renderEventDescription(
+        "warframe.sortie",
+        { boss: sortie.boss },
+        "en"
+      )!,
+      descriptionKey: "warframe.sortie",
+      descriptionParams: { boss: sortie.boss },
       status: "LIVE",
       category: EVENT_CATEGORIES.ROTATION_MILESTONE,
       isLimitedTime: true,
@@ -109,7 +135,13 @@ function mapArchonHunt(
       id: "warframe-archon-hunt",
       gameId: GAME_IDS.WARFRAME,
       title: `Archon Hunt — ${archonHunt.boss}`,
-      description: `This week's 3-mission Archon Hunt chain (no life support, no revives) ends with a fight against ${archonHunt.boss}. Resets weekly.`,
+      description: renderEventDescription(
+        "warframe.archonHunt",
+        { boss: archonHunt.boss },
+        "en"
+      )!,
+      descriptionKey: "warframe.archonHunt",
+      descriptionParams: { boss: archonHunt.boss },
       status: "LIVE",
       category: EVENT_CATEGORIES.ROTATION_MILESTONE,
       isLimitedTime: true,
@@ -157,17 +189,22 @@ function mapArchimedea(
       ? `Weekly Archimedea (Variant ${index + 1})`
       : "Weekly Archimedea";
 
-    const description = active
-      ? `This week's 3-mission Archimedea chain${
-          missionSequence ? `: ${missionSequence}` : ""
-        } — no loadout switching between missions, unlocked with Search Pulses. Resets weekly.`
-      : "Between weekly Archimedea windows.";
+    const descriptionKey = active
+      ? "warframe.archimedeaActive"
+      : "warframe.archimedeaInactive";
+    const descriptionParams = active ? { missionSequence } : {};
 
     return {
       id: `warframe-archimedea-${current.id}`,
       gameId: GAME_IDS.WARFRAME,
       title,
-      description,
+      description: renderEventDescription(
+        descriptionKey,
+        descriptionParams,
+        "en"
+      )!,
+      descriptionKey,
+      descriptionParams,
       status: active ? "LIVE" : "ENDED",
       category: EVENT_CATEGORIES.ROTATION_MILESTONE,
       isLimitedTime: true,
@@ -198,9 +235,18 @@ function mapVaultTrader(
       id: "warframe-vault-trader",
       gameId: GAME_IDS.WARFRAME,
       title: `${trader.character} — Prime Resurgence`,
-      description: active
-        ? `${trader.character} is selling a rotating selection of vaulted Prime gear at ${trader.location} for Ducats/Aya.`
-        : `Prime Resurgence is between rotations at ${trader.location}.`,
+      description: renderEventDescription(
+        active ? "warframe.vaultTraderActive" : "warframe.vaultTraderInactive",
+        { character: trader.character, location: trader.location },
+        "en"
+      )!,
+      descriptionKey: active
+        ? "warframe.vaultTraderActive"
+        : "warframe.vaultTraderInactive",
+      descriptionParams: {
+        character: trader.character,
+        location: trader.location,
+      },
       status: active ? "LIVE" : "ENDED",
       category: EVENT_CATEGORIES.COSMETIC_SHOP,
       isLimitedTime: true,
@@ -230,9 +276,15 @@ function mapSteelPath(
       title: rewardName
         ? `Steel Path Circuit — ${rewardName}`
         : "Steel Path Circuit",
-      description: active
-        ? `This week's Steel Path Circuit honor reward${rewardName ? `: ${rewardName}` : ""}. Resets weekly.`
-        : "Between weekly Steel Path Circuit reward rotations.",
+      description: renderEventDescription(
+        active ? "warframe.steelPathActive" : "warframe.steelPathInactive",
+        { rewardName },
+        "en"
+      )!,
+      descriptionKey: active
+        ? "warframe.steelPathActive"
+        : "warframe.steelPathInactive",
+      descriptionParams: { rewardName },
       status: active ? "LIVE" : "ENDED",
       category: EVENT_CATEGORIES.SEASON_PASS,
       isLimitedTime: true,

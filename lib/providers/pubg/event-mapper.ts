@@ -1,6 +1,7 @@
 import type { ProviderEvent } from "../core/provider";
 import { GAME_IDS } from "@/lib/constants/games";
 import { EVENT_CATEGORIES } from "@/lib/constants/event-category";
+import { renderEventDescription } from "@/lib/i18n/event-descriptions";
 import type { PubgSeasonsResponse } from "./types";
 
 // Season ids look like "division.bro.official.pc-2018-42" — the
@@ -29,7 +30,13 @@ export function mapCurrentSeason(
       id: `pubg-season-${current.id}`,
       gameId: GAME_IDS.PUBG,
       title: seasonTitle(current.id),
-      description: `The current live PUBG ranked season, detected from PUBG's own live season data (\`isCurrentSeason\`) — not an announcement-date guess.`,
+      description: renderEventDescription(
+        "pubg.seasonDescription",
+        {},
+        "en"
+      )!,
+      descriptionKey: "pubg.seasonDescription",
+      descriptionParams: {},
       status: "LIVE",
       category: EVENT_CATEGORIES.ROTATION_MILESTONE,
       isLimitedTime: true,

@@ -714,14 +714,33 @@ Kaldığım yer — açık işler (öncelik sırasıyla)
   Client Component render'ları için tasarlanmış, RSC'lere tam uymuyor.
   ESLint config'de bu satır için bir istisna (`eslint-disable-next-line`
   veya kural kapsamını daraltma) eklenmesi ayrı bir karar.
-- **Faz 3 — etkinlik açıklamaları.** Provider'lar şu an açıklamayı
-  hazır İngilizce string olarak DB'ye yazıyor. Çevrilebilmesi için
-  `Event.description`'ın çeviri anahtarı + parametre olarak
-  saklanması ve görüntüleme anında çevrilmesi gerekiyor — 17
-  provider'ın event-mapper'ını etkileyen ayrı bir refactor. Üçüncü
-  taraf metinleri (Bungie flavor text, Helldivers brifingleri) ve
-  özel isimler ("Vault of Glass", "Set 18") bundan sonra da
-  İngilizce kalacak, bu kaçınılmaz (bkz. ADR-054 Bağlam).
+Done (2026-08-29) — Faz 3: etkinlik açıklamaları çevirisi
+
+- **17 provider tarandı, ~50 açıklama sitesi bulundu, tamamı taşındı
+  ya da bilinçli olarak atlandı.** Detay: ADR-054 "Faz 3". Kısaca:
+  `Event.descriptionKey`/`descriptionParams` (yeni, additive migration)
+  + merkezi `lib/i18n/event-descriptions.ts` (~60 anahtar,
+  `(params, locale) => string` render fonksiyonları)
+  + `resolveEventDescription()` görüntüleme katmanında
+  (`/events/[slug]`, `/games/[slug]`, onboarding `EventCard`,
+  dashboard `EventStatusCard`). Gerçek üçüncü taraf metin karışan 4
+  yer (Destiny milestone/Bungie, Helldivers 2 brifing/Arrowhead, PoE
+  league/varsa, CommunityDragon'ın subtitle'lı halleri) bilinçli
+  olarak İngilizce bırakıldı — kaçınılmaz, ADR-054'ün baştan beri
+  söylediği gibi. Bonus: birkaç yerde `toDateString()`/`toUTCString()`
+  yerine `toLocaleDateString(locale, ...)`'a geçildi (PS2 Alert,
+  Destiny Iron Banner/Xûr, CommunityDragon) — İngilizce tarafta da
+  daha okunaklı bir format. 206 → 213 test (yeni
+  `event-descriptions.test.ts` + 8 mevcut provider test dosyası,
+  hepsi yeşil — İngilizce render çıktısı orijinal metinlerle bire bir
+  aynı kaldı). Gerçek bir Event satırıyla `/tr` ve `/en`'de uçtan uca
+  canlı doğrulandı.
+- **Bilinçli olarak yapılmadı (bu geçişte):** Bildirim
+  e-postaları/Discord mesajları hâlâ sadece İngilizce — ayrı bir iş,
+  aşağıda.
+
+Kaldığım yer — açık işler
+
 - **Faz 4 — sayfa-seviyesi hreflang.** Sitemap-seviyesi hreflang
   2026-08-28'de tamamlandı (bkz. ADR-054 Faz 4) — `app/sitemap.ts`
   artık her sayfa için iki `<url>` (`/en/...` + `/tr/...`) ve gerçek
@@ -733,8 +752,11 @@ Kaldığım yer — açık işler (öncelik sırasıyla)
   yapılmadı çünkü tek başına sitemap'ten çok daha büyük bir iş.
 - **Bildirimler hâlâ sadece İngilizce.** Kullanıcı başına dil
   tercihi (`User.locale`) + `message-builder`'ın sözlükten okuması
-  gerekiyor. Faz 3 ile birlikte yapılması mantıklı — ikisi de aynı
-  "görüntüleme anında çevir" mekanizmasına dayanıyor.
+  gerekiyor. Faz 3 artık tamamlandığı için aynı "görüntüleme anında
+  çevir" altyapısı (`resolveEventDescription()`) burada da doğrudan
+  kullanılabilir — asıl eksik olan `User.locale` alanı ve
+  `message-builder`'ın onu okuyup e-posta/Discord metinlerini
+  `lib/i18n/dictionaries`'ten seçmesi.
 
 Yeni dil eklemek
 

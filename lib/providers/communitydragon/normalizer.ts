@@ -16,15 +16,28 @@ import {
   type EventCategory,
 } from "@/lib/constants/event-category";
 
+import {
+  renderEventDescription,
+  type EventDescriptionParams,
+} from "@/lib/i18n/event-descriptions";
+
 // The event-hub feed has no free-text description field — only image
 // URLs and this type code — so descriptions are built from a small,
-// fixed lookup rather than invented per event.
+// fixed lookup rather than invented per event. Each hub type maps to
+// a key in lib/i18n/event-descriptions.ts's RENDERERS.
 const EVENT_HUB_TYPE_LABELS: Record<string, string> = {
   kSeasonPass: "Season pass — earn track rewards through featured missions.",
   kActivityCenterMilestones:
     "Limited-time milestone event with special rewards.",
   kHallOfLegends: "Hall of Legends celebration event.",
   kDemaciaPass: "Classic-mode battle pass — earn track rewards.",
+};
+
+const EVENT_HUB_TYPE_DESCRIPTION_KEYS: Record<string, string> = {
+  kSeasonPass: "communitydragon.seasonPass",
+  kActivityCenterMilestones: "communitydragon.milestone",
+  kHallOfLegends: "communitydragon.hallOfLegends",
+  kDemaciaPass: "communitydragon.demaciaPass",
 };
 
 // Same eventHubType lookup used for descriptions, mapped to a
@@ -97,11 +110,17 @@ function canonicalModeTitle(
   return null;
 }
 
+interface DescribedEvent {
+  description: string;
+  descriptionKey?: string;
+  descriptionParams?: EventDescriptionParams;
+}
+
 function describeEvent(
   event: CommunityDragonEventHubEntry["event"],
   title: string,
   status: ProviderEventStatus
-): string {
+): DescribedEvent {
   const base =
     EVENT_HUB_TYPE_LABELS[event.eventHubType] ??
     "League of Legends event.";
@@ -110,18 +129,50 @@ function describeEvent(
     ? `${event.localizedEventSubtitle} — ${base}`
     : base;
 
-  if (
+  const hasUnconfirmedSuffix =
     event.eventHubType === "kSeasonPass" &&
-    isUnconfirmedRotatingModeWrapper(title)
-  ) {
+    isUnconfirmedRotatingModeWrapper(title);
+
+  if (hasUnconfirmedSuffix) {
     description = `${description} This is the battle-pass window only — whether the mode itself is in rotation today isn't something Riot exposes a reliable signal for yet.`;
   }
 
-  if (status === "TRACKING" && event.progressEndDate) {
-    return `${description} Pass progress has closed — the shop stays open until ${new Date(event.endDate).toLocaleDateString()} for remaining purchases, but no more track progress can be earned.`;
+  const progressClosed = status === "TRACKING" && event.progressEndDate;
+
+  if (progressClosed) {
+    description = `${description} Pass progress has closed — the shop stays open until ${new Date(event.endDate).toLocaleDateString()} for remaining purchases, but no more track progress can be earned.`;
   }
 
-  return description;
+  // Real third-party text (Riot's own localizedEventSubtitle) can't
+  // be translated — only the fully ModeAlert-authored case (no
+  // subtitle) gets a descriptionKey. See docs/06_DECISIONS.md ADR-054
+  // "Faz 3".
+  if (event.localizedEventSubtitle) {
+    return { description };
+  }
+
+  const baseKey =
+    EVENT_HUB_TYPE_DESCRIPTION_KEYS[event.eventHubType] ??
+    "communitydragon.genericEvent";
+
+  const descriptionParams: EventDescriptionParams = {
+    baseKey,
+    hasUnconfirmedSuffix: hasUnconfirmedSuffix ? 1 : undefined,
+    progressEndDate: progressClosed
+      ? new Date(event.endDate).toISOString()
+      : undefined,
+  };
+
+  return {
+    description:
+      renderEventDescription(
+        "communitydragon.description",
+        descriptionParams,
+        "en"
+      ) ?? description,
+    descriptionKey: "communitydragon.description",
+    descriptionParams,
+  };
 }
 
 function categorizeEvent(
@@ -272,6 +323,8 @@ function toProviderEvent(
     event.progressEndDate
   );
 
+  const described = describeEvent(event, title, status);
+
   return {
     id: `communitydragon-event-${event.eventId}`,
 
@@ -279,7 +332,9 @@ function toProviderEvent(
 
     title,
 
-    description: describeEvent(event, title, status),
+    description: described.description,
+    descriptionKey: described.descriptionKey,
+    descriptionParams: described.descriptionParams,
 
     status,
 
@@ -317,8 +372,13 @@ function toClassicMayhemCompanion(
 
     title: "ARAM: Mayhem Classic-ish",
 
-    description:
-      "A Classic-mode-themed ARAM Mayhem crossover variant. Riot doesn't publish a dedicated schedule for it, so ModeAlert ties its status to League Classic's real, dated pass window — the closest real signal available, not a confirmed direct source for this specific variant.",
+    description: renderEventDescription(
+      "communitydragon.mayhemClassicCompanion",
+      {},
+      "en"
+    )!,
+    descriptionKey: "communitydragon.mayhemClassicCompanion",
+    descriptionParams: {},
 
     status: computeStatus(
       event.startDate,

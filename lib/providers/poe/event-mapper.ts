@@ -2,6 +2,7 @@ import type { ProviderEvent, ProviderEventStatus } from "../core/provider";
 
 import { GAME_IDS } from "@/lib/constants/games";
 import { EVENT_CATEGORIES } from "@/lib/constants/event-category";
+import { renderEventDescription } from "@/lib/i18n/event-descriptions";
 
 import type { PoeLeaguesResponse } from "./types";
 
@@ -34,6 +35,17 @@ export function mapCurrentLeague(
     status = "ENDED";
   }
 
+  // Real third-party league blurbs (`current.description`) can't be
+  // translated — only the fallback we author ourselves gets a
+  // descriptionKey, same reasoning as Destiny's milestone/Helldivers'
+  // briefing text. See docs/06_DECISIONS.md ADR-054 "Faz 3".
+  const descriptionKey = current.description
+    ? undefined
+    : "poe.leagueFallback";
+  const descriptionParams = descriptionKey
+    ? { leagueId: current.id }
+    : undefined;
+
   return [
     {
       id: "poe-current-league",
@@ -41,7 +53,13 @@ export function mapCurrentLeague(
       title: `${current.id} League`,
       description:
         current.description ||
-        `${current.id} — Path of Exile's current temporary challenge league.`,
+        renderEventDescription(
+          "poe.leagueFallback",
+          { leagueId: current.id },
+          "en"
+        )!,
+      descriptionKey,
+      descriptionParams,
       status,
       category: EVENT_CATEGORIES.PLAYABLE,
       isLimitedTime: true,

@@ -21,6 +21,7 @@ import type { EventStatus } from "@/types/status"
 import { CategoryFilterBar } from "@/components/shared/category-filter-bar"
 import { RotationFilterBar } from "@/components/shared/rotation-filter-bar"
 import { useI18n } from "@/components/providers/i18n-provider"
+import { resolveEventDescription } from "@/lib/i18n/event-descriptions"
 
 import {
   categorySortKey,
@@ -122,7 +123,7 @@ function EventSections({
   onToggleWatch: (eventId: string) => Promise<void>
   emptyMessage: string
 }) {
-  const { dict } = useI18n()
+  const { dict, locale } = useI18n()
 
   if (events.length === 0) {
     return (
@@ -165,7 +166,7 @@ function EventSections({
                   key={event.id}
                   game={event.game}
                   event={event.title}
-                  description={event.description}
+                  description={resolveEventDescription(event, locale)}
                   category={event.category}
                   isLimitedTime={event.isLimitedTime}
                   slug={event.slug}

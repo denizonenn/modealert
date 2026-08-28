@@ -8,10 +8,16 @@ import type {
 
 import { GAME_IDS } from "@/lib/constants/games";
 import { EVENT_CATEGORIES } from "@/lib/constants/event-category";
+import { renderEventDescription } from "@/lib/i18n/event-descriptions";
 
 export function mapChampionRotation(
   rotation: RiotChampionRotationResponse
 ): ProviderEvent[] {
+  const descriptionParams = {
+    freeCount: rotation.sr.length,
+    newPlayerCount: rotation.newplayer.length,
+  };
+
   return [
     {
       id: "riot-champion-rotation",
@@ -20,7 +26,13 @@ export function mapChampionRotation(
 
       title: `Champion Rotation (${rotation.sr.length} Champions)`,
 
-      description: `${rotation.sr.length} champions are free to play this week, plus ${rotation.newplayer.length} additional champions for accounts under level 11.`,
+      description: renderEventDescription(
+        "riot.championRotation",
+        descriptionParams,
+        "en"
+      )!,
+      descriptionKey: "riot.championRotation",
+      descriptionParams,
 
       status: "LIVE",
 

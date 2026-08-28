@@ -27,6 +27,7 @@ import {
   type EventCategory,
 } from "@/lib/constants/event-category"
 import { getDictionary, getLocale } from "@/lib/i18n/dictionaries"
+import { resolveEventDescription } from "@/lib/i18n/event-descriptions"
 
 type EventStatus = "LIVE" | "UPCOMING" | "TRACKING" | "ENDED"
 
@@ -203,9 +204,9 @@ export default async function GameDetailPage({ params }: Props) {
                     </div>
                   </div>
 
-                  {event.description && (
+                  {resolveEventDescription(event, locale) && (
                     <p className="mt-2 text-sm text-zinc-400">
-                      {event.description}
+                      {resolveEventDescription(event, locale)}
                     </p>
                   )}
 

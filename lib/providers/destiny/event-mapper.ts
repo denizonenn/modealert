@@ -1,6 +1,7 @@
 import type { ProviderEvent, ProviderEventStatus } from "../core/provider";
 import { GAME_IDS } from "@/lib/constants/games";
 import { EVENT_CATEGORIES } from "@/lib/constants/event-category";
+import { renderEventDescription } from "@/lib/i18n/event-descriptions";
 import type {
   DestinyMilestoneDefinitionTable,
   DestinyPublicMilestonesResponse,
@@ -14,14 +15,18 @@ export function mapPlatformStatus(
 
   const status: ProviderEventStatus = enabled ? "LIVE" : "TRACKING";
 
+  const descriptionKey = enabled
+    ? "destiny.platformOperational"
+    : "destiny.platformMaintenance";
+
   return [
     {
       id: "destiny-platform-status",
       gameId: GAME_IDS.DESTINY_2,
       title: "Platform Status",
-      description: enabled
-        ? "Destiny 2 servers are operating normally, no maintenance scheduled."
-        : "Destiny 2 has an active maintenance window — the game may be unreachable.",
+      description: renderEventDescription(descriptionKey, {}, "en")!,
+      descriptionKey,
+      descriptionParams: {},
       status,
       category: EVENT_CATEGORIES.PLATFORM_STATUS,
       isLimitedTime: false,
@@ -148,14 +153,17 @@ export function mapIronBanner(now: Date): ProviderEvent[] {
   );
 
   let status: ProviderEventStatus;
-  let description: string;
+  let descriptionKey: string;
+  let descriptionParams: Record<string, string>;
 
   if (now < windowStart) {
     status = "UPCOMING";
-    description = `Bungie's announced schedule (every 4 weeks starting June 30, 2026) puts the next Iron Banner window starting ${windowStart.toDateString()}.`;
+    descriptionKey = "destiny.ironBannerUpcoming";
+    descriptionParams = { windowStart: windowStart.toISOString() };
   } else if (now <= windowEnd) {
     status = "LIVE";
-    description = `Live per Bungie's announced schedule (every 4 weeks starting June 30, 2026) — this window runs through ${windowEnd.toDateString()}.`;
+    descriptionKey = "destiny.ironBannerLive";
+    descriptionParams = { windowEnd: windowEnd.toISOString() };
   } else {
     // ENDED (not UPCOMING) so eventHistoryService correctly closes
     // out the LIVE window it opened — see eventSyncService's
@@ -164,7 +172,11 @@ export function mapIronBanner(now: Date): ProviderEvent[] {
     // nothing useful is lost.
     const nextStart = new Date(windowStart.getTime() + cycleMs);
     status = "ENDED";
-    description = `This window ended ${windowEnd.toDateString()}. Next expected ${nextStart.toDateString()}, per Bungie's announced every-4-weeks schedule.`;
+    descriptionKey = "destiny.ironBannerEnded";
+    descriptionParams = {
+      windowEnd: windowEnd.toISOString(),
+      nextStart: nextStart.toISOString(),
+    };
   }
 
   return [
@@ -172,7 +184,13 @@ export function mapIronBanner(now: Date): ProviderEvent[] {
       id: "destiny-iron-banner",
       gameId: GAME_IDS.DESTINY_2,
       title: "Iron Banner",
-      description,
+      description: renderEventDescription(
+        descriptionKey,
+        descriptionParams,
+        "en"
+      )!,
+      descriptionKey,
+      descriptionParams,
       status,
       category: EVENT_CATEGORIES.ROTATION_MILESTONE,
       isLimitedTime: true,
@@ -229,18 +247,27 @@ export function mapXur(now: Date): ProviderEvent[] {
   const isPresent = now.getTime() < departureEnd.getTime();
 
   let status: ProviderEventStatus;
-  let description: string;
+  let descriptionKey: string;
+  let descriptionParams: Record<string, string>;
 
   if (isPresent) {
     status = "LIVE";
-    description = `Xûr is at his usual spot (the Tower Bazaar) until ${departureEnd.toUTCString()} — computed from his weekly Friday 17:00 UTC to Tuesday 17:00 UTC schedule, not a live inventory API (Bungie doesn't expose vendor stock without per-character auth).`;
+    descriptionKey = "destiny.xurPresent";
+    descriptionParams = { departureEnd: departureEnd.toISOString() };
   } else {
     const nextArrival = new Date(
       arrivalStart.getTime() + XUR_CYCLE_DAYS * DAY_MS
     );
     status = "ENDED";
-    description = `Xûr has left for the week. Back ${nextArrival.toUTCString()}, per his weekly Friday 17:00 UTC schedule.`;
+    descriptionKey = "destiny.xurAbsent";
+    descriptionParams = { nextArrival: nextArrival.toISOString() };
   }
+
+  const description = renderEventDescription(
+    descriptionKey,
+    descriptionParams,
+    "en"
+  )!;
 
   return [
     {
@@ -248,6 +275,8 @@ export function mapXur(now: Date): ProviderEvent[] {
       gameId: GAME_IDS.DESTINY_2,
       title: "Xûr",
       description,
+      descriptionKey,
+      descriptionParams,
       status,
       category: EVENT_CATEGORIES.ROTATION_MILESTONE,
       isLimitedTime: true,

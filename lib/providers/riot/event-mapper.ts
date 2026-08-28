@@ -5,6 +5,7 @@ import type {
 
 import { GAME_IDS } from "@/lib/constants/games";
 import { EVENT_CATEGORIES } from "@/lib/constants/event-category";
+import { renderEventDescription } from "@/lib/i18n/event-descriptions";
 
 interface RiotPlatformStatus {
   id: string;
@@ -21,6 +22,12 @@ export function mapPlatformStatus(
       ? "TRACKING"
       : "LIVE";
 
+  const descriptionKey =
+    providerStatus === "TRACKING"
+      ? "riot.platformMaintenance"
+      : "riot.platformOperational";
+  const descriptionParams = { region: status.id, unit: "server" };
+
   return [
     {
       id: `riot-platform-${status.id}`,
@@ -29,10 +36,13 @@ export function mapPlatformStatus(
 
       title: "Platform Status",
 
-      description:
-        providerStatus === "TRACKING"
-          ? `Riot has an active maintenance window on the ${status.id} server.`
-          : `${status.id} server is operating normally, no maintenance scheduled.`,
+      description: renderEventDescription(
+        descriptionKey,
+        descriptionParams,
+        "en"
+      )!,
+      descriptionKey,
+      descriptionParams,
 
       status: providerStatus,
 

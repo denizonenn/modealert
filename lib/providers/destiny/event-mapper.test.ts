@@ -197,6 +197,6 @@ describe("destiny mapXur (Friday 17:00 UTC – Tuesday 17:00 UTC weekly)", () =>
     const [event] = mapXur(new Date("2026-08-19T12:00:00.000Z"));
 
     expect(event.status).toBe("ENDED");
-    expect(event.description).toContain("21 Aug 2026");
+    expect(event.description).toContain("August 21, 2026");
   });
 });

@@ -4,6 +4,10 @@ import type {
 
 import { GAME_IDS } from "@/lib/constants/games";
 import { EVENT_CATEGORIES } from "@/lib/constants/event-category";
+import {
+  renderEventDescription,
+  type EventDescriptionParams,
+} from "@/lib/i18n/event-descriptions";
 
 import type {
   FortniteShopData,
@@ -11,7 +15,9 @@ import type {
 
 const FEATURED_ITEM_COUNT = 5;
 
-function describeShop(shop: FortniteShopData): string {
+function describeShop(
+  shop: FortniteShopData
+): { key: string; params: EventDescriptionParams } {
   const allNames = shop.entries
     .flatMap((entry) => entry.brItems ?? [])
     .map((item) => item.name);
@@ -29,17 +35,26 @@ function describeShop(shop: FortniteShopData): string {
   const remaining = names.length - FEATURED_ITEM_COUNT;
 
   if (!featured) {
-    return `${shop.entries.length} offers currently in the Item Shop.`;
+    return {
+      key: "fortnite.shopOffersOnly",
+      params: { count: shop.entries.length },
+    };
   }
 
   return remaining > 0
-    ? `Featuring: ${featured}, and ${remaining} more.`
-    : `Featuring: ${featured}.`;
+    ? {
+        key: "fortnite.shopFeaturedMore",
+        params: { featured, remaining },
+      }
+    : { key: "fortnite.shopFeatured", params: { featured } };
 }
 
 export function mapItemShop(
   shop: FortniteShopData
 ): ProviderEvent[] {
+  const { key: descriptionKey, params: descriptionParams } =
+    describeShop(shop);
+
   return [
     {
       id: "fortnite-item-shop",
@@ -48,7 +63,13 @@ export function mapItemShop(
 
       title: `Item Shop (${shop.entries.length} items)`,
 
-      description: describeShop(shop),
+      description: renderEventDescription(
+        descriptionKey,
+        descriptionParams,
+        "en"
+      )!,
+      descriptionKey,
+      descriptionParams,
 
       status: "LIVE",
 

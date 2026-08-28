@@ -6,6 +6,7 @@ import type {
 
 import { GAME_IDS } from "@/lib/constants/games";
 import { EVENT_CATEGORIES } from "@/lib/constants/event-category";
+import { renderEventDescription } from "@/lib/i18n/event-descriptions";
 
 // Static, hand-curated facts about known game modes that no public API
 // exposes an "is it currently queueable" signal for — either because
@@ -57,7 +58,7 @@ interface KnownMode {
   id: string;
   gameId: string;
   title: string;
-  description: string;
+  descriptionKey: string;
   status: ProviderEventStatus;
   // Structurally permanent (a core queue) vs a rotating/featured mode
   // — independent of `status`. See ADR-026.
@@ -69,8 +70,7 @@ const KNOWN_MODES: KnownMode[] = [
     id: "lol-mode-sr-normal",
     gameId: GAME_IDS.LEAGUE_OF_LEGENDS,
     title: "Normal (Draft Pick)",
-    description:
-      "Summoner's Rift, 5v5, draft pick against the enemy team. One of League's core queues — permanently available, not something that starts or ends.",
+    descriptionKey: "rotatingModes.lolNormal",
     status: "LIVE",
     isLimitedTime: false,
   },
@@ -78,8 +78,7 @@ const KNOWN_MODES: KnownMode[] = [
     id: "lol-mode-sr-ranked-solo",
     gameId: GAME_IDS.LEAGUE_OF_LEGENDS,
     title: "Ranked Solo/Duo",
-    description:
-      "Summoner's Rift, 5v5, the main ranked ladder (solo or duo queue). Permanently available core queue.",
+    descriptionKey: "rotatingModes.lolRankedSolo",
     status: "LIVE",
     isLimitedTime: false,
   },
@@ -87,8 +86,7 @@ const KNOWN_MODES: KnownMode[] = [
     id: "lol-mode-sr-ranked-flex",
     gameId: GAME_IDS.LEAGUE_OF_LEGENDS,
     title: "Ranked Flex",
-    description:
-      "Summoner's Rift, 5v5, ranked for premade groups of 2-5. Permanently available core queue.",
+    descriptionKey: "rotatingModes.lolRankedFlex",
     status: "LIVE",
     isLimitedTime: false,
   },
@@ -96,8 +94,7 @@ const KNOWN_MODES: KnownMode[] = [
     id: "lol-mode-sr-swiftplay",
     gameId: GAME_IDS.LEAGUE_OF_LEGENDS,
     title: "Swiftplay",
-    description:
-      "Summoner's Rift, a faster-paced normal queue with a shortened draft. Permanently available core queue.",
+    descriptionKey: "rotatingModes.lolSwiftplay",
     status: "LIVE",
     isLimitedTime: false,
   },
@@ -105,8 +102,7 @@ const KNOWN_MODES: KnownMode[] = [
     id: "lol-mode-aram",
     gameId: GAME_IDS.LEAGUE_OF_LEGENDS,
     title: "ARAM",
-    description:
-      "Howling Abyss — random champions, one lane, no recalls to base shop between waves. Permanent, always-queueable core mode.",
+    descriptionKey: "rotatingModes.lolAram",
     status: "LIVE",
     isLimitedTime: false,
   },
@@ -138,8 +134,7 @@ const KNOWN_MODES: KnownMode[] = [
     id: "valorant-mode-competitive",
     gameId: GAME_IDS.VALORANT,
     title: "Competitive",
-    description:
-      "5v5 ranked ladder, best-of-25 (first to 13), Iron through Radiant. One of Valorant's original permanent modes since launch.",
+    descriptionKey: "rotatingModes.valorantCompetitive",
     status: "LIVE",
     isLimitedTime: false,
   },
@@ -147,8 +142,7 @@ const KNOWN_MODES: KnownMode[] = [
     id: "valorant-mode-unrated",
     gameId: GAME_IDS.VALORANT,
     title: "Unrated",
-    description:
-      "Same rules as Competitive, no rank on the line. Permanent core mode since launch.",
+    descriptionKey: "rotatingModes.valorantUnrated",
     status: "LIVE",
     isLimitedTime: false,
   },
@@ -156,8 +150,7 @@ const KNOWN_MODES: KnownMode[] = [
     id: "fortnite-mode-battle-royale",
     gameId: GAME_IDS.FORTNITE,
     title: "Battle Royale",
-    description:
-      "Fortnite's original permanent mode — 100 players, last one standing. Building enabled.",
+    descriptionKey: "rotatingModes.fortniteBattleRoyale",
     status: "LIVE",
     isLimitedTime: false,
   },
@@ -165,8 +158,7 @@ const KNOWN_MODES: KnownMode[] = [
     id: "fortnite-mode-zero-build",
     gameId: GAME_IDS.FORTNITE,
     title: "Zero Build",
-    description:
-      "Battle Royale with building disabled. Permanent playlist since its 2022 launch, still actively updated (confirmed via WebSearch 2026-08-12).",
+    descriptionKey: "rotatingModes.fortniteZeroBuild",
     status: "LIVE",
     isLimitedTime: false,
   },
@@ -178,8 +170,7 @@ const KNOWN_MODES: KnownMode[] = [
     id: "tft-mode-normal",
     gameId: GAME_IDS.TFT,
     title: "Normal",
-    description:
-      "Standard Teamfight Tactics queue, no rank on the line. Permanent core queue.",
+    descriptionKey: "rotatingModes.tftNormal",
     status: "LIVE",
     isLimitedTime: false,
   },
@@ -187,8 +178,7 @@ const KNOWN_MODES: KnownMode[] = [
     id: "tft-mode-ranked",
     gameId: GAME_IDS.TFT,
     title: "Ranked",
-    description:
-      "TFT's ranked ladder. Permanent core queue.",
+    descriptionKey: "rotatingModes.tftRanked",
     status: "LIVE",
     isLimitedTime: false,
   },
@@ -196,8 +186,7 @@ const KNOWN_MODES: KnownMode[] = [
     id: "tft-mode-hyper-roll",
     gameId: GAME_IDS.TFT,
     title: "Hyper Roll",
-    description:
-      "Faster-paced TFT — more gold, faster rerolls, single-elimination-style. Permanent core queue.",
+    descriptionKey: "rotatingModes.tftHyperRoll",
     status: "LIVE",
     isLimitedTime: false,
   },
@@ -223,7 +212,13 @@ export const rotatingModesProvider: EventProvider = {
 
         title: mode.title,
 
-        description: mode.description,
+        description: renderEventDescription(
+          mode.descriptionKey,
+          {},
+          "en"
+        )!,
+        descriptionKey: mode.descriptionKey,
+        descriptionParams: {},
 
         status: mode.status,
 

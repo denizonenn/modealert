@@ -4472,14 +4472,58 @@ sabit linkler (`href="/dashboard"`) `proxy.ts` sayesinde kullanıcının
 hatırlanan diline zarifçe yönleniyor (fazladan bir redirect hop'u
 pahasına). Sayfa çevrildikçe `path()` helper'ıyla düzeltilmeli.
 
-**Faz 3: Etkinlik açıklamaları.** Şu an provider'lar açıklamayı hazır
-İngilizce string olarak üretip DB'ye yazıyor. Çevrilebilmesi için
-`Event.description`'ın hazır metin yerine **çeviri anahtarı +
-parametreler** olarak saklanması, çevirinin görüntüleme anında
-yapılması gerekiyor. Bu, 17 provider'ın event-mapper'ını ve
-açıklamanın gösterildiği her yeri etkileyen ayrı bir refactor.
-Üçüncü taraf metinleri (Bungie flavor text, Helldivers brifingleri)
-ve özel isimler bu refactor'dan sonra da İngilizce kalacak.
+**Faz 3 (2026-08-29): Etkinlik açıklamaları — tamamlandı.** `Event`'e
+iki yeni sütun: `descriptionKey String?` + `descriptionParams Json?`.
+`description` sütunu **kalktı değil** — hâlâ her provider'ın yazdığı,
+garantili İngilizce fallback (change-detector'ın karşılaştırdığı alan
+da bu, bkz. `event-change-detector.service.ts`). Bir provider'ın
+açıklaması **tamamen ModeAlert'in kendi yazdığı metinse**
+(sunucudan/API'den gelen gerçek bir serbest metin karışmıyorsa) ayrıca
+`descriptionKey`/`descriptionParams` de set ediyor.
+
+- **Merkezi kayıt: `lib/i18n/event-descriptions.ts`.** ~60 anahtar,
+  her biri `(params, locale) => string` fonksiyonu — bir `{param}`
+  string-replace şablonu değil, gerçek bir fonksiyon, çünkü çoğu
+  açıklama koşullu (aktif/pasif, LIVE/ENDED/UPCOMING gibi durum
+  dallanması). Providers `renderEventDescription(key, params, "en")`
+  çağırarak kendi `description` fallback'ini de aynı fonksiyondan
+  üretiyor — böylece İngilizce fallback ile çevrilebilir versiyon asla
+  birbirinden sapamaz (iki ayrı yerde elle yazılmış metin yok).
+  Görüntüleme katmanı `resolveEventDescription(event, locale)`
+  çağırıyor: `descriptionKey` varsa çevrilmiş metni döner, yoksa (veya
+  anahtar çözülemezse) ham `description`'a düşer.
+- **17 provider'ın hepsi tarandı, ~50 açıklama sitesi bulundu.**
+  Tamamen ModeAlert-authored olanlar (büyük çoğunluk — platform
+  status'lar, Warframe'in 6 mapper'ı, LoL'un 7 statik queue
+  açıklaması + canlı bölge eki, Foxhole'un 4 savaş durumu, PS2 Alert'i
+  vb.) `descriptionKey` aldı. **Gerçek üçüncü taraf metin karışan 4
+  yer bilinçli olarak atlandı** (Destiny'nin milestone'ları — Bungie
+  flavor text, Helldivers 2'nin assignment brifingleri — Arrowhead'in
+  kendi metni, PoE'nin league açıklaması API'den geldiğinde,
+  CommunityDragon'ın `localizedEventSubtitle`'ı doldurduğu durumlar) —
+  bunlar hâlâ İngilizce kalacak, ADR-054'ün baştan beri söylediği gibi
+  kaçınılmaz.
+- **Tarih formatlaması iyileştirildi, sadece çeviri değil.**
+  `toDateString()`/`toUTCString()` gibi locale'siz İngilizce formatlar
+  yerine `toLocaleDateString(locale, ...)`/`toLocaleString(locale,
+  ...)` kullanılıyor artık (PlanetSide 2 Alert'i, Destiny'nin Iron
+  Banner/Xûr'u, CommunityDragon'ın pass-kapanış tarihi) — İngilizce
+  tarafta da daha okunaklı bir format, sadece TR için değil (bir test
+  bu format değişikliğine göre güncellendi,
+  `destiny/event-mapper.test.ts`).
+- **Görüntüleme katmanı:** `/events/[slug]`, `/games/[slug]`
+  (görünen paragraf + meta description), onboarding'in `EventCard`'ı,
+  dashboard'ın `EventStatusCard`'ı (`watching-list.tsx` üzerinden) —
+  hepsi `resolveEventDescription()`'a geçirildi. `/feed.xml` (RSS,
+  makine tarafından okunan) bilinçli olarak dokunulmadı, ham
+  `description`'ı (İngilizce) kullanmaya devam ediyor.
+- Migration: `prisma/migrations/20260829120000_add_event_description_key`
+  — additive, veri kaybı yok (98 Event satırı önce/sonra doğrulandı).
+- Yeni `lib/i18n/event-descriptions.test.ts` (7 test) + mevcut 8
+  provider test dosyası (206 → 213 test, hepsi yeşil) — İngilizce
+  render çıktısının orijinal metinlerle bire bir aynı kaldığını
+  doğruluyor (testler `.toBe`/`.toContain` ile tam veya alt-dize
+  eşleşmesi yapıyor, ben bir harf bile değiştirmedim).
 
 **Faz 4 (2026-08-28): SEO — sitemap-seviyesi hreflang tamamlandı.**
 `app/sitemap.ts` artık her sayfa için **iki** `<url>` girdisi üretiyor

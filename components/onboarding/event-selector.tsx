@@ -21,6 +21,7 @@ import {
 
 import EventCard from "../cards/event-card";
 import { useI18n } from "@/components/providers/i18n-provider";
+import { resolveEventDescription } from "@/lib/i18n/event-descriptions";
 
 const STATUS_PRIORITY: Record<string, number> = {
   LIVE: 0,
@@ -42,7 +43,7 @@ const DEFAULT_ROTATIONS: Set<RotationFilter> = new Set(
 );
 
 export default function EventSelector() {
-  const { dict } = useI18n();
+  const { dict, locale } = useI18n();
 
   const {
     selectedGames,
@@ -170,7 +171,7 @@ export default function EventSelector() {
               id={event.id}
               name={event.title}
               gameName={event.game.name}
-              description={event.description}
+              description={resolveEventDescription(event, locale)}
               category={event.category as EventCategory}
               isLimitedTime={event.isLimitedTime}
               selected={selectedEvents.includes(event.id)}

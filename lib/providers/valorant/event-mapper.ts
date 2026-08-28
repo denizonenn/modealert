@@ -5,6 +5,7 @@ import type {
 
 import { GAME_IDS } from "@/lib/constants/games";
 import { EVENT_CATEGORIES } from "@/lib/constants/event-category";
+import { renderEventDescription } from "@/lib/i18n/event-descriptions";
 
 import type {
   ValorantAct,
@@ -35,10 +36,18 @@ export function mapPlatformStatus(
 
       title: "Platform Status",
 
-      description:
+      description: renderEventDescription(
         providerStatus === "TRACKING"
-          ? `Riot has an active maintenance window on the ${status.id} shard.`
-          : `${status.id} shard is operating normally, no maintenance scheduled.`,
+          ? "riot.platformMaintenance"
+          : "riot.platformOperational",
+        { region: status.id, unit: "shard" },
+        "en"
+      )!,
+      descriptionKey:
+        providerStatus === "TRACKING"
+          ? "riot.platformMaintenance"
+          : "riot.platformOperational",
+      descriptionParams: { region: status.id, unit: "shard" },
 
       status: providerStatus,
 
@@ -85,7 +94,13 @@ export function mapActiveActs(
 
       title: actTitle(act),
 
-      description: `${actTitle(act)} is Valorant's current ~2-month competitive season phase — new act rank rewards and battle pass content are live.`,
+      description: renderEventDescription(
+        "valorant.actDescription",
+        { actTitle: actTitle(act) },
+        "en"
+      )!,
+      descriptionKey: "valorant.actDescription",
+      descriptionParams: { actTitle: actTitle(act) },
 
       status: "LIVE" as const,
 

@@ -15,6 +15,14 @@ export interface ProviderEvent {
 
   description?: string;
 
+  // Set together with `description` (via renderEventDescription(),
+  // see lib/i18n/event-descriptions.ts) only when the whole
+  // description is ModeAlert-authored — omitted when a provider mixes
+  // in real third-party text that can never be translated. See
+  // docs/06_DECISIONS.md ADR-054 "Faz 3".
+  descriptionKey?: string;
+  descriptionParams?: Record<string, string | number | undefined>;
+
   status: ProviderEventStatus;
 
   category: EventCategory;

@@ -2,6 +2,10 @@ import type { ProviderEvent, ProviderEventStatus } from "../core/provider";
 
 import { GAME_IDS } from "@/lib/constants/games";
 import { EVENT_CATEGORIES } from "@/lib/constants/event-category";
+import {
+  renderEventDescription,
+  type EventDescriptionParams,
+} from "@/lib/i18n/event-descriptions";
 
 import type { FoxholeWarState } from "./types";
 
@@ -20,19 +24,41 @@ export function mapCurrentWar(war: FoxholeWarState): ProviderEvent[] {
     status = "TRACKING";
   }
 
-  const description: Record<ProviderEventStatus, string> = {
-    UPCOMING: `War #${war.warNumber} is scheduled to begin soon.`,
-    LIVE: `Ongoing Colonial vs. Warden conquest — ${war.requiredVictoryTowns} town captures needed for victory.`,
-    TRACKING: `War #${war.warNumber} has entered the resistance phase — the losing side gets one last chance to fight back.`,
-    ENDED: `War #${war.warNumber} has ended${war.winner !== "NONE" ? ` — ${war.winner} won` : ""}.`,
+  const descriptionKeys: Record<ProviderEventStatus, string> = {
+    UPCOMING: "foxhole.warUpcoming",
+    LIVE: "foxhole.warLive",
+    TRACKING: "foxhole.warTracking",
+    ENDED: "foxhole.warEnded",
   };
+
+  const descriptionParamsByStatus: Record<
+    ProviderEventStatus,
+    EventDescriptionParams
+  > = {
+    UPCOMING: { warNumber: war.warNumber },
+    LIVE: { requiredVictoryTowns: war.requiredVictoryTowns },
+    TRACKING: { warNumber: war.warNumber },
+    ENDED: {
+      warNumber: war.warNumber,
+      winner: war.winner !== "NONE" ? war.winner : undefined,
+    },
+  };
+
+  const descriptionKey = descriptionKeys[status];
+  const descriptionParams = descriptionParamsByStatus[status];
 
   return [
     {
       id: "foxhole-current-war",
       gameId: GAME_IDS.FOXHOLE,
       title: `War #${war.warNumber}`,
-      description: description[status],
+      description: renderEventDescription(
+        descriptionKey,
+        descriptionParams,
+        "en"
+      )!,
+      descriptionKey,
+      descriptionParams,
       status,
       category: EVENT_CATEGORIES.PLAYABLE,
       isLimitedTime: true,

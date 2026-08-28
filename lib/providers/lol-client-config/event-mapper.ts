@@ -5,6 +5,7 @@ import type {
 
 import { GAME_IDS } from "@/lib/constants/games";
 import { EVENT_CATEGORIES } from "@/lib/constants/event-category";
+import { renderEventDescription } from "@/lib/i18n/event-descriptions";
 
 import type {
   ClientConfigQueueEntry,
@@ -25,7 +26,10 @@ interface KnownQueue {
 
   title: string;
 
-  description: string;
+  // Key into lib/i18n/event-descriptions.ts's RENDERERS map for this
+  // queue's static description text (before the live-region suffix
+  // below is appended).
+  descriptionKey: string;
 
   // Structurally permanent (ARAM Mayhem/League Classic, confirmed by
   // Riot's own dev updates — see ADR-029) vs genuinely rotating
@@ -41,51 +45,44 @@ const KNOWN_QUEUES: KnownQueue[] = [
     queueId: 900,
     id: "lol-live-urf",
     title: "URF",
-    description:
-      "Ultra Rapid Fire — near-zero cooldowns, no mana, random champion.",
+    descriptionKey: "lol.urf",
   },
   {
     queueId: 1900,
     id: "lol-live-pick-urf",
     title: "Pick URF",
-    description:
-      "URF with normal draft-style champion picking instead of a random champion.",
+    descriptionKey: "lol.pickUrf",
   },
   {
     queueId: 1700,
     id: "lol-live-arena",
     title: "Arena",
-    description:
-      "2v2v2v2v2v2v2v2 round-based combat with augments.",
+    descriptionKey: "lol.arena",
   },
   {
     queueId: 1740,
     id: "lol-live-bravery-arena",
     title: "Bravery Arena",
-    description:
-      "Arena's weekly variant — Bravery and Crowd Favorites rules.",
+    descriptionKey: "lol.braveryArena",
   },
   {
     queueId: 1750,
     id: "lol-live-arena-3x6",
     title: "Arena 3x6",
-    description:
-      "Arena's 3-player-team variant, six total compositions.",
+    descriptionKey: "lol.arena3x6",
   },
   {
     queueId: 2400,
     id: "lol-live-aram-mayhem",
     title: "ARAM: Mayhem",
-    description:
-      "ARAM with chaotic augments and Set-based progression. Riot confirmed in a March 2026 dev update that it's staying with no end date in mind (verified via WebSearch 2026-08-12, see ADR-029) — that's why it's marked permanent below, independent of the live check.",
+    descriptionKey: "lol.aramMayhem",
     isLimitedTime: false,
   },
   {
     queueId: 4310,
     id: "lol-live-league-classic",
     title: "League Classic",
-    description:
-      "The old-school alternate client, recreating early-League gameplay inside the current launcher. Launched July 29, 2026 designed as a permanent mode (verified via WebSearch 2026-08-12, see ADR-029) — that's why it's marked permanent below, independent of the live check.",
+    descriptionKey: "lol.leagueClassic",
     isLimitedTime: false,
   },
 ];
@@ -155,10 +152,14 @@ export function mapQueueStatuses(
     const status: ProviderEventStatus =
       liveRegions.length > 0 ? "LIVE" : "ENDED";
 
-    const description =
-      liveRegions.length > 0
-        ? `${queue.description} Currently enabled in ${liveRegions.length} region${liveRegions.length === 1 ? "" : "s"} (${liveRegions.map((region) => region.toUpperCase()).join(", ")}), per Riot's own live client config service (clientconfig.rpg.riotgames.com) — a real, keyless, per-region signal checked fresh on every sync, not a one-time snapshot.`
-        : `${queue.description} Not currently enabled in any checked region, per Riot's own live client config service (clientconfig.rpg.riotgames.com) — checked fresh on every sync, so this updates on its own the moment it changes.`;
+    const descriptionParams = {
+      baseKey: queue.descriptionKey,
+      liveRegionCount:
+        liveRegions.length > 0 ? liveRegions.length : undefined,
+      regions: liveRegions
+        .map((region) => region.toUpperCase())
+        .join(", "),
+    };
 
     return {
       id: queue.id,
@@ -167,7 +168,13 @@ export function mapQueueStatuses(
 
       title: queue.title,
 
-      description,
+      description: renderEventDescription(
+        "lol.queueStatus",
+        descriptionParams,
+        "en"
+      )!,
+      descriptionKey: "lol.queueStatus",
+      descriptionParams,
 
       status,
 
