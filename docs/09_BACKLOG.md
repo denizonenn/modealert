@@ -687,23 +687,24 @@ Done (2026-08-28) — Faz 2 TAMAMLANDI: `/events/[slug]`, `/games/[slug]`, `erro
 
 Faz 2 böylece tamamlandı — `/admin` hariç her sayfa `dict`-driven.
 
+Done (2026-08-28) — iki küçük temizlik maddesi
+
+- **`tr.json` artık gerçek bir derleme-zamanı şekil kontrolüne sahip.**
+  `lib/i18n/dictionaries.ts`'e type-only bir `AssertExtends<Dictionary,
+  typeof tr>` satırı eklendi — `typeof tr`, `Dictionary`'ye assignable
+  değilse (eksik/yanlış yazılmış bir anahtar) derleme hatası veriyor,
+  `as Dictionary` cast'inin aksine. `import type` kullanıldığı için
+  çalışma zamanında sıfır maliyeti var — `tr.json` hâlâ aynı dinamik
+  `import()` ile yükleniyor, kod bölme (code splitting) davranışı
+  değişmedi. Elle test edildi: `tr.json`'dan bilerek bir anahtar
+  silinip `tsc`'nin gerçekten hata verdiği, sonra geri eklenince
+  hatanın kaybolduğu doğrulandı. ADR-054'ün "eksik anahtar build
+  hatası verir" iddiası artık gerçekten doğru.
+- **`lib/time.ts` silindi** — kullanılmayan, eski bir
+  `formatRelativeTime()` kopyasıydı, hiçbir yerden import edilmiyordu.
+
 Kaldığım yer — açık işler (öncelik sırasıyla)
 
-- **`tr.json`'ın gerçek bir derleme-zamanı şekil kontrolü yok.**
-  `Dictionary = typeof en` + `tr.json`'ı `as Dictionary` ile zorlamak,
-  `tr.json`'da eksik ya da fazladan bir anahtar olsa da TypeScript'in
-  sessizce geçmesine izin veriyor (`as` excess/missing property
-  kontrolünü atlıyor) — ADR-054'ün "eksik anahtar build hatası verir"
-  iddiası şu an doğru değil. Ya `tr.json`'ı `satisfies Dictionary` ile
-  import edecek bir yapıya geçmeli, ya da CI'da iki dosyanın anahtar
-  kümesini karşılaştıran küçük bir test eklenmeli. (Bu oturum boyunca
-  her çeviri geçişinde elle/script ile doğrulandı, hep eşleşti — ama
-  bu güvence koddan gelmiyor.)
-- **`lib/time.ts` kullanılmayan, muhtemelen eski bir dosya.**
-  `formatRelativeTime()`'ın `lib/utils.ts`'tekinden farklı, daha eski
-  bir implementasyonu — hiçbir yerden import edilmiyor (script ile
-  doğrulandı). Muhtemelen bir refactor sırasında `lib/utils.ts`'e
-  taşınıp silinmesi unutulmuş. Silinmeli.
 - **`app/[lang]/events/[slug]/page.tsx`'te pre-existing bir
   `react-hooks/purity` lint hatası var** (`Date.now()` render sırasında
   çağrılıyor, "ongoing" event'lerin süresini hesaplamak için). Bu
