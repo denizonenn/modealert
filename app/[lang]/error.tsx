@@ -6,6 +6,7 @@ import { AlertTriangle } from "lucide-react"
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
+import { useI18n } from "@/components/providers/i18n-provider"
 
 export default function GlobalError({
   error,
@@ -14,6 +15,8 @@ export default function GlobalError({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  const { dict } = useI18n()
+
   useEffect(() => {
     console.error(error)
   }, [error])
@@ -28,18 +31,18 @@ export default function GlobalError({
         </div>
 
         <h1 className="mt-6 text-3xl font-bold tracking-tight">
-          Something went wrong
+          {dict.errorPage.title}
         </h1>
 
         <p className="mt-2 text-sm text-zinc-400">
-          That&apos;s on us, not you. Try again, or come back in a bit.
+          {dict.errorPage.intro}
         </p>
 
         <Button
           onClick={reset}
           className="mt-8 bg-white text-black hover:bg-zinc-200"
         >
-          Try again
+          {dict.common.tryAgain}
         </Button>
       </div>
 

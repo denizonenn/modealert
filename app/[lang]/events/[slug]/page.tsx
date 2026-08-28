@@ -22,29 +22,43 @@ import { getProviderName } from "@/lib/providers/core/registry"
 import { formatDuration } from "@/lib/utils"
 import { PLANS } from "@/lib/constants/plan"
 import {
-  EVENT_CATEGORY_LABELS,
+  eventCategoryLabel,
   type EventCategory,
 } from "@/lib/constants/event-category"
+import { getDictionary, getLocale } from "@/lib/i18n/dictionaries"
+import type { Dictionary } from "@/lib/i18n/dictionaries"
 
-const FIELD_LABELS: Record<string, string> = {
-  title: "Title",
-  description: "Description",
-  status: "Status",
-  category: "Category",
-  isLimitedTime: "Permanence",
+function fieldLabel(field: string, dict: Dictionary): string {
+  const t = dict.eventDetailPage
+
+  const labels: Record<string, string> = {
+    title: t.fieldTitle,
+    description: t.fieldDescription,
+    status: t.fieldStatus,
+    category: t.fieldCategory,
+    isLimitedTime: t.fieldIsLimitedTime,
+  }
+
+  return labels[field] ?? field
 }
 
-function formatChangeValue(field: string, value: string | null): string {
+function formatChangeValue(
+  field: string,
+  value: string | null,
+  dict: Dictionary
+): string {
   if (value === null) {
     return "—"
   }
 
   if (field === "isLimitedTime") {
-    return value === "true" ? "Limited Time" : "Permanent"
+    return value === "true"
+      ? dict.eventDetailPage.limitedTime
+      : dict.eventDetailPage.permanent
   }
 
   if (field === "category") {
-    return EVENT_CATEGORY_LABELS[value as EventCategory] ?? value
+    return eventCategoryLabel(value as EventCategory, dict) ?? value
   }
 
   return value
@@ -61,16 +75,19 @@ export async function generateMetadata({
 }: Props): Promise<Metadata> {
   const { slug } = await params
   const event = await eventQueryService.getBySlug(slug)
+  const dict = await getDictionary()
 
   if (!event) {
-    return { title: "Event not found" }
+    return { title: dict.eventDetailPage.notFoundTitle }
   }
 
   return {
     title: `${event.title} — ${event.game.name}`,
     description:
       event.description ??
-      `Tracking history and status for ${event.title} in ${event.game.name}.`,
+      dict.eventDetailPage.metaDescription
+        .replace("{title}", event.title)
+        .replace("{game}", event.game.name),
   }
 }
 
@@ -81,6 +98,10 @@ export default async function EventDetailPage({ params }: Props) {
   if (!event) {
     notFound()
   }
+
+  const dict = await getDictionary()
+  const locale = await getLocale()
+  const t = dict.eventDetailPage
 
   // Some events (e.g. every "Mayhem Set N" pass window, every "Season
   // N: Act X" battle pass) are real, successive occurrences of the
@@ -141,13 +162,18 @@ export default async function EventDetailPage({ params }: Props) {
   const timeline = [...history].reverse()
   const renderedAt = Date.now()
 
+  const premiumTeaserProps = {
+    label: dict.common.premium,
+    href: `/${locale}/pricing`,
+  }
+
   return (
     <main className="min-h-screen bg-black text-white">
       <Navbar />
 
       <section className="mx-auto max-w-4xl px-6 py-16">
         <Link
-          href={`/games/${event.game.slug}`}
+          href={`/${locale}/games/${event.game.slug}`}
           className="inline-flex items-center gap-1 text-sm text-zinc-400 hover:text-white"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -184,9 +210,10 @@ export default async function EventDetailPage({ params }: Props) {
               className="border-white/10 bg-white/5 text-zinc-400"
             >
               <Users className="mr-1 h-3 w-3" />
-              {event.trackedUsers}{" "}
-              {event.trackedUsers === 1 ? "person" : "people"} tracking
-              this
+              {(event.trackedUsers === 1
+                ? t.personTrackingOne
+                : t.personTrackingMany
+              ).replace("{count}", String(event.trackedUsers))}
             </Badge>
           )}
         </div>
@@ -199,27 +226,25 @@ export default async function EventDetailPage({ params }: Props) {
 
         {event.seriesKey && (
           <p className="mt-2 max-w-2xl text-xs text-zinc-500">
-            Part of a recurring series — the stats and timeline below
-            span every occurrence we&apos;ve tracked, not just this
-            one.
+            {t.seriesNote}
           </p>
         )}
 
         <div className="mt-8 grid gap-4 rounded-2xl border border-white/10 bg-white/5 p-5 text-sm sm:grid-cols-4">
           <div>
             <p className="text-xs uppercase tracking-wide text-zinc-600">
-              First tracked
+              {t.firstTracked}
             </p>
             <p className="mt-0.5 text-zinc-300">
               {statistics.firstSeen
-                ? new Date(statistics.firstSeen).toLocaleDateString()
+                ? new Date(statistics.firstSeen).toLocaleDateString(locale)
                 : "—"}
             </p>
           </div>
 
           <div>
             <p className="text-xs uppercase tracking-wide text-zinc-600">
-              Times seen
+              {t.timesSeen}
             </p>
             <p className="mt-0.5 text-zinc-300">
               {statistics.appearanceCount}
@@ -229,21 +254,23 @@ export default async function EventDetailPage({ params }: Props) {
           {isPremium ? (
             <div>
               <p className="text-xs uppercase tracking-wide text-zinc-600">
-                Average duration
+                {t.averageDuration}
               </p>
               <p className="mt-0.5 text-zinc-300">
                 {statistics.averageDuration > 0
-                  ? formatDuration(statistics.averageDuration)
+                  ? formatDuration(statistics.averageDuration, locale)
                   : "—"}
               </p>
             </div>
           ) : (
-            <PremiumTeaser>
+            <PremiumTeaser {...premiumTeaserProps}>
               <div>
                 <p className="text-xs uppercase tracking-wide text-zinc-600">
-                  Average duration
+                  {t.averageDuration}
                 </p>
-                <p className="mt-0.5 text-zinc-300">12h 34m</p>
+                <p className="mt-0.5 text-zinc-300">
+                  {t.averageDurationPlaceholder}
+                </p>
               </div>
             </PremiumTeaser>
           )}
@@ -252,37 +279,42 @@ export default async function EventDetailPage({ params }: Props) {
             isPremium ? (
               <div>
                 <p className="text-xs uppercase tracking-wide text-zinc-600">
-                  Estimated to end
+                  {t.estimatedToEnd}
                 </p>
                 <p className="mt-0.5 text-zinc-300">
                   {predictedEndAt
-                    ? new Date(predictedEndAt).toLocaleDateString()
-                    : "Not enough history yet"}
+                    ? new Date(predictedEndAt).toLocaleDateString(locale)
+                    : t.notEnoughHistoryYet}
                 </p>
                 {predictedEndAt && (
                   <p className="mt-0.5 text-xs text-zinc-600">
-                    ~{prediction.confidence}% confidence
+                    {t.confidencePercent.replace(
+                      "{confidence}",
+                      String(prediction.confidence)
+                    )}
                   </p>
                 )}
               </div>
             ) : (
-              <PremiumTeaser>
+              <PremiumTeaser {...premiumTeaserProps}>
                 <div>
                   <p className="text-xs uppercase tracking-wide text-zinc-600">
-                    Estimated to end
+                    {t.estimatedToEnd}
                   </p>
-                  <p className="mt-0.5 text-zinc-300">Jan 1, 2027</p>
+                  <p className="mt-0.5 text-zinc-300">
+                    {t.estimatedDatePlaceholder}
+                  </p>
                 </div>
               </PremiumTeaser>
             )
           ) : (
             <div>
               <p className="text-xs uppercase tracking-wide text-zinc-600">
-                Last seen
+                {t.lastSeen}
               </p>
               <p className="mt-0.5 text-zinc-300">
                 {statistics.lastSeen
-                  ? new Date(statistics.lastSeen).toLocaleDateString()
+                  ? new Date(statistics.lastSeen).toLocaleDateString(locale)
                   : "—"}
               </p>
             </div>
@@ -292,29 +324,38 @@ export default async function EventDetailPage({ params }: Props) {
             isPremium ? (
               <div>
                 <p className="text-xs uppercase tracking-wide text-zinc-600">
-                  Typically returns after
+                  {t.typicallyReturnsAfter}
                 </p>
                 <p className="mt-0.5 text-zinc-300">
                   {recurrenceIntervalMs
-                    ? formatDuration(recurrenceIntervalMs)
+                    ? formatDuration(recurrenceIntervalMs, locale)
                     : "—"}
                 </p>
                 <p className="mt-0.5 text-xs text-zinc-600">
-                  next expected around{" "}
-                  {nextExpectedAt.toLocaleDateString()}
+                  {t.nextExpectedAround.replace(
+                    "{date}",
+                    nextExpectedAt.toLocaleDateString(locale)
+                  )}
                   {nextArrival.available &&
                     "confidence" in nextArrival && (
-                      <> (~{nextArrival.confidence}% confidence)</>
+                      <>
+                        {t.confidenceParen.replace(
+                          "{confidence}",
+                          String(nextArrival.confidence)
+                        )}
+                      </>
                     )}
                 </p>
               </div>
             ) : (
-              <PremiumTeaser>
+              <PremiumTeaser {...premiumTeaserProps}>
                 <div>
                   <p className="text-xs uppercase tracking-wide text-zinc-600">
-                    Typically returns after
+                    {t.typicallyReturnsAfter}
                   </p>
-                  <p className="mt-0.5 text-zinc-300">14 days</p>
+                  <p className="mt-0.5 text-zinc-300">
+                    {t.typicallyReturnsPlaceholder}
+                  </p>
                 </div>
               </PremiumTeaser>
             )
@@ -324,24 +365,18 @@ export default async function EventDetailPage({ params }: Props) {
         {!prediction.active &&
           nextArrival.available &&
           !nextExpectedAt && (
-            <p className="mt-3 text-xs text-zinc-600">
-              Only seen once so far — not enough history yet to
-              estimate when it typically comes back. We&apos;ll be
-              able to once it&apos;s reappeared at least twice.
-            </p>
+            <p className="mt-3 text-xs text-zinc-600">{t.onlySeenOnce}</p>
           )}
 
         <div className="mt-10">
-          <SectionEyebrow>Timeline</SectionEyebrow>
+          <SectionEyebrow>{t.timelineEyebrow}</SectionEyebrow>
           <h2 className="mt-1 text-xl font-semibold tracking-tight">
-            Every occurrence we&apos;ve tracked
+            {t.timelineTitle}
           </h2>
 
           <div className="mt-6 space-y-2">
             {timeline.length === 0 ? (
-              <p className="text-sm text-zinc-500">
-                No history recorded yet — check back after the next sync.
-              </p>
+              <p className="text-sm text-zinc-500">{t.noHistoryYet}</p>
             ) : (
               timeline.map((entry) => {
                 const duration = entry.endedAt
@@ -364,19 +399,19 @@ export default async function EventDetailPage({ params }: Props) {
                           </span>
                         )}
                       <span className="text-zinc-300">
-                        {entry.startedAt.toLocaleString()}
+                        {entry.startedAt.toLocaleString(locale)}
                       </span>
                       <span className="text-zinc-600">→</span>
                       <span className="text-zinc-300">
                         {entry.endedAt
-                          ? entry.endedAt.toLocaleString()
-                          : "ongoing"}
+                          ? entry.endedAt.toLocaleString(locale)
+                          : t.ongoing}
                       </span>
                     </div>
 
                     <span className="text-xs text-zinc-500">
-                      {formatDuration(duration)}
-                      {!entry.endedAt && " so far"}
+                      {formatDuration(duration, locale)}
+                      {!entry.endedAt && t.soFar}
                     </span>
                   </div>
                 )
@@ -386,21 +421,14 @@ export default async function EventDetailPage({ params }: Props) {
         </div>
 
         <div className="mt-10">
-          <SectionEyebrow>Changes</SectionEyebrow>
+          <SectionEyebrow>{t.changesEyebrow}</SectionEyebrow>
           <h2 className="mt-1 text-xl font-semibold tracking-tight">
-            What&apos;s changed about this event
+            {t.changesTitle}
           </h2>
 
           <div className="mt-6 space-y-2">
             {changes.length === 0 ? (
-              <p className="text-sm text-zinc-500">
-                No edits recorded yet — ModeAlert&apos;s change-tracking
-                only started logging edits on 2026-08-13 (this event may
-                have been tracked before that), and logs a change the
-                next time this event&apos;s title, description, status,
-                category, or permanence actually differs from what was
-                last synced.
-              </p>
+              <p className="text-sm text-zinc-500">{t.noEditsYet}</p>
             ) : (
               changes.map((change) => (
                 <div
@@ -409,16 +437,16 @@ export default async function EventDetailPage({ params }: Props) {
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="font-medium text-zinc-300">
-                      {FIELD_LABELS[change.field] ?? change.field}
+                      {fieldLabel(change.field, dict)}
                     </span>
                     <span className="text-xs text-zinc-500">
-                      {change.changedAt.toLocaleString()}
+                      {change.changedAt.toLocaleString(locale)}
                     </span>
                   </div>
                   <p className="mt-1 text-zinc-400">
-                    {formatChangeValue(change.field, change.oldValue)}
+                    {formatChangeValue(change.field, change.oldValue, dict)}
                     <span className="mx-2 text-zinc-600">→</span>
-                    {formatChangeValue(change.field, change.newValue)}
+                    {formatChangeValue(change.field, change.newValue, dict)}
                   </p>
                 </div>
               ))
@@ -428,9 +456,9 @@ export default async function EventDetailPage({ params }: Props) {
 
         {recommendations.length > 0 && (
           <div className="mt-10">
-            <SectionEyebrow>Also Tracked</SectionEyebrow>
+            <SectionEyebrow>{t.alsoTrackedEyebrow}</SectionEyebrow>
             <h2 className="mt-1 text-xl font-semibold tracking-tight">
-              People tracking this also track
+              {t.alsoTrackedTitle}
             </h2>
 
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -439,8 +467,8 @@ export default async function EventDetailPage({ params }: Props) {
                   key={related.id}
                   href={
                     related.slug
-                      ? `/events/${related.slug}`
-                      : `/games/${related.game.slug}`
+                      ? `/${locale}/events/${related.slug}`
+                      : `/${locale}/games/${related.game.slug}`
                   }
                   className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm transition-colors hover:border-white/20"
                 >
@@ -455,9 +483,11 @@ export default async function EventDetailPage({ params }: Props) {
                       {related.title}
                     </p>
                     <p className="text-xs text-zinc-500">
-                      {related.game.name} · {trackedTogetherCount}{" "}
-                      {trackedTogetherCount === 1 ? "tracker" : "trackers"}{" "}
-                      in common
+                      {related.game.name} ·{" "}
+                      {(trackedTogetherCount === 1
+                        ? t.trackerOne
+                        : t.trackerMany
+                      ).replace("{count}", String(trackedTogetherCount))}
                     </p>
                   </div>
                   <EventStatusBadge status={related.status as EventStatus} />

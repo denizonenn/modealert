@@ -23,9 +23,10 @@ import { EXTERNAL_RESOURCES } from "@/lib/constants/external-resources"
 import { PLANS } from "@/lib/constants/plan"
 import {
   categorySortKey,
-  EVENT_CATEGORY_LABELS,
+  eventCategoryLabel,
   type EventCategory,
 } from "@/lib/constants/event-category"
+import { getDictionary, getLocale } from "@/lib/i18n/dictionaries"
 
 type EventStatus = "LIVE" | "UPCOMING" | "TRACKING" | "ENDED"
 
@@ -45,14 +46,18 @@ export async function generateMetadata({
 }: Props): Promise<Metadata> {
   const { slug } = await params
   const game = await gameService.getBySlug(slug)
+  const dict = await getDictionary()
 
   if (!game) {
-    return { title: "Game not found" }
+    return { title: dict.gameDetailPage.notFoundTitle }
   }
 
   return {
     title: game.name,
-    description: `Every ${game.name} event ModeAlert tracks — current status, when it was last seen, and an estimate of when it'll end based on real history.`,
+    description: dict.gameDetailPage.metaDescription.replace(
+      "{game}",
+      game.name
+    ),
   }
 }
 
@@ -75,6 +80,10 @@ export default async function GameDetailPage({ params }: Props) {
   if (!game) {
     notFound()
   }
+
+  const dict = await getDictionary()
+  const locale = await getLocale()
+  const t = dict.gameDetailPage
 
   const session = await auth()
   const plan = await billingService.getPlan(session?.user?.id)
@@ -109,11 +118,11 @@ export default async function GameDetailPage({ params }: Props) {
 
       <section className="mx-auto max-w-4xl px-6 py-16">
         <Link
-          href="/games"
+          href={`/${locale}/games`}
           className="inline-flex items-center gap-1 text-sm text-zinc-400 hover:text-white"
         >
           <ArrowLeft className="h-4 w-4" />
-          All games
+          {t.allGames}
         </Link>
 
         <div className="mt-6 flex items-center gap-4">
@@ -125,7 +134,7 @@ export default async function GameDetailPage({ params }: Props) {
           />
 
           <div>
-            <SectionEyebrow>Game</SectionEyebrow>
+            <SectionEyebrow>{t.gameEyebrow}</SectionEyebrow>
             <h1 className="mt-1 text-3xl font-bold tracking-tight">
               {game.name}
             </h1>
@@ -133,11 +142,7 @@ export default async function GameDetailPage({ params }: Props) {
         </div>
 
         <p className="mt-4 max-w-2xl text-sm text-zinc-400">
-          Every mode and event ModeAlert has ever tracked for{" "}
-          {game.name}
-          {" "}— current status, how often it comes back, and (once
-          we&apos;ve seen it complete at least once) an estimate of
-          when it&apos;ll end.
+          {t.intro.replace("{game}", game.name)}
         </p>
 
         <div className="mt-6">
@@ -163,10 +168,7 @@ export default async function GameDetailPage({ params }: Props) {
 
         <div className="mt-10 space-y-3">
           {eventsWithInsights.length === 0 ? (
-            <p className="text-sm text-zinc-500">
-              No events tracked yet for this game — check back after
-              the next sync.
-            </p>
+            <p className="text-sm text-zinc-500">{t.noEventsTracked}</p>
           ) : (
             eventsWithInsights.map(
               ({ event, statistics, prediction, predictedEndAt }) => (
@@ -178,7 +180,7 @@ export default async function GameDetailPage({ params }: Props) {
                     <h3 className="font-semibold">
                       {event.slug ? (
                         <Link
-                          href={`/events/${event.slug}`}
+                          href={`/${locale}/events/${event.slug}`}
                           className="hover:text-zinc-300"
                         >
                           {event.title}
@@ -189,9 +191,10 @@ export default async function GameDetailPage({ params }: Props) {
                     </h3>
                     <div className="flex shrink-0 items-center gap-2">
                       <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-zinc-500">
-                        {EVENT_CATEGORY_LABELS[
-                          event.category as EventCategory
-                        ] ?? event.category}
+                        {eventCategoryLabel(
+                          event.category as EventCategory,
+                          dict
+                        ) ?? event.category}
                       </span>
                       <RotationBadge isLimitedTime={event.isLimitedTime} />
                       <EventStatusBadge
@@ -209,20 +212,20 @@ export default async function GameDetailPage({ params }: Props) {
                   <div className="mt-4 grid gap-4 text-sm sm:grid-cols-3">
                     <div>
                       <p className="text-xs uppercase tracking-wide text-zinc-600">
-                        First tracked
+                        {t.firstTracked}
                       </p>
                       <p className="mt-0.5 text-zinc-300">
                         {statistics.firstSeen
                           ? new Date(
                               statistics.firstSeen
-                            ).toLocaleDateString()
+                            ).toLocaleDateString(locale)
                           : "—"}
                       </p>
                     </div>
 
                     <div>
                       <p className="text-xs uppercase tracking-wide text-zinc-600">
-                        Times seen
+                        {t.timesSeen}
                       </p>
                       <p className="mt-0.5 text-zinc-300">
                         {statistics.appearanceCount}
@@ -233,20 +236,26 @@ export default async function GameDetailPage({ params }: Props) {
                       (isPremium ? (
                         <div>
                           <p className="text-xs uppercase tracking-wide text-zinc-600">
-                            Average duration
+                            {t.averageDuration}
                           </p>
                           <p className="mt-0.5 text-zinc-300">
-                            {formatDuration(statistics.averageDuration)}
+                            {formatDuration(
+                              statistics.averageDuration,
+                              locale
+                            )}
                           </p>
                         </div>
                       ) : (
-                        <PremiumTeaser>
+                        <PremiumTeaser
+                          label={dict.common.premium}
+                          href={`/${locale}/pricing`}
+                        >
                           <div>
                             <p className="text-xs uppercase tracking-wide text-zinc-600">
-                              Average duration
+                              {t.averageDuration}
                             </p>
                             <p className="mt-0.5 text-zinc-300">
-                              12h 34m
+                              {t.averageDurationPlaceholder}
                             </p>
                           </div>
                         </PremiumTeaser>
@@ -257,34 +266,42 @@ export default async function GameDetailPage({ params }: Props) {
                       (isPremium ? (
                         <div className="sm:col-span-3">
                           <p className="text-xs uppercase tracking-wide text-zinc-600">
-                            Estimated to end
+                            {t.estimatedToEnd}
                           </p>
                           <p className="mt-0.5 text-zinc-300">
-                            {new Date(
-                              predictedEndAt
-                            ).toLocaleDateString()}{" "}
+                            {new Date(predictedEndAt).toLocaleDateString(
+                              locale
+                            )}{" "}
                             <span className="text-xs text-zinc-500">
-                              (~{prediction.confidence}% confidence,
-                              based on {statistics.appearanceCount} past
-                              occurrence
-                              {statistics.appearanceCount === 1
-                                ? ""
-                                : "s"}
+                              {(statistics.appearanceCount === 1
+                                ? t.confidenceBasedOnOne
+                                : t.confidenceBasedOnMany
                               )
+                                .replace(
+                                  "{confidence}",
+                                  String(prediction.confidence)
+                                )
+                                .replace(
+                                  "{count}",
+                                  String(statistics.appearanceCount)
+                                )}
                             </span>
                           </p>
                         </div>
                       ) : (
                         <div className="sm:col-span-3">
-                          <PremiumTeaser>
+                          <PremiumTeaser
+                            label={dict.common.premium}
+                            href={`/${locale}/pricing`}
+                          >
                             <div>
                               <p className="text-xs uppercase tracking-wide text-zinc-600">
-                                Estimated to end
+                                {t.estimatedToEnd}
                               </p>
                               <p className="mt-0.5 text-zinc-300">
-                                Jan 1, 2027{" "}
+                                {t.estimatedDatePlaceholder}{" "}
                                 <span className="text-xs text-zinc-500">
-                                  (~80% confidence)
+                                  {t.confidencePlaceholder}
                                 </span>
                               </p>
                             </div>
@@ -295,18 +312,18 @@ export default async function GameDetailPage({ params }: Props) {
 
                   {prediction.active && !predictedEndAt && (
                     <p className="mt-3 text-xs text-zinc-600">
-                      Currently live — not enough history yet to
-                      estimate when it ends. We&apos;ll be able to
-                      predict this once it&apos;s completed at least
-                      once.
+                      {t.notEnoughHistory}
                     </p>
                   )}
 
                   {!prediction.active && statistics.lastSeen && (
                     <p className="mt-3 text-xs text-zinc-600">
-                      Last seen{" "}
-                      {new Date(statistics.lastSeen).toLocaleDateString()}
-                      .
+                      {t.lastSeen.replace(
+                        "{date}",
+                        new Date(statistics.lastSeen).toLocaleDateString(
+                          locale
+                        )
+                      )}
                     </p>
                   )}
                 </div>

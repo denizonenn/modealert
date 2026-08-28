@@ -9,7 +9,7 @@ import { UptimeBars } from "@/components/statistics/uptime-bars"
 
 import { globalStatisticsService } from "@/lib/services/global-statistics.service"
 import { formatDuration, formatCount } from "@/lib/utils"
-import { getDictionary } from "@/lib/i18n/dictionaries"
+import { getDictionary, getLocale } from "@/lib/i18n/dictionaries"
 
 export const metadata: Metadata = {
   title: "Statistics",
@@ -20,6 +20,7 @@ export const metadata: Metadata = {
 export default async function StatisticsPage() {
   const stats = await globalStatisticsService.get()
   const dict = await getDictionary()
+  const locale = await getLocale()
   const t = dict.statisticsPage
 
   return (
@@ -92,7 +93,8 @@ export default async function StatisticsPage() {
                 </p>
                 <p className="mt-1 text-2xl font-semibold">
                   {formatDuration(
-                    stats.averageDuration.overallMs!
+                    stats.averageDuration.overallMs!,
+                    locale
                   )}
                 </p>
                 <p className="mt-1 text-xs text-zinc-600">
@@ -115,7 +117,10 @@ export default async function StatisticsPage() {
                     ? t.gameAvgSampleOne
                     : t.gameAvgSampleMany
                   )
-                    .replace("{duration}", formatDuration(game.averageMs))
+                    .replace(
+                      "{duration}",
+                      formatDuration(game.averageMs, locale)
+                    )
                     .replace("{count}", String(game.sampleSize)),
                 }))}
               />

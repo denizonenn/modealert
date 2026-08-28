@@ -5,8 +5,12 @@ import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
 import KineticGrid from "@/components/ui/kinetic-grid"
+import { getDictionary, getLocale } from "@/lib/i18n/dictionaries"
 
-export default function NotFound() {
+export default async function NotFound() {
+  const dict = await getDictionary()
+  const locale = await getLocale()
+
   return (
     <KineticGrid globalColor="monochrome" className="text-white">
       <Navbar />
@@ -17,16 +21,16 @@ export default function NotFound() {
         </div>
 
         <h1 className="mt-6 text-3xl font-bold tracking-tight">
-          Page not found
+          {dict.notFoundPage.title}
         </h1>
 
         <p className="mt-2 text-sm text-zinc-400">
-          The page you&apos;re looking for doesn&apos;t exist, or moved.
+          {dict.notFoundPage.intro}
         </p>
 
-        <Link href="/" className="mt-8">
+        <Link href={`/${locale}`} className="mt-8">
           <Button className="bg-white text-black hover:bg-zinc-200">
-            Back to homepage
+            {dict.notFoundPage.backToHomepage}
           </Button>
         </Link>
       </div>

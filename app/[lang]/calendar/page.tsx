@@ -201,6 +201,9 @@ export default async function CalendarPage() {
               sinceLabel={dict.calendar.since}
               researchedLabel={dict.calendar.researched}
               locale={locale}
+              premiumLabel={dict.common.premium}
+              pricingHref={`/${locale}/pricing`}
+              localeHref={(href) => `/${locale}${href}`}
             />
           ))}
         </CalendarSection>
@@ -218,6 +221,9 @@ export default async function CalendarPage() {
               sinceLabel={dict.calendar.since}
               researchedLabel={dict.calendar.researched}
               locale={locale}
+              premiumLabel={dict.common.premium}
+              pricingHref={`/${locale}/pricing`}
+              localeHref={(href) => `/${locale}${href}`}
             />
           ))}
         </CalendarSection>
@@ -235,6 +241,9 @@ export default async function CalendarPage() {
               sinceLabel={dict.calendar.since}
               researchedLabel={dict.calendar.researched}
               locale={locale}
+              premiumLabel={dict.common.premium}
+              pricingHref={`/${locale}/pricing`}
+              localeHref={(href) => `/${locale}${href}`}
             />
           ))}
         </CalendarSection>
@@ -280,6 +289,9 @@ function CalendarRowView({
   sinceLabel,
   researchedLabel,
   locale,
+  premiumLabel,
+  pricingHref,
+  localeHref,
 }: {
   row: CalendarRow
   isPremium: boolean
@@ -287,6 +299,9 @@ function CalendarRowView({
   sinceLabel: string
   researchedLabel: string
   locale: string
+  premiumLabel: string
+  pricingHref: string
+  localeHref: (href: string) => string
 }) {
   // "Live now" shows a real current status, not a forecast — free for
   // everyone. "Estimated to end"/"Typically returns" are the same
@@ -297,7 +312,9 @@ function CalendarRowView({
 
   const content = (
     <Link
-      href={row.slug ? `/events/${row.slug}` : `/games/${row.game.slug}`}
+      href={localeHref(
+        row.slug ? `/events/${row.slug}` : `/games/${row.game.slug}`
+      )}
       className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm transition-colors hover:border-white/20"
     >
       <GameIcon
@@ -329,7 +346,11 @@ function CalendarRowView({
   )
 
   if (dateGated && !isPremium) {
-    return <PremiumTeaser>{content}</PremiumTeaser>
+    return (
+      <PremiumTeaser label={premiumLabel} href={pricingHref}>
+        {content}
+      </PremiumTeaser>
+    )
   }
 
   return content

@@ -55,22 +55,34 @@ export function formatRelativeTime(
   return strings.months(diffMonth)
 }
 
-export function formatDuration(ms: number): string {
+const DURATION_UNIT_SUFFIXES = {
+  en: { day: "d", hour: "h", minute: "m" },
+  tr: { day: "g", hour: "sa", minute: "dk" },
+} as const
+
+export function formatDuration(
+  ms: number,
+  locale: keyof typeof DURATION_UNIT_SUFFIXES = "en"
+): string {
   const days = Math.floor(ms / (1000 * 60 * 60 * 24))
   const hours = Math.floor(
     (ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
   )
 
+  const unit = DURATION_UNIT_SUFFIXES[locale]
+
   if (days > 0) {
-    return hours > 0 ? `${days}d ${hours}h` : `${days}d`
+    return hours > 0
+      ? `${days}${unit.day} ${hours}${unit.hour}`
+      : `${days}${unit.day}`
   }
 
   if (hours > 0) {
-    return `${hours}h`
+    return `${hours}${unit.hour}`
   }
 
   const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60))
-  return `${Math.max(minutes, 1)}m`
+  return `${Math.max(minutes, 1)}${unit.minute}`
 }
 
 export function slugify(text: string): string {

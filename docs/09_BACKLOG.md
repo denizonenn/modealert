@@ -619,16 +619,6 @@ Done (2026-08-28) — Faz 2, `/status` + `/statistics` + `/live`
   geçişte çevrildi (`/live` sayfasının paylaşılan bir alt bileşeni).
   `/tr` ve `/en`'de canlı doğrulandı.
 
-Kaldığım yer — açık işler (öncelik sırasıyla)
-
-- **`tr.json`'ın gerçek bir derleme-zamanı şekil kontrolü yok.**
-  `Dictionary = typeof en` + `tr.json`'ı `as Dictionary` ile zorlamak,
-  `tr.json`'da eksik ya da fazladan bir anahtar olsa da TypeScript'in
-  sessizce geçmesine izin veriyor (`as` excess/missing property
-  kontrolünü atlıyor) — ADR-054'ün "eksik anahtar build hatası verir"
-  iddiası şu an doğru değil. Ya `tr.json`'ı `satisfies Dictionary` ile
-  import edecek bir yapıya geçmeli, ya da CI'da iki dosyanın anahtar
-  kümesini karşılaştıran küçük bir test eklenmeli.
 Done (2026-08-28) — Faz 2, `/dashboard` kümesi (+`notifications`, `settings`)
 
 - **`/dashboard`, `/dashboard/notifications`, `/dashboard/settings` ve
@@ -655,21 +645,74 @@ Done (2026-08-28) — Faz 2, `/dashboard` kümesi (+`notifications`, `settings`)
   `settings/page.tsx`'teki birkaç çıplak `href="/..."` de `path()` ile
   düzeltildi. Gerçek bir hesapla `/tr` ve `/en`'de uçtan uca doğrulandı.
 
+Done (2026-08-28) — Faz 2 TAMAMLANDI: `/events/[slug]`, `/games/[slug]`, `error`/`not-found`
+
+- **Faz 2'nin kullanıcıya açık son 4 sayfası çevrildi** (`/admin`
+  hariç — Deniz'e soruldu, bilinçli olarak İngilizce bırakıldı, internal
+  ops paneli). Yeni `eventDetailPage`/`gameDetailPage`/`errorPage`/
+  `notFoundPage`/`followGameButton` sözlük alanları.
+  - `/events/[slug]` en büyük tek dosyaydı — `FIELD_LABELS` sabiti ve
+    `formatChangeValue()` artık `dict` alıyor. `EVENT_CATEGORY_LABELS`
+    sabiti burada da `eventCategoryLabel()`'a geçirildi.
+  - **Paylaşılan `PremiumTeaser`'a `label`/`href` prop'ları eklendi**
+    (önceden içeride sabit `"Premium"` + `href="/pricing"` vardı, hook
+    kullanmadığı için hem server hem client çağıranlardan
+    kullanılabiliyordu — bu yüzden dict'i kendi içinde okuyamıyordu).
+    Üç çağıranın hepsi (`/events/[slug]`, `/games/[slug]`, VE **Faz
+    1'den beri "tamamlandı" sayılan `/calendar`**) güncellendi —
+    `/calendar`'da "Premium" rozeti her iki dilde de sessizce İngilizce
+    kalıyormuş, bu geçişte fark edilip düzeltildi. Aynı gerekçeyle
+    paylaşılan `FollowGameButton` da (`/calendar`, `/events/[slug]`,
+    `/games/[slug]`'de kullanılıyor) çevrildi.
+  - **`/calendar`'ın kendi bilinen çıplak-href borcu da bu geçişte
+    ödendi** (`CalendarRowView`'daki etkinlik/oyun linkleri artık
+    locale önekli — Faz 1'den beri "biliniyor ama dokunulmadı" olarak
+    not edilen madde, bkz. yukarıdaki "Faz 2, `/games`" girdisi).
+  - `lib/utils.ts`'teki `formatDuration()` de `formatRelativeTime()`
+    gibi artık `locale` alıyor ("2d 3h" → "2g 3sa"); üç çağıranı
+    (`/statistics` — daha önce bu oturumda locale'siz çevrilmişti,
+    burada düzeltildi — `/events/[slug]`, `/games/[slug]`) güncellendi.
+  - `error.tsx` (`useI18n()`, root layout'taki `I18nProvider`
+    `{children}`'ı sardığı için hata sınırı içinde de çalışıyor) ve
+    `not-found.tsx` (server component, `getDictionary()`/`getLocale()`
+    — desteklenmeyen bir locale'den 404'e düşen kullanıcı için
+    `DEFAULT_LOCALE`'e düşüyor, bu bilinçli bir davranış).
+  - Gerçek bir oyun/etkinlik slug'ıyla (`league-of-legends`,
+    `valorant-v26-566022`) `/tr` ve `/en`'de canlı doğrulandı; ayrıca
+    `/[lang]/not-found.tsx`'in sadece eşleşen bir route ağacı içinden
+    (ör. `/games/[slug]`'in kendi `notFound()` çağrısından) tetiklendiğinde
+    devreye girdiği, tamamen eşleşmeyen bir path'te (`/tr/rastgele-yol`)
+    Next'in kendi yerleşik (çevrilmemiş) 404'üne düştüğü doğrulandı —
+    bu App Router'ın kendi routing davranışı, bir regresyon değil.
+
+Faz 2 böylece tamamlandı — `/admin` hariç her sayfa `dict`-driven.
+
 Kaldığım yer — açık işler (öncelik sırasıyla)
 
+- **`tr.json`'ın gerçek bir derleme-zamanı şekil kontrolü yok.**
+  `Dictionary = typeof en` + `tr.json`'ı `as Dictionary` ile zorlamak,
+  `tr.json`'da eksik ya da fazladan bir anahtar olsa da TypeScript'in
+  sessizce geçmesine izin veriyor (`as` excess/missing property
+  kontrolünü atlıyor) — ADR-054'ün "eksik anahtar build hatası verir"
+  iddiası şu an doğru değil. Ya `tr.json`'ı `satisfies Dictionary` ile
+  import edecek bir yapıya geçmeli, ya da CI'da iki dosyanın anahtar
+  kümesini karşılaştıran küçük bir test eklenmeli. (Bu oturum boyunca
+  her çeviri geçişinde elle/script ile doğrulandı, hep eşleşti — ama
+  bu güvence koddan gelmiyor.)
 - **`lib/time.ts` kullanılmayan, muhtemelen eski bir dosya.**
   `formatRelativeTime()`'ın `lib/utils.ts`'tekinden farklı, daha eski
   bir implementasyonu — hiçbir yerden import edilmiyor (script ile
   doğrulandı). Muhtemelen bir refactor sırasında `lib/utils.ts`'e
   taşınıp silinmesi unutulmuş. Silinmeli.
-- **Faz 2 — kalan ~4 sayfanın arayüz metni.**
-  `/events/[slug]`, `/games/[slug]`, `/admin`, `error`/`not-found`.
-  Bu arada `/calendar`'ın kendi çıplak-href'lerini de düzeltmeyi
-  unutma (yukarı
-  bak). **Şu an bozuk değiller** — İngilizce render ediyorlar, içlerindeki
-  sabit linkler `proxy.ts` sayesinde kullanıcının hatırlanan diline
-  zarifçe yönleniyor (bir fazladan redirect pahasına). Sayfa
-  çevrildikçe `useI18n().path()` ile düzeltilmeli.
+- **`app/[lang]/events/[slug]/page.tsx`'te pre-existing bir
+  `react-hooks/purity` lint hatası var** (`Date.now()` render sırasında
+  çağrılıyor, "ongoing" event'lerin süresini hesaplamak için). Bu
+  oturumda dokunulmadı — kod bu satırdan önce de aynıydı (git blame ile
+  doğrulandı), ve bir Server Component'te request-anındaki gerçek
+  zamanı okumak davranışsal olarak doğru/kaçınılmaz; kural muhtemelen
+  Client Component render'ları için tasarlanmış, RSC'lere tam uymuyor.
+  ESLint config'de bu satır için bir istisna (`eslint-disable-next-line`
+  veya kural kapsamını daraltma) eklenmesi ayrı bir karar.
 - **Faz 3 — etkinlik açıklamaları.** Provider'lar şu an açıklamayı
   hazır İngilizce string olarak DB'ye yazıyor. Çevrilebilmesi için
   `Event.description`'ın çeviri anahtarı + parametre olarak
