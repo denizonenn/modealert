@@ -9,6 +9,7 @@ import { UptimeBars } from "@/components/statistics/uptime-bars"
 
 import { globalStatisticsService } from "@/lib/services/global-statistics.service"
 import { formatDuration, formatCount } from "@/lib/utils"
+import { getDictionary } from "@/lib/i18n/dictionaries"
 
 export const metadata: Metadata = {
   title: "Statistics",
@@ -18,30 +19,25 @@ export const metadata: Metadata = {
 
 export default async function StatisticsPage() {
   const stats = await globalStatisticsService.get()
+  const dict = await getDictionary()
+  const t = dict.statisticsPage
 
   return (
     <main className="min-h-screen bg-black text-white">
       <Navbar />
 
       <section className="mx-auto max-w-4xl px-6 py-16">
-        <SectionEyebrow>Statistics</SectionEyebrow>
+        <SectionEyebrow>{t.eyebrow}</SectionEyebrow>
         <h1 className="mt-1 text-3xl font-bold tracking-tight">
-          Site-wide stats
+          {t.title}
         </h1>
-        <p className="mt-4 max-w-2xl text-sm text-zinc-400">
-          Computed directly from real tracking history — no estimates or
-          placeholder numbers. History tracking started 2026-08-04, so
-          some numbers below will fill in as more events complete.
-        </p>
+        <p className="mt-4 max-w-2xl text-sm text-zinc-400">{t.intro}</p>
 
         <div className="mt-10">
           <h2 className="text-xl font-semibold tracking-tight">
-            Popularity
+            {t.popularityTitle}
           </h2>
-          <p className="mt-1 text-sm text-zinc-500">
-            Real watchlist counts by game and category — how many people
-            are actually tracking each kind of event, not an estimate.
-          </p>
+          <p className="mt-1 text-sm text-zinc-500">{t.popularityIntro}</p>
 
           <PopularityHeatmap
             games={stats.popularity.games}
@@ -53,15 +49,13 @@ export default async function StatisticsPage() {
 
         <div className="mt-12">
           <h2 className="text-xl font-semibold tracking-tight">
-            Most tracked events
+            {t.mostTrackedTitle}
           </h2>
-          <p className="mt-1 text-sm text-zinc-500">
-            Events ranked by how many times we&apos;ve seen them occur.
-          </p>
+          <p className="mt-1 text-sm text-zinc-500">{t.mostTrackedIntro}</p>
 
           {stats.mostCommon.length === 0 ? (
             <p className="mt-4 text-sm text-zinc-500">
-              No history recorded yet — check back after the next sync.
+              {t.mostTrackedEmpty}
             </p>
           ) : (
             <MagnitudeBarList
@@ -71,7 +65,10 @@ export default async function StatisticsPage() {
                 sublabel: item.gameName,
                 href: item.slug ? `/events/${item.slug}` : undefined,
                 value: item.appearanceCount,
-                valueLabel: `seen ${item.appearanceCount}×`,
+                valueLabel: t.seenTimes.replace(
+                  "{count}",
+                  String(item.appearanceCount)
+                ),
               }))}
             />
           )}
@@ -79,22 +76,19 @@ export default async function StatisticsPage() {
 
         <div className="mt-12">
           <h2 className="text-xl font-semibold tracking-tight">
-            Average duration
+            {t.avgDurationTitle}
           </h2>
-          <p className="mt-1 text-sm text-zinc-500">
-            Across every event that has fully completed (start to end)
-            at least once.
-          </p>
+          <p className="mt-1 text-sm text-zinc-500">{t.avgDurationIntro}</p>
 
           {stats.averageDuration.sampleSize === 0 ? (
             <p className="mt-4 text-sm text-zinc-500">
-              Not enough events have completed yet to compute this.
+              {t.avgDurationEmpty}
             </p>
           ) : (
             <>
               <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-5">
                 <p className="text-xs uppercase tracking-wide text-zinc-600">
-                  Overall, all games
+                  {t.overallAllGames}
                 </p>
                 <p className="mt-1 text-2xl font-semibold">
                   {formatDuration(
@@ -102,9 +96,13 @@ export default async function StatisticsPage() {
                   )}
                 </p>
                 <p className="mt-1 text-xs text-zinc-600">
-                  based on {stats.averageDuration.sampleSize} completed
-                  occurrence
-                  {stats.averageDuration.sampleSize === 1 ? "" : "s"}
+                  {(stats.averageDuration.sampleSize === 1
+                    ? t.basedOnOccurrenceOne
+                    : t.basedOnOccurrenceMany
+                  ).replace(
+                    "{count}",
+                    String(stats.averageDuration.sampleSize)
+                  )}
                 </p>
               </div>
 
@@ -113,7 +111,12 @@ export default async function StatisticsPage() {
                   key: game.gameId,
                   label: game.gameName,
                   value: game.averageMs,
-                  valueLabel: `${formatDuration(game.averageMs)} avg · ${game.sampleSize} sample${game.sampleSize === 1 ? "" : "s"}`,
+                  valueLabel: (game.sampleSize === 1
+                    ? t.gameAvgSampleOne
+                    : t.gameAvgSampleMany
+                  )
+                    .replace("{duration}", formatDuration(game.averageMs))
+                    .replace("{count}", String(game.sampleSize)),
                 }))}
               />
             </>
@@ -122,17 +125,13 @@ export default async function StatisticsPage() {
 
         <div className="mt-12">
           <h2 className="text-xl font-semibold tracking-tight">
-            Prediction accuracy
+            {t.predictionTitle}
           </h2>
-          <p className="mt-1 text-sm text-zinc-500">
-            How close our end-time predictions land to what actually
-            happened, tested retrospectively against real history.
-          </p>
+          <p className="mt-1 text-sm text-zinc-500">{t.predictionIntro}</p>
 
           {stats.predictionAccuracy.score === null ? (
             <p className="mt-4 text-sm text-zinc-500">
-              Not enough events have recurred and completed yet to score
-              this.
+              {t.predictionEmpty}
             </p>
           ) : (
             <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-5">
@@ -140,9 +139,13 @@ export default async function StatisticsPage() {
                 ~{stats.predictionAccuracy.score}%
               </p>
               <p className="mt-1 text-xs text-zinc-600">
-                based on {stats.predictionAccuracy.sampleSize} retrospective
-                prediction
-                {stats.predictionAccuracy.sampleSize === 1 ? "" : "s"}
+                {(stats.predictionAccuracy.sampleSize === 1
+                  ? t.basedOnPredictionOne
+                  : t.basedOnPredictionMany
+                ).replace(
+                  "{count}",
+                  String(stats.predictionAccuracy.sampleSize)
+                )}
               </p>
             </div>
           )}
@@ -150,19 +153,17 @@ export default async function StatisticsPage() {
 
         <div className="mt-12">
           <h2 className="text-xl font-semibold tracking-tight">
-            Provider uptime
+            {t.uptimeTitle}
           </h2>
           <p className="mt-1 text-sm text-zinc-500">
-            Share of sync attempts that succeeded per provider, last{" "}
-            {stats.providerUptime.windowDays} days. Recorded on every sync —
-            data starts filling in from 2026-08-06.
+            {t.uptimeIntro.replace(
+              "{days}",
+              String(stats.providerUptime.windowDays)
+            )}
           </p>
 
           {stats.providerUptime.providers.length === 0 ? (
-            <p className="mt-4 text-sm text-zinc-500">
-              No health checks recorded yet — check back after the next
-              sync.
-            </p>
+            <p className="mt-4 text-sm text-zinc-500">{t.uptimeEmpty}</p>
           ) : (
             <UptimeBars providers={stats.providerUptime.providers} />
           )}
@@ -170,18 +171,16 @@ export default async function StatisticsPage() {
 
         <div className="mt-12">
           <h2 className="text-xl font-semibold tracking-tight">
-            Notifications
+            {t.notificationsTitle}
           </h2>
           <p className="mt-1 text-sm text-zinc-500">
-            Every send attempt (success or failure, all channels) is
-            recorded, so the success rate below is real, not just a count
-            of what worked.
+            {t.notificationsIntro}
           </p>
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
               <p className="text-xs uppercase tracking-wide text-zinc-600">
-                All time
+                {t.allTime}
               </p>
               <p className="mt-1 text-2xl font-semibold">
                 {formatCount(stats.notifications.total)}
@@ -190,7 +189,7 @@ export default async function StatisticsPage() {
 
             <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
               <p className="text-xs uppercase tracking-wide text-zinc-600">
-                Last 30 days
+                {t.last30Days}
               </p>
               <p className="mt-1 text-2xl font-semibold">
                 {formatCount(stats.notifications.last30Days)}
@@ -199,11 +198,11 @@ export default async function StatisticsPage() {
 
             <div className="rounded-2xl border border-white/10 bg-white/5 p-5 sm:col-span-2">
               <p className="text-xs uppercase tracking-wide text-zinc-600">
-                Success rate, last 30 days
+                {t.successRateTitle}
               </p>
               {stats.notifications.successRate30d === null ? (
                 <p className="mt-1 text-sm text-zinc-500">
-                  No send attempts in the last 30 days.
+                  {t.noSendAttempts}
                 </p>
               ) : (
                 <>
@@ -211,8 +210,15 @@ export default async function StatisticsPage() {
                     {stats.notifications.successRate30d}%
                   </p>
                   <p className="mt-1 text-xs text-zinc-600">
-                    {stats.notifications.last30Days} sent,{" "}
-                    {stats.notifications.failedLast30Days} failed
+                    {t.sentFailed
+                      .replace(
+                        "{sent}",
+                        String(stats.notifications.last30Days)
+                      )
+                      .replace(
+                        "{failed}",
+                        String(stats.notifications.failedLast30Days)
+                      )}
                   </p>
                 </>
               )}
@@ -220,15 +226,14 @@ export default async function StatisticsPage() {
 
             <div className="rounded-2xl border border-white/10 bg-white/5 p-5 sm:col-span-2">
               <p className="text-xs uppercase tracking-wide text-zinc-600">
-                Reported as wrong
+                {t.reportedWrongTitle}
               </p>
               <p className="mt-1 text-xs text-zinc-600">
-                Real user reports — a recipient flagged a specific
-                notification as inaccurate, not an inferred guess.
+                {t.reportedWrongIntro}
               </p>
               {stats.notifications.falsePositives.rate === null ? (
                 <p className="mt-2 text-sm text-zinc-500">
-                  No notifications sent yet.
+                  {t.noNotificationsSent}
                 </p>
               ) : (
                 <>
@@ -236,9 +241,17 @@ export default async function StatisticsPage() {
                     {stats.notifications.falsePositives.rate}%
                   </p>
                   <p className="mt-1 text-xs text-zinc-600">
-                    {stats.notifications.falsePositives.totalReported}{" "}
-                    of {stats.notifications.total} notifications ever
-                    sent
+                    {t.ofTotalSent
+                      .replace(
+                        "{reported}",
+                        String(
+                          stats.notifications.falsePositives.totalReported
+                        )
+                      )
+                      .replace(
+                        "{total}",
+                        String(stats.notifications.total)
+                      )}
                   </p>
                 </>
               )}

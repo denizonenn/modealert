@@ -12,6 +12,7 @@ import { EventStatusBadge } from "@/components/shared/event-status-badge"
 import { Skeleton } from "@/components/shared/skeleton"
 import { AllGamesStatus } from "@/components/live/all-games-status"
 import { AlertTriangle, RefreshCw } from "lucide-react"
+import { useI18n } from "@/components/providers/i18n-provider"
 
 interface LiveEvent {
   id: string
@@ -32,8 +33,8 @@ interface CurrentStatusResponse {
   error?: string
 }
 
-function formatDate(value: string) {
-  return new Date(value).toLocaleString("en-US", {
+function formatDate(value: string, locale: string) {
+  return new Date(value).toLocaleString(locale, {
     day: "2-digit",
     month: "short",
     hour: "2-digit",
@@ -41,7 +42,17 @@ function formatDate(value: string) {
   })
 }
 
-function EventRow({ event, index = 0 }: { event: LiveEvent; index?: number }) {
+function EventRow({
+  event,
+  index = 0,
+  locale,
+  dict,
+}: {
+  event: LiveEvent
+  index?: number
+  locale: string
+  dict: ReturnType<typeof useI18n>["dict"]
+}) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -54,8 +65,18 @@ function EventRow({ event, index = 0 }: { event: LiveEvent; index?: number }) {
         <p className="text-xs text-zinc-500">{event.hubType}</p>
       </div>
       <div className="shrink-0 text-right text-xs text-zinc-400">
-        <p>Starts: {formatDate(event.startDate)}</p>
-        <p>Ends: {formatDate(event.endDate)}</p>
+        <p>
+          {dict.livePage.startsLabel.replace(
+            "{date}",
+            formatDate(event.startDate, locale)
+          )}
+        </p>
+        <p>
+          {dict.livePage.endsLabel.replace(
+            "{date}",
+            formatDate(event.endDate, locale)
+          )}
+        </p>
       </div>
     </motion.div>
   )
@@ -72,6 +93,7 @@ function SectionSkeleton() {
 }
 
 export default function LivePage() {
+  const { dict, locale } = useI18n()
   const [data, setData] = useState<CurrentStatusResponse | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -83,7 +105,7 @@ export default function LivePage() {
       const json: CurrentStatusResponse = await response.json()
       setData(json)
     } catch {
-      setData({ success: false, error: "Request failed." })
+      setData({ success: false, error: dict.livePage.requestFailed })
     } finally {
       setLoading(false)
     }
@@ -91,6 +113,7 @@ export default function LivePage() {
 
   useEffect(() => {
     void Promise.resolve().then(load)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const isInitialLoad = loading && !data
@@ -106,15 +129,12 @@ export default function LivePage() {
           transition={{ duration: 0.4 }}
         >
           <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">
-            All Games — Live Status
+            {dict.livePage.eyebrow}
           </p>
           <h1 className="mt-3 text-3xl font-bold tracking-tight md:text-4xl">
-            What&apos;s Happening Right Now?
+            {dict.livePage.title}
           </h1>
-          <p className="mt-2 text-sm text-zinc-400">
-            The current status of every tracked mode across every game —
-            live, upcoming, tracking, or ended.
-          </p>
+          <p className="mt-2 text-sm text-zinc-400">{dict.livePage.intro}</p>
         </motion.div>
 
         <div className="mt-8">
@@ -130,10 +150,10 @@ export default function LivePage() {
           >
             <div>
               <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">
-                CommunityDragon — Live Check
+                {dict.livePage.cdragonEyebrow}
               </p>
               <h2 className="mt-3 text-2xl font-bold tracking-tight md:text-3xl">
-                Early Signal Detail for League of Legends
+                {dict.livePage.cdragonTitle}
               </h2>
             </div>
 
@@ -144,13 +164,16 @@ export default function LivePage() {
               disabled={loading}
             >
               <RefreshCw className={loading ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
-              Refresh
+              {dict.livePage.refresh}
             </Button>
           </motion.div>
 
           {data?.checkedAt && (
             <p className="mt-2 text-xs text-zinc-500">
-              Last checked: {formatDate(data.checkedAt)} · Source: raw.communitydragon.org (live + pbe)
+              {dict.livePage.lastChecked.replace(
+                "{time}",
+                formatDate(data.checkedAt, locale)
+              )}
             </p>
           )}
 
@@ -158,7 +181,9 @@ export default function LivePage() {
           <Card className="mt-8 border-red-500/30 bg-red-500/10 text-white">
             <CardContent className="flex items-center gap-3 py-4">
               <AlertTriangle className="h-5 w-5 text-red-400" />
-              <p className="text-sm">{data.error ?? "Couldn't fetch data."}</p>
+              <p className="text-sm">
+                {data.error ?? dict.livePage.fetchFailed}
+              </p>
             </CardContent>
           </Card>
         )}
@@ -168,7 +193,7 @@ export default function LivePage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <EventStatusBadge status="LIVE" />
-                Live Right Now
+                {dict.livePage.liveRightNow}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -177,11 +202,19 @@ export default function LivePage() {
               ) : data?.liveEvents?.length ? (
                 <div className="space-y-2">
                   {data.liveEvents.map((event, index) => (
-                    <EventRow key={event.id} event={event} index={index} />
+                    <EventRow
+                      key={event.id}
+                      event={event}
+                      index={index}
+                      locale={locale}
+                      dict={dict}
+                    />
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-zinc-500">No live events right now.</p>
+                <p className="text-sm text-zinc-500">
+                  {dict.livePage.noLiveEvents}
+                </p>
               )}
             </CardContent>
           </Card>
@@ -190,7 +223,7 @@ export default function LivePage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <EventStatusBadge status="UPCOMING" />
-                Upcoming
+                {dict.livePage.upcoming}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -199,11 +232,19 @@ export default function LivePage() {
               ) : data?.upcomingEvents?.length ? (
                 <div className="space-y-2">
                   {data.upcomingEvents.map((event, index) => (
-                    <EventRow key={event.id} event={event} index={index} />
+                    <EventRow
+                      key={event.id}
+                      event={event}
+                      index={index}
+                      locale={locale}
+                      dict={dict}
+                    />
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-zinc-500">No upcoming events scheduled.</p>
+                <p className="text-sm text-zinc-500">
+                  {dict.livePage.noUpcomingEvents}
+                </p>
               )}
             </CardContent>
           </Card>
@@ -213,53 +254,47 @@ export default function LivePage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Badge variant="outline" className="border-amber-400 text-amber-400">
-                PBE
+                {dict.livePage.pbeBadge}
               </Badge>
-              On PBE But Not Live Yet (Early Signal)
+              {dict.livePage.pbeTitle}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {data?.pbeCheckFailed ? (
               <p className="text-sm text-zinc-500">
-                The PBE check failed just now (the PBE server may be temporarily unreachable).
+                {dict.livePage.pbeCheckFailed}
               </p>
             ) : isInitialLoad ? (
               <SectionSkeleton />
             ) : data?.pbeCandidates?.length ? (
               <div className="space-y-2">
                 {data.pbeCandidates.map((event, index) => (
-                  <EventRow key={event.id} event={event} index={index} />
+                  <EventRow
+                    key={event.id}
+                    event={event}
+                    index={index}
+                    locale={locale}
+                    dict={dict}
+                  />
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-zinc-500">
-                Nothing is on PBE that isn&apos;t already live. That&apos;s normal — CDragon&apos;s
-                event-hub file mostly covers pre-planned content like season passes / battle
-                passes.
-              </p>
+              <p className="text-sm text-zinc-500">{dict.livePage.pbeEmpty}</p>
             )}
           </CardContent>
         </Card>
 
         <Card className="mt-6 border-white/10 bg-white/5 text-white">
           <CardHeader>
-            <CardTitle>URF Status — Why Isn&apos;t It Shown Here?</CardTitle>
+            <CardTitle>{dict.livePage.urfTitle}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm text-zinc-400">
             <p>
-              URF (Ultra Rapid Fire) is always defined in CommunityDragon&apos;s{" "}
-              <code className="rounded bg-black/40 px-1">queues.json</code> file — that&apos;s not
-              an &quot;active&quot; signal, just &quot;this queue type exists.&quot; Riot never
-              publishes when URF is actually open in any public or datamined file ahead of time;
-              they only announce it in patch notes or an in-client banner once the rotation is
-              already live.
+              {dict.livePage.urfPara1Pre}{" "}
+              <code className="rounded bg-black/40 px-1">queues.json</code>{" "}
+              {dict.livePage.urfPara1Post}
             </p>
-            <p>
-              So a real &quot;early warning&quot; for URF isn&apos;t technically possible right
-              now — that&apos;s not a gap on our end, it&apos;s that Riot never publishes this data
-              anywhere in advance. The PBE/Live comparison above gives a real early signal for
-              modes that have their own &quot;hub file,&quot; like Arena or Swarm.
-            </p>
+            <p>{dict.livePage.urfPara2}</p>
           </CardContent>
         </Card>
         </div>

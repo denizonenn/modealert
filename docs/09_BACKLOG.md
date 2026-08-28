@@ -604,6 +604,21 @@ Done (2026-08-28) — Faz 2, `/privacy` + `/terms` + `/unsubscribed` + `/digest-
   ADR-054'ün iddia ettiği "eksik anahtar build hatası verir" güvencesi
   için ayrı, açık bir teknik borç maddesi (aşağıya eklendi).
 
+Done (2026-08-28) — Faz 2, `/status` + `/statistics` + `/live`
+
+- **3 sayfa tam çevrildi.** `/status` ve `/live` client component
+  (`useI18n()`), `/statistics` async server component
+  (`getDictionary()`). Yeni `statusPage`/`statisticsPage`/`livePage`
+  sözlük alanları. Tekil/çoğul ayrımı gereken İngilizce string'ler
+  (ör. "1 completed occurrence" / "5 completed occurrences") onboarding
+  ile aynı desende — `One`/`Many` varyantı, sayıya göre seçiliyor;
+  Türkçe'de çoğul eki olmadığı için iki varyant da aynı metin.
+  `/live`'ın tarih biçimlendirmesi artık `toLocaleString(locale, ...)`
+  ile aktif dile göre (önceden sabit `"en-US"` idi).
+  `components/live/all-games-status.tsx`'teki tek sabit string de bu
+  geçişte çevrildi (`/live` sayfasının paylaşılan bir alt bileşeni).
+  `/tr` ve `/en`'de canlı doğrulandı.
+
 Kaldığım yer — açık işler (öncelik sırasıyla)
 
 - **`tr.json`'ın gerçek bir derleme-zamanı şekil kontrolü yok.**
@@ -614,8 +629,7 @@ Kaldığım yer — açık işler (öncelik sırasıyla)
   iddiası şu an doğru değil. Ya `tr.json`'ı `satisfies Dictionary` ile
   import edecek bir yapıya geçmeli, ya da CI'da iki dosyanın anahtar
   kümesini karşılaştıran küçük bir test eklenmeli.
-- **Faz 2 — kalan ~8 sayfanın arayüz metni.**
-  `/statistics`, `/status`, `/live`,
+- **Faz 2 — kalan ~5 sayfanın arayüz metni.**
   `/dashboard` (+`notifications`, `settings`), `/events/[slug]`,
   `/games/[slug]`, `/admin`, `error`/`not-found`.
   Bu arada `/calendar`'ın kendi çıplak-href'lerini de düzeltmeyi

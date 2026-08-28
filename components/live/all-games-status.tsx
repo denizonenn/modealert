@@ -5,6 +5,7 @@ import { EventStatusBadge } from "@/components/shared/event-status-badge"
 import { Skeleton } from "@/components/shared/skeleton"
 
 import { useEvents } from "@/hooks/use-events"
+import { useI18n } from "@/components/providers/i18n-provider"
 import type { EventWithGame } from "@/lib/repositories/event.repository"
 
 type EventStatus = "LIVE" | "UPCOMING" | "TRACKING" | "ENDED"
@@ -56,6 +57,7 @@ function groupByGame(events: EventWithGame[]): GameGroup[] {
 }
 
 export function AllGamesStatus() {
+  const { dict } = useI18n()
   const { events, isLoading } = useEvents()
 
   const groups = groupByGame(events)
@@ -72,9 +74,7 @@ export function AllGamesStatus() {
 
   if (groups.length === 0) {
     return (
-      <p className="text-sm text-zinc-500">
-        No tracked modes right now — check back after the next sync.
-      </p>
+      <p className="text-sm text-zinc-500">{dict.livePage.allGamesEmpty}</p>
     )
   }
 
