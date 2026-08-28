@@ -722,9 +722,15 @@ Kaldığım yer — açık işler (öncelik sırasıyla)
   taraf metinleri (Bungie flavor text, Helldivers brifingleri) ve
   özel isimler ("Vault of Glass", "Set 18") bundan sonra da
   İngilizce kalacak, bu kaçınılmaz (bkz. ADR-054 Bağlam).
-- **Faz 4 — SEO.** `sitemap.ts` iki locale'i de listelemiyor ve
-  sayfalarda `hreflang` alternate etiketleri yok. Arama motorlarının
-  iki dili doğru eşlemesi için gerekli.
+- **Faz 4 — sayfa-seviyesi hreflang.** Sitemap-seviyesi hreflang
+  2026-08-28'de tamamlandı (bkz. ADR-054 Faz 4) — `app/sitemap.ts`
+  artık her sayfa için iki `<url>` (`/en/...` + `/tr/...`) ve gerçek
+  `<xhtml:link rel="alternate" hreflang>` etiketleri üretiyor; bu
+  Google için resmi olarak yeterli bir sinyal. Kalan, daha büyük iş:
+  ~20 sayfanın her birinin `generateMetadata()`'sına
+  `alternates.languages` ekleyip sayfa `<head>`'inde de per-page
+  hreflang etiketi vermek — ek bir sinyal katmanı, aynı geçişte
+  yapılmadı çünkü tek başına sitemap'ten çok daha büyük bir iş.
 - **Bildirimler hâlâ sadece İngilizce.** Kullanıcı başına dil
   tercihi (`User.locale`) + `message-builder`'ın sözlükten okuması
   gerekiyor. Faz 3 ile birlikte yapılması mantıklı — ikisi de aynı

@@ -4481,9 +4481,26 @@ açıklamanın gösterildiği her yeri etkileyen ayrı bir refactor.
 Üçüncü taraf metinleri (Bungie flavor text, Helldivers brifingleri)
 ve özel isimler bu refactor'dan sonra da İngilizce kalacak.
 
-**Faz 4 (açık, yapılmadı): SEO.** `sitemap.ts` her iki locale'i
-listelemiyor ve sayfalarda `hreflang` alternate etiketleri yok.
-Arama motorlarının iki dili doğru eşlemesi için gerekli.
+**Faz 4 (2026-08-28): SEO — sitemap-seviyesi hreflang tamamlandı.**
+`app/sitemap.ts` artık her sayfa için **iki** `<url>` girdisi üretiyor
+(`/en/...` ve `/tr/...`, tek "kanonik" URL değil), her biri kendisi
+dahil tüm locale'lere işaret eden bir `alternates.languages` bloğuyla
+— Next'in resmi lokalize sitemap deseni, gerçek `<xhtml:link
+rel="alternate" hreflang="...">` etiketleri üretiyor (canlıda
+doğrulandı: 242 URL, 484 hreflang linki). Aynı geçişte `app/robots.ts`
+teki gerçek bir bug da fark edildi ve düzeltildi: `Disallow` kuralları
+(`/dashboard`, `/onboarding`, `/signin`) hâlâ önekesizdi — robots.txt
+önek eşleşmesi kullandığı için gerçek URL'ler (`/en/dashboard`)
+hiçbir zaman eşleşmiyordu, yani bu sayfalar aslında hiç
+engellenmiyordu. Artık `LOCALES`'ten üretiliyor (`/en/dashboard`,
+`/tr/dashboard` vb.), üçüncü bir dil eklendiğinde otomatik kapsıyor.
+
+**Hâlâ açık:** Sayfa `<head>`'lerinde per-page `<link rel="alternate"
+hreflang="...">` etiketleri yok — sitemap-seviyesi hreflang Google
+için resmi olarak yeterli/geçerli bir sinyal, ama sayfa-seviyesi
+etiketler ek bir sinyal katmanı olurdu. ~20 sayfanın her birinin
+`generateMetadata()`'sına `alternates.languages` eklemek gerekiyor —
+sitemap'ten çok daha büyük bir iş, ayrı bir görev olarak bırakıldı.
 
 **Ayrıca açık:** Bildirim e-postaları/Discord mesajları hâlâ sadece
 İngilizce. Kullanıcı başına bir dil tercihi (`User.locale`) ve
