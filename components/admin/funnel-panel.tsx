@@ -55,6 +55,30 @@ export async function FunnelPanel() {
               {byName.get(ANALYTICS_EVENTS.PREMIUM_CANCELLED) ?? 0}
             </span>
           </div>
+
+          {/* First real qualitative signal from actual users, not just
+              inferred from clicks — the weekly digest's 1-click
+              "was this useful?" link. */}
+          <div className="mt-2 flex items-center justify-between border-t border-white/10 pt-2 text-sm">
+            <span className="text-zinc-300">
+              {ANALYTICS_EVENT_LABELS[ANALYTICS_EVENTS.DIGEST_MARKED_USEFUL]}
+            </span>
+            <span className="text-emerald-400">
+              {byName.get(ANALYTICS_EVENTS.DIGEST_MARKED_USEFUL) ?? 0}
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-zinc-300">
+              {
+                ANALYTICS_EVENT_LABELS[
+                  ANALYTICS_EVENTS.DIGEST_MARKED_NOT_USEFUL
+                ]
+              }
+            </span>
+            <span className="text-red-400">
+              {byName.get(ANALYTICS_EVENTS.DIGEST_MARKED_NOT_USEFUL) ?? 0}
+            </span>
+          </div>
         </div>
       )}
     </div>

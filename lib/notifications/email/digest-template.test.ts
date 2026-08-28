@@ -5,6 +5,13 @@ import { buildDigestHtml } from "./digest-template";
 const UNSUBSCRIBE_URL =
   "https://modealert.vercel.app/api/unsubscribe?userId=1&token=abc";
 
+const FEEDBACK_URLS = {
+  useful:
+    "https://modealert.vercel.app/api/digest-feedback?userId=1&token=abc&useful=1",
+  notUseful:
+    "https://modealert.vercel.app/api/digest-feedback?userId=1&token=abc&useful=0",
+};
+
 describe("buildDigestHtml", () => {
   it("renders every tracked event with its game and status", () => {
     const html = buildDigestHtml(
@@ -12,7 +19,8 @@ describe("buildDigestHtml", () => {
         { title: "Set 18", gameName: "Teamfight Tactics", status: "LIVE" },
         { title: "War #139", gameName: "Foxhole", status: "ENDED" },
       ],
-      UNSUBSCRIBE_URL
+      UNSUBSCRIBE_URL,
+      FEEDBACK_URLS
     );
 
     expect(html).toContain("Set 18");
@@ -31,7 +39,8 @@ describe("buildDigestHtml", () => {
           url: "https://modealert.vercel.app/events/tft-set-18-abc123",
         },
       ],
-      UNSUBSCRIBE_URL
+      UNSUBSCRIBE_URL,
+      FEEDBACK_URLS
     );
 
     expect(html).toContain(
@@ -42,7 +51,8 @@ describe("buildDigestHtml", () => {
   it("falls back to plain text when an entry has no URL", () => {
     const html = buildDigestHtml(
       [{ title: "Set 18", gameName: "Teamfight Tactics", status: "LIVE" }],
-      UNSUBSCRIBE_URL
+      UNSUBSCRIBE_URL,
+      FEEDBACK_URLS
     );
 
     expect(html).toContain("Set 18");
@@ -58,7 +68,8 @@ describe("buildDigestHtml", () => {
           status: "LIVE",
         },
       ],
-      UNSUBSCRIBE_URL
+      UNSUBSCRIBE_URL,
+      FEEDBACK_URLS
     );
 
     expect(html).not.toContain("<script>alert(1)</script>");
@@ -76,9 +87,25 @@ describe("buildDigestHtml", () => {
           url: 'https://modealert.vercel.app/events/"><script>alert(1)</script>',
         },
       ],
-      UNSUBSCRIBE_URL
+      UNSUBSCRIBE_URL,
+      FEEDBACK_URLS
     );
 
     expect(html).not.toContain('"><script>alert(1)</script>');
+  });
+
+  it("includes both feedback links", () => {
+    const html = buildDigestHtml(
+      [{ title: "Set 18", gameName: "Teamfight Tactics", status: "LIVE" }],
+      UNSUBSCRIBE_URL,
+      FEEDBACK_URLS
+    );
+
+    expect(html).toContain(
+      `href="${FEEDBACK_URLS.useful.replace(/&/g, "&amp;")}"`
+    );
+    expect(html).toContain(
+      `href="${FEEDBACK_URLS.notUseful.replace(/&/g, "&amp;")}"`
+    );
   });
 });

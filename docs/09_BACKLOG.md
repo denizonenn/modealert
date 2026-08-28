@@ -1250,6 +1250,37 @@ Not pursued (real product decisions, not something to build blind)
   the 4 shipped above — revisit once there's real signup volume to
   make a cohort view meaningful.
 
+Done (2026-08-28) — growth research → digest feedback loop
+
+Deniz asked for research into classic product-growth books + comparable
+successful products to find what ModeAlert should build next
+(delivered as an artifact, "Sıradaki Seviye"). Of the 6 findings, only
+the ones that needed no product/business decision were built:
+
+- **1-click "was this useful?" on the weekly digest** — *Continuous
+  Discovery Habits* (Teresa Torres): cheap, continuous small-signal
+  user contact beats big infrequent research pushes. Two links (Yes/
+  No) in `buildDigestHtml`, reusing the unsubscribe link's signed
+  `HMAC(userId)` token (no new signing scheme) → `GET
+  /api/digest-feedback` records `DIGEST_MARKED_USEFUL` /
+  `DIGEST_MARKED_NOT_USEFUL` (new `AnalyticsEvent` names, shown as a
+  new row pair in `/admin`'s Funnel panel) → redirects to a small
+  `/digest-feedback` thanks page. Zero new infrastructure, piggybacks
+  entirely on the existing weekly cron.
+
+Not built from that list (Deniz's call pending or explicitly declined)
+
+- Landing→signup conversion tracking for anonymous visitors — still
+  blocked on the exact thing "Future" below already flagged: the
+  privacy policy explicitly promises "nothing is tracked before you
+  have an account or if you're signed out." Building this without
+  updating that policy first would just break a stated promise, not
+  a safe default — needs Deniz's explicit go-ahead plus a policy
+  update, not a quiet workaround.
+- Prediction data in free-tier emails, "share your watchlist" social
+  layer, explicit brand positioning copy — all confirmed with Deniz as
+  product/business decisions, not attempted.
+
 Future
 
 - Anonymous/pre-signup funnel tracking (landing page → signup) —

@@ -18,11 +18,19 @@ export interface DigestEntry {
 // status, nothing inferred or padded out to look busier than it is
 // (an empty digest would just not be sent at all, see
 // weekly-digest.service.ts).
+export interface DigestFeedbackUrls {
+  useful: string;
+  notUseful: string;
+}
+
 export function buildDigestHtml(
   entries: DigestEntry[],
-  unsubscribeUrl: string
+  unsubscribeUrl: string,
+  feedbackUrls: DigestFeedbackUrls
 ): string {
   const safeUnsubscribeUrl = escapeHtml(unsubscribeUrl);
+  const safeUsefulUrl = escapeHtml(feedbackUrls.useful);
+  const safeNotUsefulUrl = escapeHtml(feedbackUrls.notUseful);
 
   const rows = entries
     .map((entry) => {
@@ -73,6 +81,12 @@ export function buildDigestHtml(
           <table style="width:100%;border-collapse:collapse;">
             ${rows}
           </table>
+          <p style="margin:20px 0 0;padding-top:16px;border-top:1px solid #222222;font-size:12px;color:#888888;">
+            Was this digest useful?
+            <a href="${safeUsefulUrl}" style="color:#ffffff;margin-left:6px;">Yes</a>
+            ·
+            <a href="${safeNotUsefulUrl}" style="color:#ffffff;">No</a>
+          </p>
         </td>
       </tr>
       <tr>

@@ -75,8 +75,17 @@ export const weeklyDigestService = {
         continue;
       }
 
-      const unsubscribeToken = createUnsubscribeToken(recipient.id);
-      const unsubscribeUrl = `${SITE_URL}/api/unsubscribe?userId=${recipient.id}&token=${unsubscribeToken}`;
+      // Same HMAC(userId) the unsubscribe link uses — it doesn't
+      // encode an action, just proves the link came from us for this
+      // recipient (unsubscribe already reuses it for both directions
+      // of that toggle), so the digest-feedback link piggybacks on it
+      // too instead of minting a second signing scheme.
+      const token = createUnsubscribeToken(recipient.id);
+      const unsubscribeUrl = `${SITE_URL}/api/unsubscribe?userId=${recipient.id}&token=${token}`;
+      const feedbackUrls = {
+        useful: `${SITE_URL}/api/digest-feedback?userId=${recipient.id}&token=${token}&useful=1`,
+        notUseful: `${SITE_URL}/api/digest-feedback?userId=${recipient.id}&token=${token}&useful=0`,
+      };
 
       try {
         await resend.emails.send({
@@ -86,7 +95,7 @@ export const weeklyDigestService = {
           text: entries
             .map((e) => `${e.gameName}: ${e.title} — ${e.status}`)
             .join("\n"),
-          html: buildDigestHtml(entries, unsubscribeUrl),
+          html: buildDigestHtml(entries, unsubscribeUrl, feedbackUrls),
         });
 
         sent++;
