@@ -739,6 +739,26 @@ Done (2026-08-29) — Faz 3: etkinlik açıklamaları çevirisi
   e-postaları/Discord mesajları hâlâ sadece İngilizce — ayrı bir iş,
   aşağıda.
 
+Done (2026-08-29) — Faz 5: bildirimler kullanıcının dilinde
+
+- **`User.locale` (nullable) + alıcı başına dil çözümlemesi.** Detay:
+  ADR-054 "Faz 5". Kısaca: `buildNotificationContent()` ve
+  `NotificationProvider.send()` artık `dict` alıyor, içerik **alıcı
+  başına** kuruluyor (aynı etkinliği izleyen iki kullanıcının dili
+  farklı olabilir — bunu sabitleyen ayrı bir regresyon testi var).
+  E-posta gövdesindeki tüm sabit metinler ("Event Update", "View
+  event", alt bilgi, "Unsubscribe") de parametreleşti; e-posta ve
+  Discord'daki etkinlik linkleri locale önekli oldu. Ayarlar'a
+  "Bildirim dili" bölümü + `PATCH /api/account/locale` (zod
+  allowlist; `/de` denemesi 400 dönüyor, canlı doğrulandı).
+- **Yan fayda / gerçek bir tuzak yakalandı:**
+  `lib/i18n/dictionaries.ts`, `next/root-params` import ettiği için
+  Next derleyicisi dışında (cron işi, unit test) **çalışmıyormuş** —
+  bir probe testiyle doğrulandı, varsayılmadı. Sözlük yükleme
+  `lib/i18n/load-dictionary.ts`'e ayrıldı; istek kapsamı olmayan her
+  şey artık oradan import ediyor. Bu ayrım olmasa bildirim yolu
+  production'da patlardı.
+
 Kaldığım yer — açık işler
 
 - **Faz 4 — sayfa-seviyesi hreflang.** Sitemap-seviyesi hreflang
@@ -750,13 +770,13 @@ Kaldığım yer — açık işler
   `alternates.languages` ekleyip sayfa `<head>`'inde de per-page
   hreflang etiketi vermek — ek bir sinyal katmanı, aynı geçişte
   yapılmadı çünkü tek başına sitemap'ten çok daha büyük bir iş.
-- **Bildirimler hâlâ sadece İngilizce.** Kullanıcı başına dil
-  tercihi (`User.locale`) + `message-builder`'ın sözlükten okuması
-  gerekiyor. Faz 3 artık tamamlandığı için aynı "görüntüleme anında
-  çevir" altyapısı (`resolveEventDescription()`) burada da doğrudan
-  kullanılabilir — asıl eksik olan `User.locale` alanı ve
-  `message-builder`'ın onu okuyup e-posta/Discord metinlerini
-  `lib/i18n/dictionaries`'ten seçmesi.
+- **Kalan çevrilmemiş e-postalar:** hoş geldin e-postası, magic-link
+  giriş e-postası, haftalık digest, admin uyarıları. Faz 5'te
+  bilinçli olarak dışarıda bırakıldı — ilk ikisi kullanıcı henüz bir
+  dil seçmeden gönderiliyor (yeni hesap, `User.locale` hâlâ `null`),
+  digest kendi ayrı şablonunda, admin uyarıları zaten sadece Deniz'e
+  gidiyor. Digest en mantıklı sıradaki aday: `User.locale` artık var,
+  `getDigestRecipients()`'a bir alan eklemek yetiyor.
 
 Yeni dil eklemek
 

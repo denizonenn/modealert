@@ -29,6 +29,9 @@ import {
 import { retry } from "@/lib/utils/retry";
 import { logger } from "@/lib/logger/logger";
 
+import { getDictionaryFor } from "@/lib/i18n/load-dictionary";
+import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/config";
+
 const RETRY_ATTEMPTS = 3;
 const RETRY_DELAY_MS = 500;
 
@@ -50,15 +53,26 @@ export const notificationTriggerService = {
     const providers =
       getNotificationProviders();
 
-    const { title, message } =
-      buildNotificationContent(
-        event,
-        previous
-      );
-
     await Promise.all(
       recipients.map(
         async (user) => {
+          // Per recipient, not once per event: two users watching the
+          // same event can have different languages, so the copy has
+          // to be built inside this loop.
+          const locale =
+            user.locale && isLocale(user.locale)
+              ? user.locale
+              : DEFAULT_LOCALE;
+
+          const dict = await getDictionaryFor(locale);
+
+          const { title, message } =
+            buildNotificationContent(
+              event,
+              previous,
+              dict
+            );
+
           const recipient = {
             id: user.id,
 
@@ -66,6 +80,8 @@ export const notificationTriggerService = {
 
             discordWebhookUrl:
               user.discordWebhookUrl,
+
+            locale,
           };
 
           for (const provider of providers) {
@@ -89,7 +105,8 @@ export const notificationTriggerService = {
                   provider.send(
                     recipient,
                     event,
-                    previous
+                    previous,
+                    dict
                   ),
                 {
                   // RETRY_ATTEMPTS total attempts = 1 initial + (RETRY_ATTEMPTS - 1) retries

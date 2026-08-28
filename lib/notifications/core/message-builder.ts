@@ -8,6 +8,7 @@ import type {
 } from "@/lib/repositories/event.repository";
 
 import { gameName } from "@/lib/constants/games";
+import type { Dictionary } from "@/lib/i18n/load-dictionary";
 
 export interface NotificationContent {
   title: string;
@@ -19,24 +20,55 @@ export interface NotificationContent {
 // how badges read in-app next to a status colour, but a bare email
 // subject line has no such context — "is now TRACKING" doesn't tell
 // anyone what actually happened.
-const STATUS_HEADLINE: Record<ProviderEventStatus, string> = {
-  LIVE: "is live now",
-  UPCOMING: "is coming up",
-  TRACKING: "is winding down",
-  ENDED: "has ended",
-};
+function statusHeadline(
+  status: ProviderEventStatus,
+  raw: string,
+  t: Dictionary["notificationMessages"]
+): string {
+  switch (status) {
+    case "LIVE":
+      return t.headlineLive;
+    case "UPCOMING":
+      return t.headlineUpcoming;
+    case "TRACKING":
+      return t.headlineTracking;
+    case "ENDED":
+      return t.headlineEnded;
+    default:
+      return t.headlineFallback.replace("{status}", raw);
+  }
+}
 
-const STATUS_PHRASE: Record<ProviderEventStatus, string> = {
-  LIVE: "live",
-  UPCOMING: "upcoming",
-  TRACKING: "winding down",
-  ENDED: "ended",
-};
+function statusPhrase(
+  status: ProviderEventStatus,
+  raw: string,
+  t: Dictionary["notificationMessages"]
+): string {
+  switch (status) {
+    case "LIVE":
+      return t.phraseLive;
+    case "UPCOMING":
+      return t.phraseUpcoming;
+    case "TRACKING":
+      return t.phraseTracking;
+    case "ENDED":
+      return t.phraseEnded;
+    default:
+      return raw;
+  }
+}
 
+// `dict` is the recipient's own dictionary (from their User.locale),
+// resolved once per recipient by the caller — game titles and event
+// names stay as the provider supplies them, since those are real
+// proper nouns, not translatable copy.
 export function buildNotificationContent(
   event: ProviderEvent,
-  previous: EventWithGame | null
+  previous: EventWithGame | null,
+  dict: Dictionary
 ): NotificationContent {
+  const t = dict.notificationMessages;
+
   // A user can track events across all 13 games, so a notification
   // that only names the event ("ACT IV has ended") leaves them
   // guessing which game it belongs to — confirmed against a real
@@ -45,17 +77,19 @@ export function buildNotificationContent(
 
   const status = event.status as ProviderEventStatus;
 
-  const title = `${game}: ${event.title} ${
-    STATUS_HEADLINE[status] ?? `is now ${event.status}`
-  }`;
+  const title = t.title
+    .replace("{game}", game)
+    .replace("{event}", event.title)
+    .replace("{headline}", statusHeadline(status, event.status, t));
 
   if (!previous) {
     return {
       title,
 
-      message: `${event.title} (${game}) is now being tracked — currently ${
-        STATUS_PHRASE[status] ?? event.status
-      }.`,
+      message: t.nowTracked
+        .replace("{event}", event.title)
+        .replace("{game}", game)
+        .replace("{phrase}", statusPhrase(status, event.status, t)),
     };
   }
 
@@ -64,8 +98,13 @@ export function buildNotificationContent(
   return {
     title,
 
-    message: `${event.title} (${game}) went from ${
-      STATUS_PHRASE[previousStatus] ?? previous.status
-    } to ${STATUS_PHRASE[status] ?? event.status}.`,
+    message: t.statusChanged
+      .replace("{event}", event.title)
+      .replace("{game}", game)
+      .replace(
+        "{from}",
+        statusPhrase(previousStatus, previous.status, t)
+      )
+      .replace("{to}", statusPhrase(status, event.status, t)),
   };
 }

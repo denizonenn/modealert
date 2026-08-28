@@ -20,6 +20,7 @@ import { createUnsubscribeToken } from "./unsubscribe-token";
 
 import { env } from "@/lib/config/env";
 import { SITE_URL } from "@/lib/constants/site";
+import type { Dictionary } from "@/lib/i18n/load-dictionary";
 
 const resend = env.RESEND_API_KEY
   ? new Resend(env.RESEND_API_KEY)
@@ -38,7 +39,8 @@ export const emailNotificationProvider: NotificationProvider =
     async send(
       recipient: NotificationRecipient,
       event: ProviderEvent,
-      previous: EventWithGame | null
+      previous: EventWithGame | null,
+      dict: Dictionary
     ) {
       if (!resend) {
         return;
@@ -47,7 +49,8 @@ export const emailNotificationProvider: NotificationProvider =
       const { title, message } =
         buildNotificationContent(
           event,
-          previous
+          previous,
+          dict
         );
 
       const unsubscribeToken =
@@ -58,10 +61,13 @@ export const emailNotificationProvider: NotificationProvider =
 
       // Only the already-synced row has a slug — a brand-new event
       // has no DB row yet at notification time, so it gets no link
-      // rather than a guessed (and 404-ing) one.
+      // rather than a guessed (and 404-ing) one. Locale-prefixed so
+      // the page opens in the same language as the email.
       const eventUrl = previous?.slug
-        ? `${SITE_URL}/events/${previous.slug}`
+        ? `${SITE_URL}/${recipient.locale}/events/${previous.slug}`
         : undefined;
+
+      const t = dict.notificationMessages;
 
       await resend.emails.send({
         from: env.EMAIL_FROM,
@@ -71,14 +77,18 @@ export const emailNotificationProvider: NotificationProvider =
         subject: title,
 
         text: eventUrl
-          ? `${message}\n\nView event: ${eventUrl}\n\nUnsubscribe: ${unsubscribeUrl}`
-          : `${message}\n\nUnsubscribe: ${unsubscribeUrl}`,
+          ? `${message}\n\n${t.viewEvent}: ${eventUrl}\n\n${t.unsubscribe}: ${unsubscribeUrl}`
+          : `${message}\n\n${t.unsubscribe}: ${unsubscribeUrl}`,
 
         html: buildEmailHtml(
           title,
           message,
           unsubscribeUrl,
-          eventUrl
+          eventUrl,
+          t.viewEvent,
+          t.unsubscribe,
+          t.emailEyebrow,
+          t.emailFooter
         ),
       });
     },

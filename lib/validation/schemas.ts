@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { ANALYTICS_EVENTS } from "@/lib/constants/analytics-events";
 import { ANONYMOUS_FUNNEL_EVENTS } from "@/lib/constants/anonymous-funnel-events";
+import { LOCALES } from "@/lib/i18n/config";
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -74,6 +75,10 @@ export const anonymousFunnelEventSchema = z.object({
   name: z.enum(
     Object.values(ANONYMOUS_FUNNEL_EVENTS) as [string, ...string[]]
   ),
+});
+
+export const localeSchema = z.object({
+  locale: z.enum(LOCALES as unknown as [string, ...string[]]),
 });
 
 export const lemonSqueezyWebhookSchema = z.object({

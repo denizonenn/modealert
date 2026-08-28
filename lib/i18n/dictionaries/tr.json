@@ -578,6 +578,9 @@
     "passwordSet": "Şifre belirlendi.",
     "updatePassword": "Şifreyi güncelle",
     "setPassword": "Şifre belirle",
+    "notificationLanguageTitle": "Bildirim dili",
+    "notificationLanguageDesc": "ModeAlert'in uyarı e-postalarını ve Discord mesajlarını hangi dilde yazacağı. Yukarıdaki site dilinden ayrı — bir uyarı, seçimini okuyacak bir tarayıcı olmadan, zamanlanmış bir işten gönderiliyor.",
+    "notificationLanguageNotSet": "Ayarlanmadı — İngilizce kullanılıyor.",
     "emailNotificationsTitle": "E-posta bildirimleri",
     "emailNotificationsDesc": "Etkinlik e-postası almayı durdurmak için kapat. Watchlist'in dokunulmadan kalır.",
     "emailNotificationsOff": "Şu an kapalı — etkinlik e-postası almayacaksın.",
@@ -673,5 +676,23 @@
     "alsoTrackedTitle": "Bunu takip edenler ayrıca şunu da takip ediyor",
     "trackerOne": "{count} ortak takipçi",
     "trackerMany": "{count} ortak takipçi"
+  },
+  "notificationMessages": {
+    "headlineLive": "şu an canlı",
+    "headlineUpcoming": "yakında başlıyor",
+    "headlineTracking": "sona yaklaşıyor",
+    "headlineEnded": "sona erdi",
+    "headlineFallback": "artık {status}",
+    "phraseLive": "canlı",
+    "phraseUpcoming": "yaklaşan",
+    "phraseTracking": "sona yaklaşıyor",
+    "phraseEnded": "bitti",
+    "title": "{game}: {event} {headline}",
+    "nowTracked": "{event} ({game}) artık takip ediliyor — şu an {phrase}.",
+    "statusChanged": "{event} ({game}) {from} durumundan {to} durumuna geçti.",
+    "viewEvent": "Etkinliği görüntüle",
+    "unsubscribe": "Abonelikten çık",
+    "emailEyebrow": "Etkinlik Güncellemesi",
+    "emailFooter": "Bu e-postayı, watchlist'indeki bir etkinlik güncellendiği için alıyorsun."
   }
 }

@@ -4546,11 +4546,49 @@ etiketler ek bir sinyal katmanı olurdu. ~20 sayfanın her birinin
 `generateMetadata()`'sına `alternates.languages` eklemek gerekiyor —
 sitemap'ten çok daha büyük bir iş, ayrı bir görev olarak bırakıldı.
 
-**Ayrıca açık:** Bildirim e-postaları/Discord mesajları hâlâ sadece
-İngilizce. Kullanıcı başına bir dil tercihi (`User.locale`) ve
-`message-builder`'ın sözlükten okuması gerekiyor — Faz 3'le birlikte
-yapılması mantıklı, çünkü ikisi de aynı "açıklamayı görüntüleme
-anında çevir" mekanizmasına dayanıyor.
+**Faz 5 (2026-08-29): Bildirimler artık kullanıcının dilinde.**
+Yeni `User.locale String?` sütunu (nullable — `null`, "hiç seçmedi"
+demek, "İngilizce'yi seçti"den gerçekten farklı bir durum, ileride
+fallback değişirse mevcut satırlar bilinçli bir seçim sanılmasın).
+
+- **Neden ayrı bir sütun, çereze bakmak yerine:** gezinme dili
+  `proxy.ts`'in okuduğu bir çerezde — ama bir bildirim, tarayıcı
+  olmadan, cron'dan gönderiliyor. Okunacak bir istek yok, o yüzden
+  saklanması gerekiyor.
+- **`buildNotificationContent(event, previous, dict)`** artık dict
+  alıyor; `NotificationProvider.send()` imzasına da `dict` eklendi
+  (email + Discord kullanıyor, console debug-sink olduğu için
+  kullanmıyor). Kritik detay: içerik **alıcı başına**, döngünün
+  içinde kuruluyor — aynı etkinliği izleyen iki kullanıcının dili
+  farklı olabilir. Bunu sabitlemek için ayrı bir regresyon testi
+  yazıldı (`notification-trigger.service.test.ts`): biri `tr`, biri
+  `null` locale'li iki alıcı, her biri kendi dilinde metin alıyor.
+- **`lib/i18n/dictionaries.ts` ikiye bölündü.** O dosya
+  `next/root-params` import ediyor ve bu modül Next'in derleyicisi
+  dışında **çalışmıyor** (bir cron işinde, bir unit testte hata
+  fırlatıyor — önce bir probe testiyle doğrulandı, varsayılmadı).
+  Sözlük yükleme mantığı `lib/i18n/load-dictionary.ts`'e taşındı
+  (`Dictionary` tipi + `getDictionaryFor`, `next/root-params`
+  bağımlılığı yok); `dictionaries.ts` bunları re-export edip
+  istek-kapsamı gerektiren `getLocale`/`getDictionary`'yi ekliyor.
+  İstek kapsamı olmayan her şey (bildirimler, `event-category.ts`)
+  artık doğrudan `load-dictionary`'den import ediyor.
+- **E-posta gövdesi de çevrildi**, sadece konu/mesaj değil:
+  `buildEmailHtml()` artık "Event Update" eyebrow'unu, "View event"
+  CTA'sını, alt bilgi cümlesini ve "Unsubscribe" linkini parametre
+  olarak alıyor (kendi içinde sözlük okumuyor — saf bir string
+  builder, istek kapsamı yok). E-posta ve Discord'daki etkinlik
+  linkleri de artık locale önekli (`/tr/events/...`), yani mesajın
+  dili ile açılan sayfanın dili tutuyor.
+- **Ayarlar'a "Bildirim dili" bölümü** eklendi (`PATCH
+  /api/account/locale`, `zod` ile locale allowlist doğrulaması —
+  `/de` denemesi 400 dönüyor, canlı doğrulandı). Site dilinden
+  ayrı olduğu açıklama metninde belirtiliyor.
+- **Bilinçli olarak çevrilmedi:** hoş geldin e-postası, magic-link
+  e-postası, haftalık digest ve admin uyarıları. İlk ikisi kullanıcı
+  daha bir dil seçmeden gönderiliyor (hesap yeni), digest ayrı bir
+  şablon, admin uyarıları zaten sadece Deniz'e gidiyor. Ayrı bir iş
+  olarak backlog'da.
 
 ## Sonuçlar
 

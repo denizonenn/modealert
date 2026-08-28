@@ -578,6 +578,9 @@
     "passwordSet": "Password set.",
     "updatePassword": "Update password",
     "setPassword": "Set password",
+    "notificationLanguageTitle": "Notification language",
+    "notificationLanguageDesc": "The language ModeAlert writes your alert emails and Discord messages in. Separate from the site language above — an alert is sent from a scheduled job, with no browser to read your choice from.",
+    "notificationLanguageNotSet": "Not set — using English.",
     "emailNotificationsTitle": "Email notifications",
     "emailNotificationsDesc": "Turn off to stop receiving event emails. Your watchlist stays intact.",
     "emailNotificationsOff": "Currently off — you won't get event emails.",
@@ -673,5 +676,23 @@
     "alsoTrackedTitle": "People tracking this also track",
     "trackerOne": "{count} tracker in common",
     "trackerMany": "{count} trackers in common"
+  },
+  "notificationMessages": {
+    "headlineLive": "is live now",
+    "headlineUpcoming": "is coming up",
+    "headlineTracking": "is winding down",
+    "headlineEnded": "has ended",
+    "headlineFallback": "is now {status}",
+    "phraseLive": "live",
+    "phraseUpcoming": "upcoming",
+    "phraseTracking": "winding down",
+    "phraseEnded": "ended",
+    "title": "{game}: {event} {headline}",
+    "nowTracked": "{event} ({game}) is now being tracked — currently {phrase}.",
+    "statusChanged": "{event} ({game}) went from {from} to {to}.",
+    "viewEvent": "View event",
+    "unsubscribe": "Unsubscribe",
+    "emailEyebrow": "Event Update",
+    "emailFooter": "You're getting this email because an event on your watchlist was updated."
   }
 }

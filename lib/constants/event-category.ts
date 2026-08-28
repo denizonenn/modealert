@@ -1,4 +1,4 @@
-import type { Dictionary } from "@/lib/i18n/dictionaries";
+import type { Dictionary } from "@/lib/i18n/load-dictionary";
 
 export const EVENT_CATEGORIES = {
   // A real mode/activity/season a player actually plays right now

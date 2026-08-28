@@ -142,11 +142,19 @@ export function buildWelcomeEmailHtml(onboardingUrl: string): string {
 </html>`
 }
 
+// The labels are passed in rather than read from a dictionary here:
+// this is a pure string builder with no request scope, and the
+// caller (email.provider.ts) already resolved the recipient's own
+// dictionary.
 export function buildEmailHtml(
   title: string,
   message: string,
   unsubscribeUrl: string,
-  eventUrl?: string
+  eventUrl: string | undefined,
+  viewEventLabel: string,
+  unsubscribeLabel: string,
+  eyebrowLabel: string,
+  footerText: string
 ): string {
   const safeTitle = escapeHtml(title)
   const safeMessage = escapeHtml(message)
@@ -159,7 +167,7 @@ export function buildEmailHtml(
   const ctaBlock = eventUrl
     ? `
           <a href="${escapeHtml(eventUrl)}" style="display:inline-block;margin-top:20px;background:#ffffff;color:#000000;font-size:14px;font-weight:600;text-decoration:none;padding:10px 20px;border-radius:8px;">
-            View event
+            ${escapeHtml(viewEventLabel)}
           </a>`
     : ""
 
@@ -175,7 +183,7 @@ export function buildEmailHtml(
       <tr>
         <td style="background:#111111;border:1px solid #222222;border-radius:16px;padding:24px;">
           <p style="margin:0 0 8px;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:#888888;">
-            Event Update
+            ${escapeHtml(eyebrowLabel)}
           </p>
           <h1 style="margin:0 0 12px;font-size:20px;">
             ${safeTitle}
@@ -187,9 +195,8 @@ export function buildEmailHtml(
       </tr>
       <tr>
         <td style="padding-top:16px;font-size:12px;color:#666666;">
-          You&apos;re getting this email because an event on your watchlist
-          was updated.
-          <a href="${safeUnsubscribeUrl}" style="color:#666666;">Unsubscribe</a>
+          ${escapeHtml(footerText)}
+          <a href="${safeUnsubscribeUrl}" style="color:#666666;">${escapeHtml(unsubscribeLabel)}</a>
         </td>
       </tr>
     </table>

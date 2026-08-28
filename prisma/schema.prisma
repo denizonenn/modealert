@@ -22,6 +22,15 @@ model User {
   emailOptOut         Boolean        @default(false)
   discordWebhookUrl   String?
 
+  // Language for notifications (email/Discord). Nullable, not
+  // defaulted to "en": null means "never chosen", which is a real
+  // distinction from "chose English" — it lets the app adopt a
+  // different fallback later without mistaking existing rows for a
+  // deliberate choice. Browsing language stays cookie-driven (see
+  // proxy.ts); this is only for messages sent to the user when
+  // there's no browser to read a cookie from.
+  locale              String?
+
   onboardedAt         DateTime?
 
   plan                       String    @default("FREE")

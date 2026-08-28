@@ -17,6 +17,7 @@ import { useRequireAuth } from "@/hooks/use-require-auth"
 import { useTrackEvent } from "@/hooks/use-track-event"
 import { useI18n } from "@/components/providers/i18n-provider"
 import { PLAN_LABELS, type Plan } from "@/lib/constants/plan"
+import { LOCALES, LOCALE_LABELS } from "@/lib/i18n/config"
 import { ANALYTICS_EVENTS } from "@/lib/constants/analytics-events"
 import type { Dictionary } from "@/lib/i18n/dictionaries"
 
@@ -28,6 +29,7 @@ interface Account {
   hasPassword: boolean
   emailOptOut: boolean
   discordWebhookUrl: string | null
+  locale: string | null
   plan: Plan
   subscriptionStatus: string | null
   subscriptionRenewsAt: string | null
@@ -396,6 +398,71 @@ function PasswordSection({
   )
 }
 
+function NotificationLanguageSection({
+  account,
+  onUpdated,
+  dict,
+}: {
+  account: Account
+  onUpdated: (locale: string) => void
+  dict: Dictionary
+}) {
+  const t = dict.settingsPage
+  const [saving, setSaving] = useState(false)
+
+  async function choose(locale: string) {
+    if (saving || locale === account.locale) {
+      return
+    }
+
+    setSaving(true)
+
+    try {
+      await fetch("/api/account/locale", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ locale }),
+      })
+
+      onUpdated(locale)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Section
+      title={t.notificationLanguageTitle}
+      description={t.notificationLanguageDesc}
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        {LOCALES.map((locale) => (
+          <Button
+            key={locale}
+            type="button"
+            variant="outline"
+            disabled={saving}
+            onClick={() => choose(locale)}
+            className={
+              account.locale === locale
+                ? "border-white/25 bg-white/15 text-white"
+                : "border-white/10 bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white"
+            }
+          >
+            {LOCALE_LABELS[locale]}
+          </Button>
+        ))}
+      </div>
+
+      {!account.locale && (
+        <p className="mt-3 text-sm text-zinc-500">
+          {t.notificationLanguageNotSet}
+        </p>
+      )}
+    </Section>
+  )
+}
+
 function NotificationsSection({
   account,
   onUpdated,
@@ -730,6 +797,14 @@ export default function SettingsPage() {
                 setAccount((prev) =>
                   prev ? { ...prev, hasPassword: true } : prev
                 )
+              }
+            />
+
+            <NotificationLanguageSection
+              account={account}
+              dict={dict}
+              onUpdated={(locale) =>
+                setAccount((prev) => (prev ? { ...prev, locale } : prev))
               }
             />
 

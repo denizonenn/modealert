@@ -24,6 +24,8 @@ export const consoleNotificationProvider: NotificationProvider =
       event: ProviderEvent,
       previous: EventWithGame | null
     ) {
+      // Debug-only sink — logs raw status codes, not built copy, so
+      // it has no use for the recipient's dictionary.
       console.log("");
 
       console.log(
