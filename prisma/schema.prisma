@@ -22,6 +22,8 @@ model User {
   emailOptOut         Boolean        @default(false)
   discordWebhookUrl   String?
 
+  onboardedAt         DateTime?
+
   plan                       String    @default("FREE")
   lemonSqueezyCustomerId     String?
   lemonSqueezySubscriptionId String?   @unique

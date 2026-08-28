@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, Suspense } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { signIn, getProviders } from "next-auth/react"
 import { SiGoogle, SiDiscord } from "react-icons/si"
@@ -13,9 +13,9 @@ import { useI18n } from "@/components/providers/i18n-provider"
 
 function SignInForm() {
   const { dict, path } = useI18n()
-  const router = useRouter()
   const searchParams = useSearchParams()
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard"
+  const callbackUrl = searchParams.get("callbackUrl") ?? path("/dashboard")
+  const postAuthUrl = `/api/post-auth?next=${encodeURIComponent(callbackUrl)}`
 
   const [mode, setMode] = useState<"magic-link" | "password">("password")
 
@@ -44,7 +44,7 @@ function SignInForm() {
 
     setSending(true)
 
-    await signIn("resend", { email, callbackUrl })
+    await signIn("resend", { email, callbackUrl: postAuthUrl })
 
     setSending(false)
   }
@@ -68,7 +68,7 @@ function SignInForm() {
       return
     }
 
-    router.push(callbackUrl)
+    window.location.assign(postAuthUrl)
   }
 
   return (
@@ -93,7 +93,7 @@ function SignInForm() {
                 type="button"
                 variant="outline"
                 className="w-full justify-center gap-2 border-white/10 bg-white/5 text-white hover:bg-white/10"
-                onClick={() => signIn("google", { callbackUrl })}
+                onClick={() => signIn("google", { callbackUrl: postAuthUrl })}
               >
                 <SiGoogle className="h-4 w-4" />
                 {dict.auth.continueWithGoogle}
@@ -105,7 +105,7 @@ function SignInForm() {
                 type="button"
                 variant="outline"
                 className="w-full justify-center gap-2 border-white/10 bg-white/5 text-white hover:bg-white/10"
-                onClick={() => signIn("discord", { callbackUrl })}
+                onClick={() => signIn("discord", { callbackUrl: postAuthUrl })}
               >
                 <SiDiscord className="h-4 w-4" />
                 {dict.auth.continueWithDiscord}

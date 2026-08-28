@@ -61,6 +61,7 @@ export default function FinishStep() {
           // Whatever fit under the free limit is already saved — this
           // just stops here instead of claiming full success.
           track(ANALYTICS_EVENTS.WATCHLIST_LIMIT_HIT, "onboarding")
+          await markOnboardingComplete()
           setLimitReached(true)
           return
         }
@@ -74,8 +75,9 @@ export default function FinishStep() {
         ANALYTICS_EVENTS.ONBOARDING_FINISHED,
         String(selectedEvents.length)
       )
+      await markOnboardingComplete()
       clear()
-      router.push("/dashboard")
+      router.push(path("/dashboard"))
     } catch {
       setError(dict.onboarding.savingError)
     } finally {
@@ -83,10 +85,20 @@ export default function FinishStep() {
     }
   }
 
-  function handleContinueAnyway() {
+  async function markOnboardingComplete() {
+    try {
+      await fetch("/api/account/onboarding-complete", { method: "POST" })
+    } catch {
+      // Best-effort — worst case the user sees onboarding once more
+      // on their next sign-in, which is harmless.
+    }
+  }
+
+  async function handleContinueAnyway() {
     track(ANALYTICS_EVENTS.ONBOARDING_FINISHED, "limit-reached")
+    await markOnboardingComplete()
     clear()
-    router.push("/dashboard")
+    router.push(path("/dashboard"))
   }
 
   return (

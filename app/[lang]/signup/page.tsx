@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, Suspense } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { signIn, getProviders } from "next-auth/react"
 import { SiGoogle, SiDiscord } from "react-icons/si"
@@ -16,9 +16,9 @@ const MIN_PASSWORD_LENGTH = 8
 
 function SignUpForm() {
   const { dict, path } = useI18n()
-  const router = useRouter()
   const searchParams = useSearchParams()
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard"
+  const callbackUrl = searchParams.get("callbackUrl") ?? path("/dashboard")
+  const postAuthUrl = `/api/post-auth?next=${encodeURIComponent(callbackUrl)}`
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -88,7 +88,7 @@ function SignUpForm() {
         return
       }
 
-      router.push(callbackUrl)
+      window.location.assign(postAuthUrl)
     } catch {
       setError(dict.auth.somethingWentWrong)
       setSubmitting(false)
@@ -119,7 +119,7 @@ function SignUpForm() {
                 type="button"
                 variant="outline"
                 className="w-full justify-center gap-2 border-white/10 bg-white/5 text-white hover:bg-white/10"
-                onClick={() => signIn("google", { callbackUrl })}
+                onClick={() => signIn("google", { callbackUrl: postAuthUrl })}
               >
                 <SiGoogle className="h-4 w-4" />
                 {dict.auth.continueWithGoogle}
@@ -131,7 +131,7 @@ function SignUpForm() {
                 type="button"
                 variant="outline"
                 className="w-full justify-center gap-2 border-white/10 bg-white/5 text-white hover:bg-white/10"
-                onClick={() => signIn("discord", { callbackUrl })}
+                onClick={() => signIn("discord", { callbackUrl: postAuthUrl })}
               >
                 <SiDiscord className="h-4 w-4" />
                 {dict.auth.continueWithDiscord}

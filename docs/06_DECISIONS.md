@@ -4499,3 +4499,75 @@ anında çevir" mekanizmasına dayanıyor.
   açılmalı, aksi halde locale önekiyle erişilemez.
 - Client Component'lerde locale'li link üretmek için
   `useI18n().path("/yol")` kullanılmalı, çıplak `href="/yol"` değil.
+
+---
+
+# ADR-055: `/api/post-auth` — giriş noktasından bağımsız onboarding kapısı
+
+Status: Accepted (2026-08-28)
+
+## Bağlam
+
+Deniz canlıda gerçek bir kullanıcıyı `/signin` ekranına yönlendirdi;
+kullanıcı Google ile devam etti, hesap **yeni** oluştu (Google
+adapter üzerinden ilk kez), ama `/onboarding`'e hiç girmeden doğrudan
+`/dashboard`'a düştü.
+
+Kök neden: `/signin` ve `/signup` sayfalarının her ikisinde de
+`callbackUrl` varsayılanı sabit `"/dashboard"` idi (`useI18n().path()`
+ile locale önekli bile değildi — ayrı bir küçük bug). Sadece ana
+sayfanın "Start Tracking" CTA'sı `/onboarding`'e gidiyor, oradan
+`useRequireAuth` kullanıcıyı `?callbackUrl=/onboarding` ile
+`/signin`'e atıyordu — yani onboarding'e girmek **tek bir CTA'ya**
+bağlıydı. Birisi doğrudan `/signin`'e gelip (link paylaşımı, navbar,
+vb.) Google/Discord/magic-link/credentials ile **ilk kez** kayıt
+olursa, hiçbir yerde "bu yeni bir hesap, onboarding'e gitmeli" kontrolü
+yoktu.
+
+## Karar
+
+Tüm giriş yollarının (Google, Discord, email magic link, credentials
+sign-in, credentials sign-up) `callbackUrl`'ini artık doğrudan hedefe
+değil, yeni bir `GET /api/post-auth?next=<hedef>` route'una
+yönlendiriyoruz. Bu route:
+
+1. Oturum yoksa `/signin`'e döner.
+2. `User.onboardedAt` `null` ise `/onboarding`'e döner — giriş yöntemi
+   ne olursa olsun.
+3. Aksi halde `next` parametresine (varsayılan `/dashboard`) döner.
+   `next` her zaman `/` ile başlayan **aynı origin** bir yol olmalı —
+   open-redirect'i önlemek için `//` ile başlayanlar da reddediliyor.
+
+`User`'a yeni bir `onboardedAt DateTime?` kolonu eklendi
+(`prisma/migrations/20260828120000_add_onboarded_at`). Migration,
+o ana kadarki **tüm mevcut kullanıcıları** `onboardedAt = NOW()` ile
+işaretledi — aksi halde canlıdaki gerçek kullanıcılar bir sonraki
+girişte zorla onboarding'e düşerdi. Sadece bu migration'dan **sonra**
+oluşan hesaplar `NULL` ile başlıyor ve gerçekten kapıdan geçiyor.
+`onboardedAt`, onboarding'in `FinishStep`'i (`handleFinish` başarı
+yolu, free-plan limitine takılma yolu, `handleContinueAnyway`) yeni
+`POST /api/account/onboarding-complete` endpoint'ini çağırdığında
+set ediliyor.
+
+## Neden ayrı bir route, NextAuth callback'i değil
+
+Auth.js v5'in `signIn`/`jwt` callback'leri OAuth için `isNewUser` gibi
+bir bayrak sağlamıyor (v4'teki gibi). Adapter'ın `createUser` event'i
+sadece gerçekten yeni hesaplar için tetikleniyor ama bu bilgiyi
+redirect kararına kadar taşımanın temiz bir yolu yok. Tüm giriş
+yöntemlerini (adapter'lı ve adapter'sız — credentials adapter'dan
+geçmiyor, bkz. `auth.ts`'teki not) tek bir yerden, DB'deki gerçek
+`onboardedAt` durumuna bakarak karara bağlamak daha basit ve tutarlı.
+
+## Bilinçli olarak yapılmadı
+
+- "Hesabı yoksa kayıt olma akışına yönlendir" (sign-in'de email'in var
+  olup olmadığını ayırt etmek) — ADR-045'teki hardening pass bilinçli
+  olarak generic "Incorrect email or password" hatası kullanıyor
+  (user enumeration'ı önlemek için). `/signin` formunun altında zaten
+  "Don't have an account? Sign up" linki var. Bu trade-off'u bozmak
+  Deniz'in kararı olmalı.
+- Google/Discord ile kaydolan kullanıcılara onboarding sırasında
+  proaktif "şifre de oluştur" istemi — bu özellik zaten
+  `/dashboard/settings`'te var (`hasPassword` durumuna göre "Set a
+  password" / "Change password"), sadece proaktif sunulmuyor.
