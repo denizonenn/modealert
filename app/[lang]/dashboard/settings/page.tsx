@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, Suspense } from "react"
+import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
 import { Lock, Mail, Trash2, Sparkles, User, Download } from "lucide-react"
@@ -14,8 +15,10 @@ import { Skeleton } from "@/components/shared/skeleton"
 
 import { useRequireAuth } from "@/hooks/use-require-auth"
 import { useTrackEvent } from "@/hooks/use-track-event"
+import { useI18n } from "@/components/providers/i18n-provider"
 import { PLAN_LABELS, type Plan } from "@/lib/constants/plan"
 import { ANALYTICS_EVENTS } from "@/lib/constants/analytics-events"
+import type { Dictionary } from "@/lib/i18n/dictionaries"
 
 const MIN_PASSWORD_LENGTH = 8
 
@@ -54,7 +57,7 @@ function Section({
   )
 }
 
-function UpgradedBanner() {
+function UpgradedBanner({ dict }: { dict: Dictionary }) {
   const searchParams = useSearchParams()
 
   if (searchParams.get("upgraded") !== "1") {
@@ -63,23 +66,31 @@ function UpgradedBanner() {
 
   return (
     <p className="mt-6 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
-      Payment received — activating your Premium plan. This can take a
-      few seconds; refresh if your plan below doesn&apos;t update.
+      {dict.settingsPage.upgradedBanner}
     </p>
   )
 }
 
-function SubscriptionSection({ account }: { account: Account }) {
+function SubscriptionSection({
+  account,
+  dict,
+  path,
+  locale,
+}: {
+  account: Account
+  dict: Dictionary
+  path: (href: string) => string
+  locale: string
+}) {
   const isPremium = account.plan === "PREMIUM"
   const track = useTrackEvent()
+  const t = dict.settingsPage
 
   return (
     <Section
-      title="Subscription"
+      title={t.subscriptionTitle}
       description={
-        isPremium
-          ? "Unlimited tracked events and per-event predictions."
-          : "Upgrade for unlimited tracked events and per-event predictions."
+        isPremium ? t.subscriptionDescPremium : t.subscriptionDescFree
       }
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -88,10 +99,13 @@ function SubscriptionSection({ account }: { account: Account }) {
           {PLAN_LABELS[account.plan]}
           {isPremium && account.subscriptionRenewsAt && (
             <span className="text-zinc-500">
-              · renews{" "}
-              {new Date(
-                account.subscriptionRenewsAt
-              ).toLocaleDateString()}
+              ·{" "}
+              {t.renews.replace(
+                "{date}",
+                new Date(
+                  account.subscriptionRenewsAt
+                ).toLocaleDateString(locale)
+              )}
             </span>
           )}
         </span>
@@ -107,7 +121,7 @@ function SubscriptionSection({ account }: { account: Account }) {
                 variant="outline"
                 className="border-white/15 bg-white/5 text-white hover:bg-white/10"
               >
-                Manage subscription
+                {t.manageSubscription}
               </Button>
             </a>
           )
@@ -119,16 +133,16 @@ function SubscriptionSection({ account }: { account: Account }) {
             }
           >
             <Button className="bg-gradient-brand text-white">
-              Upgrade to Premium
+              {t.upgradeToPremium}
             </Button>
           </a>
         ) : (
-          <a href="/pricing">
+          <a href={path("/pricing")}>
             <Button
               variant="outline"
               className="border-white/15 bg-white/5 text-white hover:bg-white/10"
             >
-              See plans
+              {t.seePlans}
             </Button>
           </a>
         )}
@@ -142,11 +156,14 @@ const MAX_NAME_LENGTH = 50
 function ProfileSection({
   account,
   onUpdated,
+  dict,
 }: {
   account: Account
   onUpdated: (name: string) => void
+  dict: Dictionary
 }) {
   const { update } = useSession()
+  const t = dict.settingsPage
 
   const [name, setName] = useState(account.name ?? "")
   const [submitting, setSubmitting] = useState(false)
@@ -162,7 +179,7 @@ function ProfileSection({
     const trimmed = name.trim()
 
     if (trimmed.length === 0) {
-      setError("Display name can't be empty.")
+      setError(t.displayNameEmpty)
       return
     }
 
@@ -178,7 +195,7 @@ function ProfileSection({
       const data = await response.json()
 
       if (!response.ok) {
-        setError(data.error ?? "Something went wrong.")
+        setError(data.error ?? dict.common.somethingWentWrong)
         return
       }
 
@@ -189,17 +206,14 @@ function ProfileSection({
       setSuccess(true)
       onUpdated(trimmed)
     } catch {
-      setError("Something went wrong. Please try again.")
+      setError(dict.common.somethingWentWrong)
     } finally {
       setSubmitting(false)
     }
   }
 
   return (
-    <Section
-      title="Profile"
-      description="The display name shown in the navbar and on notifications."
-    >
+    <Section title={t.profileTitle} description={t.profileDesc}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3">
           <User className="h-4 w-4 shrink-0 text-zinc-500" />
@@ -207,8 +221,8 @@ function ProfileSection({
             type="text"
             required
             maxLength={MAX_NAME_LENGTH}
-            placeholder="Display name"
-            aria-label="Display name"
+            placeholder={t.displayName}
+            aria-label={t.displayName}
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="h-10 w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"
@@ -217,7 +231,7 @@ function ProfileSection({
 
         {error && <p className="text-sm text-red-400">{error}</p>}
         {success && (
-          <p className="text-sm text-emerald-400">Display name updated.</p>
+          <p className="text-sm text-emerald-400">{t.displayNameUpdated}</p>
         )}
 
         <Button
@@ -225,7 +239,7 @@ function ProfileSection({
           disabled={submitting || name.trim() === (account.name ?? "")}
           className="mt-1 w-fit bg-white text-black hover:bg-zinc-200"
         >
-          {submitting ? "Saving..." : "Save"}
+          {submitting ? dict.common.saving : dict.common.save}
         </Button>
       </form>
     </Section>
@@ -235,10 +249,14 @@ function ProfileSection({
 function PasswordSection({
   account,
   onUpdated,
+  dict,
 }: {
   account: Account
   onUpdated: () => void
+  dict: Dictionary
 }) {
+  const t = dict.settingsPage
+
   const [currentPassword, setCurrentPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -253,12 +271,17 @@ function PasswordSection({
     setSuccess(false)
 
     if (newPassword.length < MIN_PASSWORD_LENGTH) {
-      setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`)
+      setError(
+        t.passwordMinLength.replace(
+          "{min}",
+          String(MIN_PASSWORD_LENGTH)
+        )
+      )
       return
     }
 
     if (newPassword !== confirmPassword) {
-      setError("Passwords don't match.")
+      setError(t.passwordsDontMatch)
       return
     }
 
@@ -279,7 +302,7 @@ function PasswordSection({
       const data = await response.json()
 
       if (!response.ok) {
-        setError(data.error ?? "Something went wrong.")
+        setError(data.error ?? dict.common.somethingWentWrong)
         return
       }
 
@@ -289,7 +312,7 @@ function PasswordSection({
       setSuccess(true)
       onUpdated()
     } catch {
-      setError("Something went wrong. Please try again.")
+      setError(dict.common.somethingWentWrong)
     } finally {
       setSubmitting(false)
     }
@@ -297,11 +320,9 @@ function PasswordSection({
 
   return (
     <Section
-      title={account.hasPassword ? "Change password" : "Set a password"}
+      title={account.hasPassword ? t.changePasswordTitle : t.setPasswordTitle}
       description={
-        account.hasPassword
-          ? "Update the password you use to sign in with email."
-          : "You signed up without a password. Set one to also be able to sign in with email + password."
+        account.hasPassword ? t.changePasswordDesc : t.setPasswordDesc
       }
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -311,8 +332,8 @@ function PasswordSection({
             <input
               type="password"
               required
-              placeholder="Current password"
-              aria-label="Current password"
+              placeholder={t.currentPassword}
+              aria-label={t.currentPassword}
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               className="h-10 w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"
@@ -325,8 +346,14 @@ function PasswordSection({
           <input
             type="password"
             required
-            placeholder="New password (min. 8 characters)"
-            aria-label="New password"
+            placeholder={t.newPassword.replace(
+              "{min}",
+              String(MIN_PASSWORD_LENGTH)
+            )}
+            aria-label={t.newPassword.replace(
+              "{min}",
+              String(MIN_PASSWORD_LENGTH)
+            )}
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             className="h-10 w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"
@@ -338,8 +365,8 @@ function PasswordSection({
           <input
             type="password"
             required
-            placeholder="Confirm new password"
-            aria-label="Confirm new password"
+            placeholder={t.confirmNewPassword}
+            aria-label={t.confirmNewPassword}
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             className="h-10 w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"
@@ -349,7 +376,7 @@ function PasswordSection({
         {error && <p className="text-sm text-red-400">{error}</p>}
         {success && (
           <p className="text-sm text-emerald-400">
-            Password {account.hasPassword ? "updated" : "set"}.
+            {account.hasPassword ? t.passwordUpdated : t.passwordSet}
           </p>
         )}
 
@@ -359,10 +386,10 @@ function PasswordSection({
           className="mt-1 w-fit bg-white text-black hover:bg-zinc-200"
         >
           {submitting
-            ? "Saving..."
+            ? dict.common.saving
             : account.hasPassword
-            ? "Update password"
-            : "Set password"}
+            ? t.updatePassword
+            : t.setPassword}
         </Button>
       </form>
     </Section>
@@ -372,10 +399,13 @@ function PasswordSection({
 function NotificationsSection({
   account,
   onUpdated,
+  dict,
 }: {
   account: Account
   onUpdated: (emailOptOut: boolean) => void
+  dict: Dictionary
 }) {
+  const t = dict.settingsPage
   const [saving, setSaving] = useState(false)
 
   async function toggle(checked: boolean) {
@@ -398,14 +428,14 @@ function NotificationsSection({
 
   return (
     <Section
-      title="Email notifications"
-      description="Turn off to stop receiving event emails. Your watchlist stays intact."
+      title={t.emailNotificationsTitle}
+      description={t.emailNotificationsDesc}
     >
       <div className="flex items-center justify-between">
         <span className="text-sm text-zinc-300">
           {account.emailOptOut
-            ? "Currently off — you won't get event emails."
-            : "Currently on — you'll get event emails."}
+            ? t.emailNotificationsOff
+            : t.emailNotificationsOn}
         </span>
 
         <Switch
@@ -421,10 +451,14 @@ function NotificationsSection({
 function DiscordSection({
   account,
   onUpdated,
+  dict,
 }: {
   account: Account
   onUpdated: (discordWebhookUrl: string | null) => void
+  dict: Dictionary
 }) {
+  const t = dict.settingsPage
+
   const [webhookUrl, setWebhookUrl] = useState(
     account.discordWebhookUrl ?? ""
   )
@@ -458,14 +492,14 @@ function DiscordSection({
       const data = await response.json()
 
       if (!response.ok) {
-        setError(data.error ?? "Something went wrong.")
+        setError(data.error ?? dict.common.somethingWentWrong)
         return
       }
 
       setSuccess(true)
       onUpdated(trimmed || null)
     } catch {
-      setError("Something went wrong. Please try again.")
+      setError(dict.common.somethingWentWrong)
     } finally {
       setSubmitting(false)
     }
@@ -489,17 +523,14 @@ function DiscordSection({
   }
 
   return (
-    <Section
-      title="Discord notifications"
-      description="Paste a Discord webhook URL (from your server's Integrations → Webhooks settings) to get event updates posted there too."
-    >
+    <Section title={t.discordTitle} description={t.discordDesc}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3">
           <SiDiscord className="h-4 w-4 shrink-0 text-zinc-500" />
           <input
             type="url"
             placeholder="https://discord.com/api/webhooks/..."
-            aria-label="Discord webhook URL"
+            aria-label={t.discordUrl}
             value={webhookUrl}
             onChange={(e) => setWebhookUrl(e.target.value)}
             className="h-10 w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"
@@ -509,9 +540,7 @@ function DiscordSection({
         {error && <p className="text-sm text-red-400">{error}</p>}
         {success && (
           <p className="text-sm text-emerald-400">
-            {webhookUrl.trim()
-              ? "Discord webhook saved."
-              : "Discord webhook disconnected."}
+            {webhookUrl.trim() ? t.discordSaved : t.discordDisconnected}
           </p>
         )}
 
@@ -524,7 +553,7 @@ function DiscordSection({
             }
             className="w-fit bg-white text-black hover:bg-zinc-200"
           >
-            {submitting ? "Saving..." : "Save"}
+            {submitting ? dict.common.saving : dict.common.save}
           </Button>
 
           {account.discordWebhookUrl && (
@@ -535,19 +564,15 @@ function DiscordSection({
               onClick={handleTest}
               className="w-fit border-white/15 bg-white/5 text-white hover:bg-white/10"
             >
-              {testing ? "Sending..." : "Send test message"}
+              {testing ? t.sendingTestMessage : t.sendTestMessage}
             </Button>
           )}
 
           {testResult === "ok" && (
-            <span className="text-sm text-emerald-400">
-              Sent — check your Discord channel.
-            </span>
+            <span className="text-sm text-emerald-400">{t.testSent}</span>
           )}
           {testResult === "failed" && (
-            <span className="text-sm text-red-400">
-              Failed to send. Double-check the webhook URL.
-            </span>
+            <span className="text-sm text-red-400">{t.testFailed}</span>
           )}
         </div>
       </form>
@@ -555,27 +580,27 @@ function DiscordSection({
   )
 }
 
-function DataExportSection() {
+function DataExportSection({ dict }: { dict: Dictionary }) {
+  const t = dict.settingsPage
+
   return (
-    <Section
-      title="Your data"
-      description="Download a copy of everything ModeAlert has on your account — profile, watchlist, and notification history — as a JSON file."
-    >
-      <a href="/api/account/export">
+    <Section title={t.yourDataTitle} description={t.yourDataDesc}>
+      <Link href="/api/account/export">
         <Button
           type="button"
           variant="outline"
           className="w-fit border-white/15 bg-white/5 text-white hover:bg-white/10"
         >
           <Download className="h-4 w-4" />
-          Download my data
+          {t.downloadMyData}
         </Button>
-      </a>
+      </Link>
     </Section>
   )
 }
 
-function DangerZone() {
+function DangerZone({ dict, path }: { dict: Dictionary; path: (href: string) => string }) {
+  const t = dict.settingsPage
   const [confirming, setConfirming] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
@@ -584,20 +609,17 @@ function DangerZone() {
 
     try {
       await fetch("/api/account", { method: "DELETE" })
-      await signOut({ callbackUrl: "/" })
+      await signOut({ callbackUrl: path("/") })
     } finally {
       setDeleting(false)
     }
   }
 
   return (
-    <Section
-      title="Delete account"
-      description="Permanently deletes your account, watchlist, and notification history. This can't be undone."
-    >
+    <Section title={t.deleteAccountTitle} description={t.deleteAccountDesc}>
       {confirming ? (
         <div className="flex flex-wrap items-center gap-3">
-          <p className="text-sm text-red-400">Are you sure?</p>
+          <p className="text-sm text-red-400">{t.areYouSure}</p>
 
           <Button
             type="button"
@@ -605,7 +627,7 @@ function DangerZone() {
             disabled={deleting}
             onClick={handleDelete}
           >
-            {deleting ? "Deleting..." : "Yes, delete my account"}
+            {deleting ? t.deletingAccount : t.yesDeleteMyAccount}
           </Button>
 
           <Button
@@ -614,7 +636,7 @@ function DangerZone() {
             className="text-white hover:bg-white/10"
             onClick={() => setConfirming(false)}
           >
-            Cancel
+            {dict.common.cancel}
           </Button>
         </div>
       ) : (
@@ -624,7 +646,7 @@ function DangerZone() {
           onClick={() => setConfirming(true)}
         >
           <Trash2 className="h-4 w-4" />
-          Delete account
+          {t.deleteAccountButton}
         </Button>
       )}
     </Section>
@@ -632,6 +654,7 @@ function DangerZone() {
 }
 
 export default function SettingsPage() {
+  const { dict, path, locale } = useI18n()
   const authStatus = useRequireAuth()
 
   const [account, setAccount] = useState<Account | null>(null)
@@ -660,14 +683,14 @@ export default function SettingsPage() {
 
       <main className="mx-auto min-h-screen max-w-2xl px-6 py-16">
         <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">
-          Account
+          {dict.settingsPage.eyebrow}
         </p>
         <h1 className="mt-3 text-3xl font-bold tracking-tight">
-          Settings
+          {dict.settingsPage.title}
         </h1>
 
         <Suspense fallback={null}>
-          <UpgradedBanner />
+          <UpgradedBanner dict={dict} />
         </Suspense>
 
         {loading || !account ? (
@@ -678,17 +701,23 @@ export default function SettingsPage() {
           </div>
         ) : (
           <div className="mt-8 space-y-4">
-            <Section title="Email">
+            <Section title={dict.settingsPage.emailSectionTitle}>
               <div className="flex items-center gap-2 text-sm text-zinc-300">
                 <Mail className="h-4 w-4 text-zinc-500" />
                 {account.email}
               </div>
             </Section>
 
-            <SubscriptionSection account={account} />
+            <SubscriptionSection
+              account={account}
+              dict={dict}
+              path={path}
+              locale={locale}
+            />
 
             <ProfileSection
               account={account}
+              dict={dict}
               onUpdated={(name) =>
                 setAccount((prev) => (prev ? { ...prev, name } : prev))
               }
@@ -696,6 +725,7 @@ export default function SettingsPage() {
 
             <PasswordSection
               account={account}
+              dict={dict}
               onUpdated={() =>
                 setAccount((prev) =>
                   prev ? { ...prev, hasPassword: true } : prev
@@ -705,6 +735,7 @@ export default function SettingsPage() {
 
             <NotificationsSection
               account={account}
+              dict={dict}
               onUpdated={(emailOptOut) =>
                 setAccount((prev) =>
                   prev ? { ...prev, emailOptOut } : prev
@@ -714,6 +745,7 @@ export default function SettingsPage() {
 
             <DiscordSection
               account={account}
+              dict={dict}
               onUpdated={(discordWebhookUrl) =>
                 setAccount((prev) =>
                   prev ? { ...prev, discordWebhookUrl } : prev
@@ -721,9 +753,9 @@ export default function SettingsPage() {
               }
             />
 
-            <DataExportSection />
+            <DataExportSection dict={dict} />
 
-            <DangerZone />
+            <DangerZone dict={dict} path={path} />
           </div>
         )}
       </main>

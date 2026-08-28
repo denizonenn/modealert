@@ -5,8 +5,29 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+// Turkish doesn't abbreviate the same way English does ("2h ago" has
+// no natural short form), so the tr strings spell out the unit
+// instead of mirroring English's single-letter suffixes.
+const RELATIVE_TIME_STRINGS = {
+  en: {
+    justNow: "just now",
+    minutes: (n: number) => `${n}m ago`,
+    hours: (n: number) => `${n}h ago`,
+    days: (n: number) => `${n}d ago`,
+    months: (n: number) => `${n}mo ago`,
+  },
+  tr: {
+    justNow: "az önce",
+    minutes: (n: number) => `${n} dk önce`,
+    hours: (n: number) => `${n} sa önce`,
+    days: (n: number) => `${n} gün önce`,
+    months: (n: number) => `${n} ay önce`,
+  },
+} as const
+
 export function formatRelativeTime(
-  dateInput: string | Date
+  dateInput: string | Date,
+  locale: keyof typeof RELATIVE_TIME_STRINGS = "en"
 ): string {
   const date =
     typeof dateInput === "string"
@@ -17,19 +38,21 @@ export function formatRelativeTime(
     (Date.now() - date.getTime()) / 1000
   )
 
-  if (diffSec < 60) return "just now"
+  const strings = RELATIVE_TIME_STRINGS[locale]
+
+  if (diffSec < 60) return strings.justNow
 
   const diffMin = Math.floor(diffSec / 60)
-  if (diffMin < 60) return `${diffMin}m ago`
+  if (diffMin < 60) return strings.minutes(diffMin)
 
   const diffHour = Math.floor(diffMin / 60)
-  if (diffHour < 24) return `${diffHour}h ago`
+  if (diffHour < 24) return strings.hours(diffHour)
 
   const diffDay = Math.floor(diffHour / 24)
-  if (diffDay < 30) return `${diffDay}d ago`
+  if (diffDay < 30) return strings.days(diffDay)
 
   const diffMonth = Math.floor(diffDay / 30)
-  return `${diffMonth}mo ago`
+  return strings.months(diffMonth)
 }
 
 export function formatDuration(ms: number): string {

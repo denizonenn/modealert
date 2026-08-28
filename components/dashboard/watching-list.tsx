@@ -20,6 +20,7 @@ import type { EventStatus } from "@/types/status"
 
 import { CategoryFilterBar } from "@/components/shared/category-filter-bar"
 import { RotationFilterBar } from "@/components/shared/rotation-filter-bar"
+import { useI18n } from "@/components/providers/i18n-provider"
 
 import {
   categorySortKey,
@@ -47,6 +48,8 @@ function GameFilterBar({
   selectedGameId: string | null
   onSelect: (gameId: string | null) => void
 }) {
+  const { dict } = useI18n()
+
   return (
     <div className="mb-8 flex flex-wrap gap-2">
       <button
@@ -59,7 +62,7 @@ function GameFilterBar({
             : "border-white/10 text-zinc-400 hover:border-white/20 hover:text-white"
         )}
       >
-        All Games
+        {dict.dashboardPage.allGames}
       </button>
 
       {games.map((game) => (
@@ -87,15 +90,16 @@ function GameFilterBar({
   )
 }
 
-const SECTIONS: {
-  status: EventStatus
-  label: string
-}[] = [
-  { status: "LIVE", label: "Live Now" },
-  { status: "UPCOMING", label: "Upcoming" },
-  { status: "TRACKING", label: "Tracking" },
-  { status: "ENDED", label: "Recently Ended" },
-]
+function getSections(
+  dict: ReturnType<typeof useI18n>["dict"]
+): { status: EventStatus; label: string }[] {
+  return [
+    { status: "LIVE", label: dict.dashboardPage.sectionLive },
+    { status: "UPCOMING", label: dict.dashboardPage.sectionUpcoming },
+    { status: "TRACKING", label: dict.dashboardPage.sectionTracking },
+    { status: "ENDED", label: dict.dashboardPage.sectionEnded },
+  ]
+}
 
 // Default "All Events" to just the real played category — everything
 // else is opt-in via the filter bar. Matches onboarding's default.
@@ -118,6 +122,8 @@ function EventSections({
   onToggleWatch: (eventId: string) => Promise<void>
   emptyMessage: string
 }) {
+  const { dict } = useI18n()
+
   if (events.length === 0) {
     return (
       <div className="rounded-2xl border border-white/10 bg-white/5 p-10 text-center text-zinc-500">
@@ -128,7 +134,7 @@ function EventSections({
 
   return (
     <div className="space-y-10">
-      {SECTIONS.map(({ status, label }) => {
+      {getSections(dict).map(({ status, label }) => {
         const items = events
           .filter((event) => event.status === status)
           .sort(
@@ -185,6 +191,8 @@ function EventSections({
 }
 
 export default function WatchingList() {
+  const { dict, path } = useI18n()
+
   const {
     events,
     isLoading: eventsLoading,
@@ -292,7 +300,7 @@ export default function WatchingList() {
   if (error) {
     return (
       <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-10 text-center text-zinc-400">
-        Failed to load events.
+        {dict.dashboardPage.failedToLoadEvents}
       </div>
     )
   }
@@ -338,8 +346,8 @@ export default function WatchingList() {
 
           <input
             type="text"
-            placeholder="Search events..."
-            aria-label="Search events"
+            placeholder={dict.dashboardPage.searchEvents}
+            aria-label={dict.dashboardPage.searchEventsAriaLabel}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="h-10 w-full bg-transparent text-sm text-white placeholder:text-zinc-500 outline-none"
@@ -351,7 +359,7 @@ export default function WatchingList() {
         {followedGames.length > 0 && (
           <div>
             <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
-              Following (whole game)
+              {dict.dashboardPage.followingWholeGame}
             </h2>
 
             <div className="flex flex-wrap gap-2">
@@ -360,7 +368,10 @@ export default function WatchingList() {
                   key={game.id}
                   type="button"
                   onClick={() => toggleGame(game.id)}
-                  title={`Stop following all of ${game.name}`}
+                  title={dict.dashboardPage.stopFollowingAllOf.replace(
+                    "{game}",
+                    game.name
+                  )}
                   className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 py-1 pr-4 pl-1.5 text-sm font-medium text-white hover:border-white/30"
                 >
                   <GameIcon
@@ -379,17 +390,20 @@ export default function WatchingList() {
         <div>
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-lg font-semibold">
-              Your Watchlist
+              {dict.dashboardPage.yourWatchlist}
             </h2>
 
             {limitReached && (
               <div className="flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm text-zinc-400">
-                Free plan is limited to {FREE_WATCHLIST_LIMIT} events.
+                {dict.dashboardPage.freePlanLimited.replace(
+                  "{limit}",
+                  String(FREE_WATCHLIST_LIMIT)
+                )}
                 <Link
-                  href="/pricing"
+                  href={path("/pricing")}
                   className="font-medium text-white hover:underline"
                 >
-                  Upgrade for unlimited
+                  {dict.dashboardPage.upgradeForUnlimited}
                 </Link>
               </div>
             )}
@@ -401,15 +415,15 @@ export default function WatchingList() {
             onToggleWatch={toggle}
             emptyMessage={
               selectedGameId
-                ? "You're not watching any events for this game yet."
-                : "You're not watching anything yet — add events from the list below."
+                ? dict.dashboardPage.notWatchingGame
+                : dict.dashboardPage.notWatchingAny
             }
           />
         </div>
 
         <div>
           <h2 className="mb-6 text-lg font-semibold">
-            All Events
+            {dict.dashboardPage.allEvents}
           </h2>
 
           <div className="mb-6 space-y-3">
@@ -430,8 +444,8 @@ export default function WatchingList() {
             onToggleWatch={toggle}
             emptyMessage={
               selectedGameId
-                ? "No events in the selected categories for this game."
-                : "No events in the selected categories."
+                ? dict.dashboardPage.noEventsInCategoriesGame
+                : dict.dashboardPage.noEventsInCategories
             }
           />
         </div>

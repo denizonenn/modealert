@@ -14,10 +14,12 @@ import EmptyState from "@/components/notifications/empty-state"
 
 import { useNotifications } from "@/hooks/use-notifications"
 import { useRequireAuth } from "@/hooks/use-require-auth"
+import { useI18n } from "@/components/providers/i18n-provider"
 
 type Filter = "all" | "unread"
 
 export default function NotificationHistoryPage() {
+  const { dict, path } = useI18n()
   const authStatus = useRequireAuth()
 
   const {
@@ -50,21 +52,21 @@ export default function NotificationHistoryPage() {
 
       <main className="mx-auto min-h-screen max-w-3xl px-6 py-16">
         <Link
-          href="/dashboard"
+          href={path("/dashboard")}
           className="inline-flex items-center gap-1 text-sm text-zinc-400 hover:text-white"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to dashboard
+          {dict.notifications.backToDashboard}
         </Link>
 
         <div className="mt-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
-              Notification history
+              {dict.notifications.historyTitle}
             </h1>
 
             <p className="mt-2 text-sm text-zinc-400">
-              Every event change we&apos;ve sent you, in one place.
+              {dict.notifications.historyIntro}
             </p>
           </div>
 
@@ -74,7 +76,7 @@ export default function NotificationHistoryPage() {
               className="border-white/10 bg-white/5 text-white hover:bg-white/10"
               onClick={() => markAllRead()}
             >
-              Mark all read
+              {dict.notifications.markAllRead}
             </Button>
           )}
         </div>
@@ -90,7 +92,10 @@ export default function NotificationHistoryPage() {
             }
             onClick={() => setFilter("all")}
           >
-            All ({notifications.length})
+            {dict.notifications.filterAll.replace(
+              "{count}",
+              String(notifications.length)
+            )}
           </Button>
 
           <Button
@@ -103,7 +108,10 @@ export default function NotificationHistoryPage() {
             }
             onClick={() => setFilter("unread")}
           >
-            Unread ({unreadCount})
+            {dict.notifications.filterUnread.replace(
+              "{count}",
+              String(unreadCount)
+            )}
           </Button>
         </div>
 

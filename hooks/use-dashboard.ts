@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 interface DashboardStats {
   watched: number;
   live: number;
-  nextEvent: string;
+  nextEvent: string | null;
 }
 
 const fetcher = async (

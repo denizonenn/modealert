@@ -18,9 +18,12 @@ export async function getDashboardStats(
       (event) => event.status === "LIVE"
     ).length,
 
+    // null, not a hardcoded English fallback string — the caller (a UI
+    // component, which has the active locale) renders the "no
+    // upcoming event" text, since this helper has no locale context.
     nextEvent:
       events.find(
         (event) => event.status === "UPCOMING"
-      )?.title ?? "None yet",
+      )?.title ?? null,
   };
 }

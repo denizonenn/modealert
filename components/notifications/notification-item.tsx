@@ -3,6 +3,8 @@
 import { Flag, Mail } from "lucide-react";
 import { SiDiscord } from "react-icons/si";
 
+import { useI18n } from "@/components/providers/i18n-provider";
+
 interface Props {
   title: string;
   message: string;
@@ -14,16 +16,6 @@ interface Props {
   onReportFalsePositive?: () => void;
 }
 
-// A user with both Email and Discord on gets two rows for the same
-// event change, one per channel (see Notification.channel) — without
-// a label they read as unexplained duplicates. Falls back to the raw
-// channel id for any future channel that doesn't have a mapped icon
-// yet, instead of silently showing nothing.
-const CHANNEL_LABELS: Record<string, { label: string; icon: React.ReactNode }> = {
-  email: { label: "Email", icon: <Mail className="h-3 w-3" /> },
-  discord: { label: "Discord", icon: <SiDiscord className="h-3 w-3" /> },
-};
-
 export default function NotificationItem({
   title,
   message,
@@ -34,8 +26,29 @@ export default function NotificationItem({
   onMarkRead,
   onReportFalsePositive,
 }: Props) {
+  const { dict, locale } = useI18n();
+
+  // A user with both Email and Discord on gets two rows for the same
+  // event change, one per channel (see Notification.channel) —
+  // without a label they read as unexplained duplicates. Falls back
+  // to the raw channel id for any future channel that doesn't have a
+  // mapped icon yet, instead of silently showing nothing.
+  const channelLabels: Record<
+    string,
+    { label: string; icon: React.ReactNode }
+  > = {
+    email: {
+      label: dict.notifications.channelEmail,
+      icon: <Mail className="h-3 w-3" />,
+    },
+    discord: {
+      label: dict.notifications.channelDiscord,
+      icon: <SiDiscord className="h-3 w-3" />,
+    },
+  };
+
   const isReported = Boolean(falsePositiveReportedAt);
-  const channelInfo = CHANNEL_LABELS[channel] ?? { label: channel, icon: null };
+  const channelInfo = channelLabels[channel] ?? { label: channel, icon: null };
 
   return (
     <div
@@ -64,7 +77,7 @@ export default function NotificationItem({
         <p className="mt-1 text-sm text-zinc-400">{message}</p>
 
         <p className="mt-2 flex items-center gap-2 text-xs text-zinc-500">
-          {new Date(createdAt).toLocaleString()}
+          {new Date(createdAt).toLocaleString(locale)}
 
           <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2 py-0.5">
             {channelInfo.icon}
@@ -86,8 +99,8 @@ export default function NotificationItem({
         >
           <Flag className="h-3 w-3" />
           {isReported
-            ? "Reported as wrong"
-            : "This was wrong"}
+            ? dict.notifications.reportedAsWrong
+            : dict.notifications.thisWasWrong}
         </button>
       )}
     </div>

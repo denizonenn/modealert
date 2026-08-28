@@ -7,8 +7,11 @@ import EmptyState from "./empty-state";
 import { Skeleton } from "@/components/shared/skeleton";
 
 import { useNotifications } from "@/hooks/use-notifications";
+import { useI18n } from "@/components/providers/i18n-provider";
 
 export default function NotificationCenter() {
+  const { dict, path } = useI18n();
+
   const {
     notifications,
     unreadCount,
@@ -21,7 +24,7 @@ export default function NotificationCenter() {
   return (
     <section className="flex max-h-[28rem] flex-col">
       <div className="flex items-center justify-between px-1 pb-3">
-        <h2 className="font-semibold">Notifications</h2>
+        <h2 className="font-semibold">{dict.notifications.title}</h2>
 
         {unreadCount > 0 && (
           <button
@@ -29,7 +32,7 @@ export default function NotificationCenter() {
             onClick={() => markAllRead()}
             className="text-xs text-zinc-400 hover:text-white"
           >
-            Mark all read
+            {dict.notifications.markAllRead}
           </button>
         )}
       </div>
@@ -65,10 +68,10 @@ export default function NotificationCenter() {
 
       {notifications.length > 0 && (
         <Link
-          href="/dashboard/notifications"
+          href={path("/dashboard/notifications")}
           className="mt-2 shrink-0 rounded-lg px-1 py-2 text-center text-xs text-zinc-400 hover:bg-white/5 hover:text-white"
         >
-          See all notifications
+          {dict.notifications.seeAll}
         </Link>
       )}
     </section>

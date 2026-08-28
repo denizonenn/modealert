@@ -11,11 +11,12 @@ import { EventStatusBadge } from "@/components/shared/event-status-badge"
 import { cn, formatRelativeTime } from "@/lib/utils"
 
 import {
-  EVENT_CATEGORY_LABELS,
+  eventCategoryLabel,
   type EventCategory,
 } from "@/lib/constants/event-category"
 
 import { RotationBadge } from "@/components/shared/rotation-badge"
+import { useI18n } from "@/components/providers/i18n-provider"
 
 import type { EventStatus } from "@/types/status"
 
@@ -51,6 +52,7 @@ export default function EventStatusCard({
   isWatched,
   onToggleWatch,
 }: Props) {
+  const { dict, locale, path } = useI18n()
   const [pending, setPending] = useState(false)
 
   async function handleToggle() {
@@ -93,7 +95,8 @@ export default function EventStatusCard({
 
             {category && (
               <span className="shrink-0 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-zinc-500">
-                {EVENT_CATEGORY_LABELS[category as EventCategory] ?? category}
+                {eventCategoryLabel(category as EventCategory, dict) ??
+                  category}
               </span>
             )}
 
@@ -105,7 +108,7 @@ export default function EventStatusCard({
           <div className="flex items-center gap-2">
             {slug ? (
               <Link
-                href={`/events/${slug}`}
+                href={path(`/events/${slug}`)}
                 className="truncate font-semibold hover:text-zinc-300"
                 title={description ?? undefined}
               >
@@ -125,7 +128,7 @@ export default function EventStatusCard({
 
       <div className="flex shrink-0 items-center gap-3">
         <span className="hidden text-xs text-zinc-500 sm:inline">
-          {formatRelativeTime(updatedAt)}
+          {formatRelativeTime(updatedAt, locale)}
         </span>
 
         <EventStatusBadge status={status} />
@@ -137,8 +140,8 @@ export default function EventStatusCard({
             disabled={pending}
             aria-label={
               isWatched
-                ? "Remove from watchlist"
-                : "Add to watchlist"
+                ? dict.dashboardPage.removeFromWatchlist
+                : dict.dashboardPage.addToWatchlist
             }
             aria-pressed={isWatched}
             className={cn(

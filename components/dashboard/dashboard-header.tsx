@@ -4,11 +4,12 @@ import { motion } from "framer-motion"
 import { CalendarClock, Eye, Radio } from "lucide-react"
 
 import StatCard from "./stat-card"
+import { useI18n } from "@/components/providers/i18n-provider"
 
 interface Props {
   watched: number
   live: number
-  nextEvent: string
+  nextEvent: string | null
 }
 
 export default function DashboardHeader({
@@ -16,14 +17,15 @@ export default function DashboardHeader({
   live,
   nextEvent,
 }: Props) {
+  const { dict } = useI18n()
   const hour = new Date().getHours()
 
   const greeting =
     hour < 12
-      ? "Good Morning"
+      ? dict.dashboardPage.greetingMorning
       : hour < 18
-      ? "Good Afternoon"
-      : "Good Evening"
+      ? dict.dashboardPage.greetingAfternoon
+      : dict.dashboardPage.greetingEvening
 
   return (
     <section className="mb-12">
@@ -37,25 +39,25 @@ export default function DashboardHeader({
         </p>
 
         <h1 className="mt-3 text-4xl font-bold tracking-tight md:text-5xl">
-          Your Dashboard
+          {dict.dashboardPage.title}
         </h1>
 
         <p className="mt-3 max-w-xl text-zinc-400">
-          Track every game event you&apos;re following in one place.
+          {dict.dashboardPage.subtitle}
         </p>
       </motion.div>
 
       <div className="mt-8 flex flex-wrap gap-4">
         <StatCard
           icon={Eye}
-          label="Watching"
+          label={dict.dashboardPage.statWatching}
           value={watched}
           index={0}
         />
 
         <StatCard
           icon={Radio}
-          label="Live Now"
+          label={dict.dashboardPage.statLiveNow}
           value={live}
           accent="text-emerald-400"
           iconBg="bg-emerald-500/20"
@@ -64,8 +66,8 @@ export default function DashboardHeader({
 
         <StatCard
           icon={CalendarClock}
-          label="Next Event"
-          value={nextEvent}
+          label={dict.dashboardPage.statNextEvent}
+          value={nextEvent ?? dict.dashboardPage.noneYet}
           accent="text-blue-400"
           iconBg="bg-blue-500/20"
           index={2}

@@ -629,9 +629,41 @@ Kaldığım yer — açık işler (öncelik sırasıyla)
   iddiası şu an doğru değil. Ya `tr.json`'ı `satisfies Dictionary` ile
   import edecek bir yapıya geçmeli, ya da CI'da iki dosyanın anahtar
   kümesini karşılaştıran küçük bir test eklenmeli.
-- **Faz 2 — kalan ~5 sayfanın arayüz metni.**
-  `/dashboard` (+`notifications`, `settings`), `/events/[slug]`,
-  `/games/[slug]`, `/admin`, `error`/`not-found`.
+Done (2026-08-28) — Faz 2, `/dashboard` kümesi (+`notifications`, `settings`)
+
+- **`/dashboard`, `/dashboard/notifications`, `/dashboard/settings` ve
+  paylaşılan bileşenleri tam çevrildi.** Yeni `dashboardPage`/
+  `notifications`/`settingsPage` sözlük alanları. `event-status-card.tsx`
+  artık `eventCategoryLabel()`'a geçirildi (eski `EVENT_CATEGORY_LABELS`
+  sabiti değil — bu bileşen sadece dashboard'ta kullanılıyordu, önceki
+  oturumda bilinçli olarak İngilizce bırakılmıştı). `notification-item`/
+  `notification-center`/`empty-state` de aynı geçişte çevrildi — bunlar
+  navbar'ın bildirim zilinde (her sayfada, zaten çevrili alanlarda) de
+  kullanılan paylaşılan bileşenler, yani bu düzeltme sadece
+  `/dashboard`'ı değil siteyi geneli etkiliyordu. `lib/utils.ts`'teki
+  `formatRelativeTime()` artık `locale` parametresi alıyor (Türkçe'de
+  İngilizce'nin tek harfli kısaltmaları — "2h ago" gibi — doğal bir
+  karşılığı olmadığı için birimi açık yazıyor: "2 sa önce"); tek çağıran
+  yeri (`event-status-card.tsx`) güncellendi, kullanılmayan ikinci bir
+  `lib/time.ts` implementasyonu (hiç import edilmiyor, muhtemelen eski)
+  fark edildi ama dokunulmadı — ayrı bir temizlik maddesi (aşağıya
+  eklendi). `getDashboardStats()`'teki sabit İngilizce `"None yet"`
+  fallback'i servis katmanından kaldırılıp `null` döndürülecek şekilde
+  değiştirildi — locale'e ihtiyacı olan metin artık UI bileşeninde
+  (`DashboardHeader`, dict'e erişimi olan yer) render ediliyor.
+  `watching-list.tsx`/`event-status-card.tsx`/`notification-center.tsx`/
+  `settings/page.tsx`'teki birkaç çıplak `href="/..."` de `path()` ile
+  düzeltildi. Gerçek bir hesapla `/tr` ve `/en`'de uçtan uca doğrulandı.
+
+Kaldığım yer — açık işler (öncelik sırasıyla)
+
+- **`lib/time.ts` kullanılmayan, muhtemelen eski bir dosya.**
+  `formatRelativeTime()`'ın `lib/utils.ts`'tekinden farklı, daha eski
+  bir implementasyonu — hiçbir yerden import edilmiyor (script ile
+  doğrulandı). Muhtemelen bir refactor sırasında `lib/utils.ts`'e
+  taşınıp silinmesi unutulmuş. Silinmeli.
+- **Faz 2 — kalan ~4 sayfanın arayüz metni.**
+  `/events/[slug]`, `/games/[slug]`, `/admin`, `error`/`not-found`.
   Bu arada `/calendar`'ın kendi çıplak-href'lerini de düzeltmeyi
   unutma (yukarı
   bak). **Şu an bozuk değiller** — İngilizce render ediyorlar, içlerindeki
