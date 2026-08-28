@@ -307,5 +307,120 @@
       "limited": "Limited Time",
       "permanent": "Permanent"
     }
+  },
+  "unsubscribed": {
+    "unsubscribedTitle": "You're unsubscribed",
+    "unsubscribedBody": "You won't get any more event emails from ModeAlert. Your watchlist is untouched — you'll still see updates on your dashboard.",
+    "resubscribedTitle": "You're back in",
+    "resubscribedBody": "You'll get event emails again from ModeAlert.",
+    "resubscribeLink": "Changed your mind? Resubscribe",
+    "unsubscribeAgainLink": "Unsubscribe again",
+    "invalidTitle": "Link expired or invalid",
+    "invalidBody": "This unsubscribe link doesn't look right. Sign in and check your dashboard, or reply to one of our emails if you keep getting ones you don't want."
+  },
+  "digestFeedback": {
+    "thanksTitle": "Thanks for the feedback",
+    "thanksBody": "That helps us figure out what's actually useful in the digest.",
+    "invalidTitle": "Link expired or invalid",
+    "invalidBody": "This feedback link doesn't look right — no worries, nothing was recorded."
+  },
+  "privacyPage": {
+    "eyebrow": "Legal",
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated: August 28, 2026",
+    "whoWeAreTitle": "Who we are",
+    "whoWeAreBodyPre": "ModeAlert (",
+    "whoWeAreBodyPost": ") is an independent, early-access project built and operated by Deniz Önen. This policy explains what data ModeAlert collects, why, and how you can remove it.",
+    "whatWeCollectTitle": "What we collect",
+    "whatWeCollectIntro": "ModeAlert only stores what it needs to run your watchlist and send the alerts you asked for:",
+    "collectItems": [
+      {
+        "label": "Account info",
+        "body": "your email address, and your name/profile image if you sign in with Google. If you sign in with a password instead, we store a salted hash of it, never the password itself."
+      },
+      {
+        "label": "Watchlist",
+        "body": "the games and events you've chosen to track."
+      },
+      {
+        "label": "Notification history",
+        "body": "a record of the alerts we've sent you, so you can review them in your dashboard."
+      },
+      {
+        "label": "Session cookies",
+        "body": "used only to keep you signed in. No advertising or cross-site tracking cookies are set."
+      },
+      {
+        "label": "Discord webhook URL",
+        "body": "only if you add one in Settings to get alerts posted to your own Discord server. You control that URL; removing it from Settings deletes it from our database."
+      },
+      {
+        "label": "Subscription status",
+        "body": "if you upgrade to Premium, we store your plan, subscription status, and Lemon Squeezy's customer/subscription IDs (opaque references, not your card details) so we can grant access and let you manage billing."
+      },
+      {
+        "label": "Product usage",
+        "body": "a small number of first-party events (e.g. finishing onboarding, hitting the free plan's limit) tied to your account, so we can see where the product is confusing without sending anything to a third party."
+      },
+      {
+        "label": "Anonymous page views",
+        "body": "on the homepage and sign-up page only, we count that a page was viewed. No cookie, no visitor id, no IP address is stored with it — just a running total, so we can tell whether the homepage is actually leading anywhere. It can never be linked back to you or to any later account you create."
+      }
+    ],
+    "noThirdPartyTrackers": "We don't use tracking pixels, third-party analytics scripts, or ad networks, and we don't sell or rent your data to anyone.",
+    "whoWeShareTitle": "Who we share data with",
+    "whoWeShareIntro": "A small number of infrastructure providers process data on our behalf, strictly to run the service:",
+    "shareItems": [
+      "**Neon** (Postgres database hosting) and **Vercel** (application hosting) — store and serve the data described above.",
+      "**Resend** — delivers the email alerts you sign up for.",
+      "**Discord** — only if you add a webhook URL in Settings, we send your event alerts directly to that URL. That's a channel you control on your own server, not a service we otherwise integrate with.",
+      "**Google** — only if you choose \"Sign in with Google\", to authenticate you.",
+      "**Lemon Squeezy** — only if you upgrade to Premium. They're our payment processor and Merchant of Record, so they handle your payment details directly (card number, billing address) — ModeAlert never sees or stores them. They notify us only of your subscription status."
+    ],
+    "publicApisNote": "ModeAlert also calls public game-data APIs (Riot Games, Bungie, and others) to detect events, but no information about you personally is ever sent to them.",
+    "yourControlsTitle": "Your controls",
+    "controlItems": [
+      "Every email includes a one-click unsubscribe link — no account login required.",
+      "You can edit or clear your watchlist any time from your dashboard.",
+      "**Download your data** — Settings has a \"Download my data\" button that gives you a JSON file of your account, watchlist, and notification history, any time, no waiting on a request.",
+      "**Delete your account** — Settings also has a self-service \"Delete account\" button that removes your account and all associated data immediately, no email required."
+    ],
+    "changesTitle": "Changes",
+    "changesBody": "ModeAlert is an early-access, actively developed product. If this policy changes in a meaningful way, we'll update the date above and, where practical, notify active users by email.",
+    "contactTitle": "Contact",
+    "contactBodyPre": "Questions about this policy or your data? Email",
+    "contactBodyPost": "."
+  },
+  "termsPage": {
+    "eyebrow": "Legal",
+    "title": "Terms of Service",
+    "lastUpdated": "Last updated: August 19, 2026",
+    "s1Title": "1. What ModeAlert is",
+    "s1BodyPre": "ModeAlert (",
+    "s1BodyPost": ") is an independent, early-access project, built and operated by Deniz Önen, that watches public data from game publishers and alerts you by email or Discord when a game mode or event you're tracking changes. By creating an account or using the site, you agree to these terms.",
+    "s2Title": "2. Not affiliated with any game publisher",
+    "s2Body": "ModeAlert is an independent, unofficial tool. It is not endorsed by, affiliated with, or sponsored by Riot Games, Bungie, Epic Games, Digital Extremes, Grinding Gear Games, Arrowhead Game Studios, Siege Camp/Clapfoot, or any other publisher whose public data it reads. All game names, logos, and trademarks belong to their respective owners.",
+    "s3Title": "3. Free and Premium plans — no guarantees",
+    "s3Body": "ModeAlert's Free plan is provided **as-is**, without warranty of any kind, and Premium doesn't change that. Event detection depends entirely on third-party APIs we don't control — they can change, rate-limit, or go offline without notice, which can delay or prevent an alert. We do our best to keep data accurate and timely, but we can't guarantee you'll be notified of every event, or that notifications will always be on time.",
+    "s4Title": "4. Premium billing",
+    "s4Body": "Premium is $4.99/month, billed monthly until you cancel. Payments are processed by **Lemon Squeezy**, our Merchant of Record — Lemon Squeezy handles your payment details directly and is the merchant on your card statement; ModeAlert never sees or stores your card number.",
+    "s4Item1": "You can cancel anytime from **Dashboard → Settings** — you keep Premium access until the end of the period you already paid for, then the account reverts to Free (your data isn't deleted, tracking above the Free limit just pauses).",
+    "s4Item2Pre": "Not happy with Premium? Email",
+    "s4Item2Post": "within 7 days of being charged for a full refund, no questions asked.",
+    "s5Title": "5. Your account",
+    "s5Items": [
+      "You're responsible for keeping your login credentials secure.",
+      "You agree to use ModeAlert only for its intended purpose — tracking game events for yourself — and not to abuse, scrape, or overload the service.",
+      "We may suspend or remove accounts that abuse the service or violate these terms."
+    ],
+    "s6Title": "6. Changes to the service",
+    "s6Body": "ModeAlert is actively developed and may change features, supported games, or pricing over time. Existing Free functionality won't be removed retroactively without reasonable notice.",
+    "s7Title": "7. Limitation of liability",
+    "s7Body": "To the extent permitted by law, ModeAlert and its operator aren't liable for any indirect, incidental, or consequential damages arising from your use of, or inability to use, the service — including a missed or late notification about a game event.",
+    "s8Title": "8. Changes to these terms",
+    "s8Body": "We may update these terms as the product evolves. If a change is significant, we'll update the date above and, where practical, notify active users by email.",
+    "s9Title": "9. Contact",
+    "s9BodyPre": "Questions about these terms? Email",
+    "s9BodyPost": "."
   }
 }

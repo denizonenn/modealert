@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
+import { getDictionary } from "@/lib/i18n/dictionaries"
 
 export default async function UnsubscribedPage({
   searchParams,
@@ -12,6 +13,7 @@ export default async function UnsubscribedPage({
   }>
 }) {
   const { ok, action, userId, token } = await searchParams
+  const dict = await getDictionary()
 
   const success = ok === "1"
   const wasUnsubscribed = action !== "resubscribe"
@@ -31,13 +33,15 @@ export default async function UnsubscribedPage({
         {success ? (
           <>
             <h1 className="text-2xl font-bold tracking-tight">
-              {wasUnsubscribed ? "You're unsubscribed" : "You're back in"}
+              {wasUnsubscribed
+                ? dict.unsubscribed.unsubscribedTitle
+                : dict.unsubscribed.resubscribedTitle}
             </h1>
 
             <p className="mt-2 text-sm text-zinc-400">
               {wasUnsubscribed
-                ? "You won't get any more event emails from ModeAlert. Your watchlist is untouched — you'll still see updates on your dashboard."
-                : "You'll get event emails again from ModeAlert."}
+                ? dict.unsubscribed.unsubscribedBody
+                : dict.unsubscribed.resubscribedBody}
             </p>
 
             {toggleUrl && (
@@ -46,21 +50,19 @@ export default async function UnsubscribedPage({
                 className="mt-6 inline-block text-sm text-white hover:underline"
               >
                 {wasUnsubscribed
-                  ? "Changed your mind? Resubscribe"
-                  : "Unsubscribe again"}
+                  ? dict.unsubscribed.resubscribeLink
+                  : dict.unsubscribed.unsubscribeAgainLink}
               </a>
             )}
           </>
         ) : (
           <>
             <h1 className="text-2xl font-bold tracking-tight">
-              Link expired or invalid
+              {dict.unsubscribed.invalidTitle}
             </h1>
 
             <p className="mt-2 text-sm text-zinc-400">
-              This unsubscribe link doesn&apos;t look right. Sign in and
-              check your dashboard, or reply to one of our emails if you
-              keep getting ones you don&apos;t want.
+              {dict.unsubscribed.invalidBody}
             </p>
           </>
         )}

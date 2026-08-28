@@ -579,13 +579,45 @@ Done (2026-08-28) — paylaşılan kategori/rotasyon filtre etiketleri
   sayfalar/servisler, oralarda hâlâ İngilizce sabitler kullanılıyor.
   O sayfalar çevrildikçe aynı `dict`-alan fonksiyonlara geçirilmeli.
 
+Done (2026-08-28) — Faz 2, `/privacy` + `/terms` + `/unsubscribed` + `/digest-feedback`
+
+- **4 sayfa tam çevrildi.** `/privacy` ve `/terms` en uzun statik
+  sayfalardı — yeni `privacyPage`/`termsPage` sözlük alanları, artık
+  `getDictionary()` kullanan async server component'ler. Metin
+  içindeki gerçek `<a>` linkleri (site URL'i, `mailto:`) dict'in
+  dışında, `BodyPre`/`BodyPost` çiftleriyle etrafına yerleştiriliyor
+  — link href'i ve görünen metni (`modealert.vercel.app`,
+  `denizate@gmail.com`) her iki dilde aynı kaldığı için çevrilmesine
+  gerek yok. Kalın vurgulu ara-metinler (ör. **Lemon Squeezy**,
+  **Dashboard → Settings**) için yeni bir küçük paylaşılan yardımcı,
+  `lib/i18n/rich-text.tsx`'teki `withBold()` — dict string'i içinde
+  `**...**` işaretleyicisini `<span className="text-white">`'a
+  çeviriyor, böylece orijinal görsel vurgu iki dilde de korunuyor.
+  `/unsubscribed` ve (bu oturumda yeni eklenen) `/digest-feedback` de
+  aynı geçişte küçük `unsubscribed`/`digestFeedback` sözlük
+  alanlarıyla çevrildi. `/tr` ve `/en`'de canlı doğrulandı — başlıklar,
+  kalın vurgular, mailto/site linkleri hepsi doğru render ediyor.
+  Ayrıca iki sözlüğün (`en.json`/`tr.json`) anahtar kümesi ve dizi
+  uzunlukları eşleştirilerek doğrulandı (script ile, elle değil) —
+  `Dictionary = typeof en` tipi `tr.json`'ı sadece `as Dictionary` ile
+  zorluyor, gerçek bir derleme-zamanı şekil kontrolü **yok**; bu,
+  ADR-054'ün iddia ettiği "eksik anahtar build hatası verir" güvencesi
+  için ayrı, açık bir teknik borç maddesi (aşağıya eklendi).
+
 Kaldığım yer — açık işler (öncelik sırasıyla)
 
-- **Faz 2 — kalan ~12 sayfanın arayüz metni.**
-  `/statistics`, `/status`,
-  `/live`, `/privacy`, `/terms`,
+- **`tr.json`'ın gerçek bir derleme-zamanı şekil kontrolü yok.**
+  `Dictionary = typeof en` + `tr.json`'ı `as Dictionary` ile zorlamak,
+  `tr.json`'da eksik ya da fazladan bir anahtar olsa da TypeScript'in
+  sessizce geçmesine izin veriyor (`as` excess/missing property
+  kontrolünü atlıyor) — ADR-054'ün "eksik anahtar build hatası verir"
+  iddiası şu an doğru değil. Ya `tr.json`'ı `satisfies Dictionary` ile
+  import edecek bir yapıya geçmeli, ya da CI'da iki dosyanın anahtar
+  kümesini karşılaştıran küçük bir test eklenmeli.
+- **Faz 2 — kalan ~8 sayfanın arayüz metni.**
+  `/statistics`, `/status`, `/live`,
   `/dashboard` (+`notifications`, `settings`), `/events/[slug]`,
-  `/games/[slug]`, `/admin`, `/unsubscribed`, `error`/`not-found`.
+  `/games/[slug]`, `/admin`, `error`/`not-found`.
   Bu arada `/calendar`'ın kendi çıplak-href'lerini de düzeltmeyi
   unutma (yukarı
   bak). **Şu an bozuk değiller** — İngilizce render ediyorlar, içlerindeki

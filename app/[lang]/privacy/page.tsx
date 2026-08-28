@@ -3,6 +3,8 @@ import type { Metadata } from "next"
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
 import { SectionEyebrow } from "@/components/shared/section-eyebrow"
+import { getDictionary } from "@/lib/i18n/dictionaries"
+import { withBold } from "@/lib/i18n/rich-text"
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
@@ -10,203 +12,101 @@ export const metadata: Metadata = {
     "What ModeAlert collects, why, and how to delete it. Plain-language privacy policy — no tracking pixels, no data resale.",
 }
 
-const LAST_UPDATED = "August 28, 2026"
+export default async function PrivacyPage() {
+  const dict = await getDictionary()
+  const t = dict.privacyPage
 
-export default function PrivacyPage() {
   return (
     <main className="min-h-screen bg-black text-white">
       <Navbar />
 
       <section className="mx-auto max-w-3xl px-6 pt-20 pb-4">
-        <SectionEyebrow>Legal</SectionEyebrow>
+        <SectionEyebrow>{t.eyebrow}</SectionEyebrow>
 
         <h1 className="mt-4 text-4xl font-bold tracking-tight md:text-5xl">
-          Privacy Policy
+          {t.title}
         </h1>
 
-        <p className="mt-4 text-sm text-zinc-500">
-          Last updated: {LAST_UPDATED}
-        </p>
+        <p className="mt-4 text-sm text-zinc-500">{t.lastUpdated}</p>
       </section>
 
       <section className="mx-auto max-w-3xl space-y-10 px-6 py-16 text-zinc-300">
         <div className="space-y-3">
-          <h2 className="text-xl font-semibold text-white">Who we are</h2>
+          <h2 className="text-xl font-semibold text-white">
+            {t.whoWeAreTitle}
+          </h2>
           <p className="leading-relaxed">
-            ModeAlert (
+            {t.whoWeAreBodyPre}
             <a
               href="https://modealert.vercel.app"
               className="text-white underline underline-offset-4 hover:text-zinc-300"
             >
               modealert.vercel.app
             </a>
-            ) is an independent, early-access project built and operated by
-            Deniz Önen. This policy explains what data ModeAlert collects,
-            why, and how you can remove it.
+            {t.whoWeAreBodyPost}
           </p>
         </div>
 
         <div className="space-y-3">
           <h2 className="text-xl font-semibold text-white">
-            What we collect
+            {t.whatWeCollectTitle}
           </h2>
-          <p className="leading-relaxed">
-            ModeAlert only stores what it needs to run your watchlist and
-            send the alerts you asked for:
-          </p>
+          <p className="leading-relaxed">{t.whatWeCollectIntro}</p>
           <ul className="list-disc space-y-2 pl-6 leading-relaxed">
-            <li>
-              <span className="text-white">Account info</span> — your email
-              address, and your name/profile image if you sign in with
-              Google. If you sign in with a password instead, we store a
-              salted hash of it, never the password itself.
-            </li>
-            <li>
-              <span className="text-white">Watchlist</span> — the games and
-              events you&apos;ve chosen to track.
-            </li>
-            <li>
-              <span className="text-white">Notification history</span> — a
-              record of the alerts we&apos;ve sent you, so you can review
-              them in your dashboard.
-            </li>
-            <li>
-              <span className="text-white">Session cookies</span> — used
-              only to keep you signed in. No advertising or cross-site
-              tracking cookies are set.
-            </li>
-            <li>
-              <span className="text-white">Discord webhook URL</span> —
-              only if you add one in Settings to get alerts posted to
-              your own Discord server. You control that URL; removing it
-              from Settings deletes it from our database.
-            </li>
-            <li>
-              <span className="text-white">Subscription status</span> — if
-              you upgrade to Premium, we store your plan, subscription
-              status, and Lemon Squeezy&apos;s customer/subscription IDs
-              (opaque references, not your card details) so we can grant
-              access and let you manage billing.
-            </li>
-            <li>
-              <span className="text-white">Product usage</span> — a small
-              number of first-party events (e.g. finishing onboarding,
-              hitting the free plan&apos;s limit) tied to your account, so
-              we can see where the product is confusing without sending
-              anything to a third party.
-            </li>
-            <li>
-              <span className="text-white">Anonymous page views</span> —
-              on the homepage and sign-up page only, we count that a page
-              was viewed. No cookie, no visitor id, no IP address is
-              stored with it — just a running total, so we can tell
-              whether the homepage is actually leading anywhere. It can
-              never be linked back to you or to any later account you
-              create.
-            </li>
+            {t.collectItems.map((item) => (
+              <li key={item.label}>
+                <span className="text-white">{item.label}</span> —{" "}
+                {item.body}
+              </li>
+            ))}
           </ul>
-          <p className="leading-relaxed">
-            We don&apos;t use tracking pixels, third-party analytics
-            scripts, or ad networks, and we don&apos;t sell or rent your
-            data to anyone.
-          </p>
+          <p className="leading-relaxed">{t.noThirdPartyTrackers}</p>
         </div>
 
         <div className="space-y-3">
           <h2 className="text-xl font-semibold text-white">
-            Who we share data with
+            {t.whoWeShareTitle}
           </h2>
-          <p className="leading-relaxed">
-            A small number of infrastructure providers process data on our
-            behalf, strictly to run the service:
-          </p>
+          <p className="leading-relaxed">{t.whoWeShareIntro}</p>
           <ul className="list-disc space-y-2 pl-6 leading-relaxed">
-            <li>
-              <span className="text-white">Neon</span> (Postgres database
-              hosting) and <span className="text-white">Vercel</span>{" "}
-              (application hosting) — store and serve the data described
-              above.
-            </li>
-            <li>
-              <span className="text-white">Resend</span> — delivers the
-              email alerts you sign up for.
-            </li>
-            <li>
-              <span className="text-white">Discord</span> — only if you
-              add a webhook URL in Settings, we send your event alerts
-              directly to that URL. That&apos;s a channel you control on
-              your own server, not a service we otherwise integrate
-              with.
-            </li>
-            <li>
-              <span className="text-white">Google</span> — only if you
-              choose &ldquo;Sign in with Google&rdquo;, to authenticate
-              you.
-            </li>
-            <li>
-              <span className="text-white">Lemon Squeezy</span> — only if
-              you upgrade to Premium. They&apos;re our payment processor
-              and Merchant of Record, so they handle your payment details
-              directly (card number, billing address) — ModeAlert never
-              sees or stores them. They notify us only of your
-              subscription status.
-            </li>
+            {t.shareItems.map((item, index) => (
+              <li key={index}>{withBold(item)}</li>
+            ))}
           </ul>
-          <p className="leading-relaxed">
-            ModeAlert also calls public game-data APIs (Riot Games, Bungie,
-            and others) to detect events, but no information about you
-            personally is ever sent to them.
-          </p>
+          <p className="leading-relaxed">{t.publicApisNote}</p>
         </div>
 
         <div className="space-y-3">
           <h2 className="text-xl font-semibold text-white">
-            Your controls
+            {t.yourControlsTitle}
           </h2>
           <ul className="list-disc space-y-2 pl-6 leading-relaxed">
-            <li>
-              Every email includes a one-click unsubscribe link — no
-              account login required.
-            </li>
-            <li>
-              You can edit or clear your watchlist any time from your
-              dashboard.
-            </li>
-            <li>
-              <span className="text-white">Download your data</span> —
-              Settings has a &ldquo;Download my data&rdquo; button that
-              gives you a JSON file of your account, watchlist, and
-              notification history, any time, no waiting on a request.
-            </li>
-            <li>
-              <span className="text-white">Delete your account</span> —
-              Settings also has a self-service &ldquo;Delete account&rdquo;
-              button that removes your account and all associated data
-              immediately, no email required.
-            </li>
+            {t.controlItems.map((item, index) => (
+              <li key={index}>{withBold(item)}</li>
+            ))}
           </ul>
         </div>
 
         <div className="space-y-3">
-          <h2 className="text-xl font-semibold text-white">Changes</h2>
-          <p className="leading-relaxed">
-            ModeAlert is an early-access, actively developed product. If
-            this policy changes in a meaningful way, we&apos;ll update the
-            date above and, where practical, notify active users by email.
-          </p>
+          <h2 className="text-xl font-semibold text-white">
+            {t.changesTitle}
+          </h2>
+          <p className="leading-relaxed">{t.changesBody}</p>
         </div>
 
         <div className="space-y-3">
-          <h2 className="text-xl font-semibold text-white">Contact</h2>
+          <h2 className="text-xl font-semibold text-white">
+            {t.contactTitle}
+          </h2>
           <p className="leading-relaxed">
-            Questions about this policy or your data? Email{" "}
+            {t.contactBodyPre}{" "}
             <a
               href="mailto:denizate@gmail.com"
               className="text-white underline underline-offset-4 hover:text-zinc-300"
             >
               denizate@gmail.com
             </a>
-            .
+            {t.contactBodyPost}
           </p>
         </div>
       </section>

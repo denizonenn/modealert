@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
+import { getDictionary } from "@/lib/i18n/dictionaries"
 
 export default async function DigestFeedbackPage({
   searchParams,
@@ -7,6 +8,7 @@ export default async function DigestFeedbackPage({
   searchParams: Promise<{ ok?: string }>
 }) {
   const { ok } = await searchParams
+  const dict = await getDictionary()
 
   const success = ok === "1"
 
@@ -18,23 +20,21 @@ export default async function DigestFeedbackPage({
         {success ? (
           <>
             <h1 className="text-2xl font-bold tracking-tight">
-              Thanks for the feedback
+              {dict.digestFeedback.thanksTitle}
             </h1>
 
             <p className="mt-2 text-sm text-zinc-400">
-              That helps us figure out what&apos;s actually useful in the
-              digest.
+              {dict.digestFeedback.thanksBody}
             </p>
           </>
         ) : (
           <>
             <h1 className="text-2xl font-bold tracking-tight">
-              Link expired or invalid
+              {dict.digestFeedback.invalidTitle}
             </h1>
 
             <p className="mt-2 text-sm text-zinc-400">
-              This feedback link doesn&apos;t look right — no worries,
-              nothing was recorded.
+              {dict.digestFeedback.invalidBody}
             </p>
           </>
         )}

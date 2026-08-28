@@ -307,5 +307,120 @@
       "limited": "Sınırlı Süreli",
       "permanent": "Kalıcı"
     }
+  },
+  "unsubscribed": {
+    "unsubscribedTitle": "Abonelikten çıktın",
+    "unsubscribedBody": "ModeAlert'ten artık etkinlik e-postası almayacaksın. Watchlist'in dokunulmadan duruyor — güncellemeleri hâlâ panelinde göreceksin.",
+    "resubscribedTitle": "Geri döndün",
+    "resubscribedBody": "ModeAlert'ten tekrar etkinlik e-postası alacaksın.",
+    "resubscribeLink": "Fikrini mi değiştirdin? Tekrar abone ol",
+    "unsubscribeAgainLink": "Tekrar abonelikten çık",
+    "invalidTitle": "Link süresi dolmuş veya geçersiz",
+    "invalidBody": "Bu abonelik iptal linki doğru görünmüyor. Giriş yapıp panelini kontrol et, ya da istemediğin e-postalar almaya devam ediyorsan e-postalarımızdan birine yanıt ver."
+  },
+  "digestFeedback": {
+    "thanksTitle": "Geri bildirim için teşekkürler",
+    "thanksBody": "Bu, digest'te gerçekten neyin işe yaradığını anlamamıza yardımcı oluyor.",
+    "invalidTitle": "Link süresi dolmuş veya geçersiz",
+    "invalidBody": "Bu geri bildirim linki doğru görünmüyor — sorun değil, hiçbir şey kaydedilmedi."
+  },
+  "privacyPage": {
+    "eyebrow": "Hukuki",
+    "title": "Gizlilik Politikası",
+    "lastUpdated": "Son güncelleme: 28 Ağustos 2026",
+    "whoWeAreTitle": "Biz kimiz",
+    "whoWeAreBodyPre": "ModeAlert (",
+    "whoWeAreBodyPost": "), Deniz Önen tarafından geliştirilip işletilen, bağımsız bir erken erişim projesidir. Bu politika, ModeAlert'in hangi veriyi topladığını, neden topladığını ve nasıl silebileceğini anlatır.",
+    "whatWeCollectTitle": "Ne topluyoruz",
+    "whatWeCollectIntro": "ModeAlert sadece watchlist'ini çalıştırmak ve istediğin uyarıları göndermek için gereken veriyi saklar:",
+    "collectItems": [
+      {
+        "label": "Hesap bilgisi",
+        "body": "e-posta adresin, ve Google ile giriş yapıyorsan adın/profil fotoğrafın. Bunun yerine şifre ile giriş yapıyorsan, şifrenin kendisini değil, tuzlanmış bir hash'ini saklarız."
+      },
+      {
+        "label": "Watchlist",
+        "body": "takip etmeyi seçtiğin oyunlar ve etkinlikler."
+      },
+      {
+        "label": "Bildirim geçmişi",
+        "body": "sana gönderdiğimiz uyarıların kaydı, panelinde inceleyebilesin diye."
+      },
+      {
+        "label": "Oturum çerezleri",
+        "body": "sadece oturumunu açık tutmak için kullanılır. Reklam ya da site-arası takip çerezi kullanılmaz."
+      },
+      {
+        "label": "Discord webhook URL'i",
+        "body": "sadece Ayarlar'da bir tane eklersen, uyarıları kendi Discord sunucuna göndermek için. Bu URL'in kontrolü sende; Ayarlar'dan kaldırman veritabanımızdan da siler."
+      },
+      {
+        "label": "Abonelik durumu",
+        "body": "Premium'a yükseltirsen, planını, abonelik durumunu ve Lemon Squeezy'nin müşteri/abonelik ID'lerini (kart bilgin değil, opak referanslar) saklarız, erişim verip faturalamayı yönetmene izin vermek için."
+      },
+      {
+        "label": "Ürün kullanımı",
+        "body": "hesabına bağlı az sayıda ilk taraf event'i (ör. onboarding'i bitirmek, free plan limitine ulaşmak), ürünün nerede kafa karıştırdığını üçüncü tarafa hiçbir şey göndermeden görebilmemiz için."
+      },
+      {
+        "label": "Anonim sayfa görüntülemeleri",
+        "body": "sadece ana sayfa ve kayıt sayfasında, bir sayfanın görüntülendiğini sayarız. Bununla birlikte çerez, ziyaretçi kimliği ya da IP adresi saklanmaz — sadece bir toplam sayı, ana sayfanın gerçekten bir yere götürüp götürmediğini görebilmemiz için. Bu, seninle ya da sonradan oluşturacağın bir hesapla asla ilişkilendirilemez."
+      }
+    ],
+    "noThirdPartyTrackers": "Takip pikseli, üçüncü taraf analytics script'i ya da reklam ağı kullanmıyoruz, ve verini kimseye satmıyor ya da kiralamıyoruz.",
+    "whoWeShareTitle": "Veriyi kimlerle paylaşıyoruz",
+    "whoWeShareIntro": "Az sayıda altyapı sağlayıcı, sadece servisi çalıştırmak için, veriyi bizim adımıza işliyor:",
+    "shareItems": [
+      "**Neon** (Postgres veritabanı barındırma) ve **Vercel** (uygulama barındırma) — yukarıda anlatılan veriyi saklar ve sunar.",
+      "**Resend** — abone olduğun e-posta uyarılarını gönderir.",
+      "**Discord** — sadece Ayarlar'da bir webhook URL'i eklersen, etkinlik uyarılarını doğrudan o URL'e göndeririz. Bu, kendi sunucunda kontrol ettiğin bir kanal, entegre olduğumuz başka bir servis değil.",
+      "**Google** — sadece \"Google ile giriş yap\"ı seçersen, seni doğrulamak için.",
+      "**Lemon Squeezy** — sadece Premium'a yükseltirsen. Ödeme işlemcimiz ve Merchant of Record'umuz, yani ödeme bilgilerini (kart numarası, fatura adresi) doğrudan onlar işler — ModeAlert bunları hiç görmez ya da saklamaz. Bize sadece abonelik durumunu bildirirler."
+    ],
+    "publicApisNote": "ModeAlert ayrıca etkinlikleri tespit etmek için public oyun-verisi API'lerini (Riot Games, Bungie, ve diğerleri) çağırır, ama onlara senin hakkında kişisel hiçbir bilgi gönderilmez.",
+    "yourControlsTitle": "Senin kontrollerin",
+    "controlItems": [
+      "Her e-postada tek tıkla abonelikten çıkma linki var — hesaba giriş gerekmiyor.",
+      "Watchlist'ini panelinden istediğin zaman düzenleyebilir ya da temizleyebilirsin.",
+      "**Verini indir** — Ayarlar'da, hesabının, watchlist'inin ve bildirim geçmişinin JSON dosyasını istediğin zaman, bir talep beklemeden veren bir \"Verimi indir\" butonu var.",
+      "**Hesabını sil** — Ayarlar'da ayrıca hesabını ve tüm ilişkili veriyi anında kaldıran, e-posta gerektirmeyen kendi kendine hizmet veren bir \"Hesabı sil\" butonu var."
+    ],
+    "changesTitle": "Değişiklikler",
+    "changesBody": "ModeAlert erken erişimde, aktif olarak geliştirilen bir ürün. Bu politika anlamlı bir şekilde değişirse, yukarıdaki tarihi güncelleriz ve mümkün olduğunda aktif kullanıcıları e-posta ile bilgilendiririz.",
+    "contactTitle": "İletişim",
+    "contactBodyPre": "Bu politika ya da verin hakkında sorun mu var? E-posta at:",
+    "contactBodyPost": "."
+  },
+  "termsPage": {
+    "eyebrow": "Hukuki",
+    "title": "Kullanım Koşulları",
+    "lastUpdated": "Son güncelleme: 19 Ağustos 2026",
+    "s1Title": "1. ModeAlert nedir",
+    "s1BodyPre": "ModeAlert (",
+    "s1BodyPost": "), Deniz Önen tarafından geliştirilip işletilen, oyun yayıncılarının public verisini izleyen ve takip ettiğin bir oyun modu ya da etkinlik değiştiğinde seni e-posta veya Discord ile uyaran, bağımsız bir erken erişim projesidir. Bir hesap oluşturarak ya da siteyi kullanarak bu koşulları kabul etmiş olursun.",
+    "s2Title": "2. Hiçbir oyun yayıncısıyla bağlantılı değiliz",
+    "s2Body": "ModeAlert bağımsız, gayri resmi bir araçtır. Public verisini okuduğu Riot Games, Bungie, Epic Games, Digital Extremes, Grinding Gear Games, Arrowhead Game Studios, Siege Camp/Clapfoot ya da başka herhangi bir yayıncı tarafından onaylanmamış, onlarla bağlantılı ya da sponsorlu değildir. Tüm oyun isimleri, logoları ve ticari markalar kendi sahiplerine aittir.",
+    "s3Title": "3. Free ve Premium planlar — garanti yok",
+    "s3Body": "ModeAlert'in Free planı **olduğu gibi** sunulur, herhangi bir garanti olmadan, ve Premium bunu değiştirmez. Etkinlik tespiti tamamen kontrolümüz dışındaki üçüncü taraf API'lere bağlıdır — bunlar haber vermeden değişebilir, rate-limit uygulayabilir ya da devre dışı kalabilir, bu da bir uyarıyı geciktirebilir ya da engelleyebilir. Veriyi doğru ve zamanında tutmak için elimizden geleni yaparız, ama her etkinlik için uyarı alacağını, ya da bildirimlerin her zaman zamanında olacağını garanti edemeyiz.",
+    "s4Title": "4. Premium faturalama",
+    "s4Body": "Premium, iptal edene kadar aylık faturalanan $4.99/ay'dır. Ödemeler, Merchant of Record'umuz **Lemon Squeezy** tarafından işlenir — Lemon Squeezy ödeme bilgilerini doğrudan işler ve kart ekstrende görünen satıcıdır; ModeAlert kart numaranı hiç görmez ya da saklamaz.",
+    "s4Item1": "**Panel → Ayarlar**'dan istediğin zaman iptal edebilirsin — zaten ödediğin dönemin sonuna kadar Premium erişimin devam eder, sonra hesap Free'ye döner (verin silinmez, Free limitinin üstündeki takip sadece duraklar).",
+    "s4Item2Pre": "Premium'dan memnun kalmadın mı? Ücretlendirildikten sonraki 7 gün içinde tam iade için e-posta at:",
+    "s4Item2Post": ", soru sorulmadan.",
+    "s5Title": "5. Hesabın",
+    "s5Items": [
+      "Giriş bilgilerini güvende tutmaktan sen sorumlusun.",
+      "ModeAlert'i sadece amaçlandığı gibi — kendin için oyun etkinliklerini takip etmek için — kullanmayı, servisi kötüye kullanmamayı, scrape etmemeyi ya da aşırı yüklememeyi kabul edersin.",
+      "Servisi kötüye kullanan ya da bu koşulları ihlal eden hesapları askıya alabilir ya da kaldırabiliriz."
+    ],
+    "s6Title": "6. Servisteki değişiklikler",
+    "s6Body": "ModeAlert aktif olarak geliştiriliyor ve zamanla özellikler, desteklenen oyunlar ya da fiyatlandırma değişebilir. Mevcut Free işlevsellik, makul bir bildirim olmadan geriye dönük olarak kaldırılmayacak.",
+    "s7Title": "7. Sorumluluk sınırlaması",
+    "s7Body": "Yasaların izin verdiği ölçüde, ModeAlert ve işletmecisi, servisi kullanmandan ya da kullanamamandan kaynaklanan — bir oyun etkinliği hakkında kaçırılan ya da geciken bir bildirim dahil — hiçbir dolaylı, arızi ya da sonuç olarak ortaya çıkan zarardan sorumlu değildir.",
+    "s8Title": "8. Bu koşullardaki değişiklikler",
+    "s8Body": "Ürün geliştikçe bu koşulları güncelleyebiliriz. Bir değişiklik önemliyse, yukarıdaki tarihi güncelleriz ve mümkün olduğunda aktif kullanıcıları e-posta ile bilgilendiririz.",
+    "s9Title": "9. İletişim",
+    "s9BodyPre": "Bu koşullar hakkında sorun mu var? E-posta at:",
+    "s9BodyPost": "."
   }
 }
