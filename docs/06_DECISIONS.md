@@ -4539,12 +4539,27 @@ hiçbir zaman eşleşmiyordu, yani bu sayfalar aslında hiç
 engellenmiyordu. Artık `LOCALES`'ten üretiliyor (`/en/dashboard`,
 `/tr/dashboard` vb.), üçüncü bir dil eklendiğinde otomatik kapsıyor.
 
-**Hâlâ açık:** Sayfa `<head>`'lerinde per-page `<link rel="alternate"
-hreflang="...">` etiketleri yok — sitemap-seviyesi hreflang Google
-için resmi olarak yeterli/geçerli bir sinyal, ama sayfa-seviyesi
-etiketler ek bir sinyal katmanı olurdu. ~20 sayfanın her birinin
-`generateMetadata()`'sına `alternates.languages` eklemek gerekiyor —
-sitemap'ten çok daha büyük bir iş, ayrı bir görev olarak bırakıldı.
+**Faz 4b (2026-08-29): Sayfa-seviyesi hreflang — tamamlandı.** Yeni
+`lib/i18n/alternates.ts` → `localeAlternates(locale, path)`, her
+sayfanın `generateMetadata()`'sına `alternates: localeAlternates(...)`
+eklendi — Next `<link rel="alternate" hrefLang="..." href="...">`
+etiketlerini otomatik üretiyor (DOM'da `hrefLang` camelCase, `hreflang`
+değil — canlıda kontrol ederken bu fark eşleşme aramasını
+yanıltabilir). **Sadece indexlenebilir sayfalara eklendi** —
+`robots: { index: false }` olan her rota (dashboard, admin, auth,
+onboarding, unsubscribed, digest-feedback) bilinçli olarak atlandı,
+çünkü arama motoruna "bunu indexleme" denen bir sayfada hreflang'in
+hiçbir etkisi yok. Kapsam: ana sayfa, `/calendar`, `/features`,
+`/games`, `/games/[slug]`, `/events/[slug]`, `/live`, `/pricing`,
+`/privacy`, `/statistics`, `/status`, `/terms` — sitemap.ts'teki
+statik+dinamik sayfa listesiyle birebir aynı (12 sayfa/desen).
+`/live` ve `/status`'un `layout.tsx`'i statik `export const
+metadata`'dan `generateMetadata()`'a çevrildi (locale'e ihtiyaçları
+olduğu için). Canlıda 12 sayfanın hepsinde doğrulandı (`en`/`tr`
+hreflang çiftleri doğru URL'lere işaret ediyor); `/dashboard` gibi
+noindex bir sayfada hiç hreflang **eklenmediği**, sadece önceden var
+olan RSS `alternate` linkinin durduğu da ayrıca doğrulandı — yanlışlıkla
+her yere eklenmedi.
 
 **Faz 5 (2026-08-29): Bildirimler artık kullanıcının dilinde.**
 Yeni `User.locale String?` sütunu (nullable — `null`, "hiç seçmedi"

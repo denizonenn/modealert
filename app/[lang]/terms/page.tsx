@@ -3,13 +3,19 @@ import type { Metadata } from "next"
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
 import { SectionEyebrow } from "@/components/shared/section-eyebrow"
-import { getDictionary } from "@/lib/i18n/dictionaries"
+import { getDictionary, getLocale } from "@/lib/i18n/dictionaries"
 import { withBold } from "@/lib/i18n/rich-text"
+import { localeAlternates } from "@/lib/i18n/alternates"
 
-export const metadata: Metadata = {
-  title: "Terms of Service",
-  description:
-    "The terms for using ModeAlert — a free-to-start game event tracker with an optional Premium plan.",
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+
+  return {
+    title: "Terms of Service",
+    description:
+      "The terms for using ModeAlert — a free-to-start game event tracker with an optional Premium plan.",
+    alternates: localeAlternates(locale, "/terms"),
+  }
 }
 
 export default async function TermsPage() {

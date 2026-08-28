@@ -10,11 +10,17 @@ import { UptimeBars } from "@/components/statistics/uptime-bars"
 import { globalStatisticsService } from "@/lib/services/global-statistics.service"
 import { formatDuration, formatCount } from "@/lib/utils"
 import { getDictionary, getLocale } from "@/lib/i18n/dictionaries"
+import { localeAlternates } from "@/lib/i18n/alternates"
 
-export const metadata: Metadata = {
-  title: "Statistics",
-  description:
-    "Real, computed-from-history stats across every event ModeAlert tracks — most recurring events, average durations, and prediction accuracy.",
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+
+  return {
+    title: "Statistics",
+    description:
+      "Real, computed-from-history stats across every event ModeAlert tracks — most recurring events, average durations, and prediction accuracy.",
+    alternates: localeAlternates(locale, "/statistics"),
+  }
 }
 
 export default async function StatisticsPage() {

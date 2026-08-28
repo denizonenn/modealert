@@ -759,17 +759,22 @@ Done (2026-08-29) — Faz 5: bildirimler kullanıcının dilinde
   şey artık oradan import ediyor. Bu ayrım olmasa bildirim yolu
   production'da patlardı.
 
+Done (2026-08-29) — Faz 4b: sayfa-seviyesi hreflang
+
+- **12 indexlenebilir sayfanın hepsine `<link rel="alternate"
+  hreflang>` eklendi.** Detay: ADR-054 "Faz 4b". Yeni
+  `lib/i18n/alternates.ts` → `localeAlternates(locale, path)`, her
+  sayfanın `generateMetadata()`'sına eklendi. `robots: {index:
+  false}` olan rotalar (dashboard, admin, auth, onboarding,
+  unsubscribed, digest-feedback) bilinçli olarak atlandı. Canlıda
+  12 sayfanın hepsinde doğrulandı, ayrıca noindex bir sayfaya
+  (`/dashboard`) hiç hreflang eklenmediği de ayrıca kontrol edildi.
+
+Faz 1-5 + SEO Faz 4/4b böylece hepsi tamamlandı — kalan tek i18n işi
+aşağıdaki e-posta şablonları.
+
 Kaldığım yer — açık işler
 
-- **Faz 4 — sayfa-seviyesi hreflang.** Sitemap-seviyesi hreflang
-  2026-08-28'de tamamlandı (bkz. ADR-054 Faz 4) — `app/sitemap.ts`
-  artık her sayfa için iki `<url>` (`/en/...` + `/tr/...`) ve gerçek
-  `<xhtml:link rel="alternate" hreflang>` etiketleri üretiyor; bu
-  Google için resmi olarak yeterli bir sinyal. Kalan, daha büyük iş:
-  ~20 sayfanın her birinin `generateMetadata()`'sına
-  `alternates.languages` ekleyip sayfa `<head>`'inde de per-page
-  hreflang etiketi vermek — ek bir sinyal katmanı, aynı geçişte
-  yapılmadı çünkü tek başına sitemap'ten çok daha büyük bir iş.
 - **Kalan çevrilmemiş e-postalar:** hoş geldin e-postası, magic-link
   giriş e-postası, haftalık digest, admin uyarıları. Faz 5'te
   bilinçli olarak dışarıda bırakıldı — ilk ikisi kullanıcı henüz bir

@@ -13,13 +13,15 @@ import { billingService } from "@/lib/services/billing.service"
 import { PLANS } from "@/lib/constants/plan"
 import { FREE_WATCHLIST_LIMIT } from "@/lib/constants/plan"
 import { getDictionary, getLocale } from "@/lib/i18n/dictionaries"
+import { localeAlternates } from "@/lib/i18n/alternates"
 
 export async function generateMetadata(): Promise<Metadata> {
-  const dict = await getDictionary()
+  const [dict, locale] = await Promise.all([getDictionary(), getLocale()])
 
   return {
     title: dict.pricingPage.eyebrow,
     description: `ModeAlert is free to start — track up to ${FREE_WATCHLIST_LIMIT} events with email and Discord alerts. Upgrade to Premium for unlimited tracking and per-event predictions.`,
+    alternates: localeAlternates(locale, "/pricing"),
   }
 }
 

@@ -15,13 +15,15 @@ import { billingService } from "@/lib/services/billing.service"
 import { getOpenHistoryStartsByEventIds } from "@/lib/repositories/event-history.repository"
 import { PLANS } from "@/lib/constants/plan"
 import { getDictionary, getLocale } from "@/lib/i18n/dictionaries"
+import { localeAlternates } from "@/lib/i18n/alternates"
 
 export async function generateMetadata(): Promise<Metadata> {
-  const dict = await getDictionary()
+  const [dict, locale] = await Promise.all([getDictionary(), getLocale()])
 
   return {
     title: dict.calendar.eyebrow,
     description: dict.calendar.metaDescription,
+    alternates: localeAlternates(locale, "/calendar"),
   }
 }
 

@@ -3,13 +3,19 @@ import type { Metadata } from "next"
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
 import { SectionEyebrow } from "@/components/shared/section-eyebrow"
-import { getDictionary } from "@/lib/i18n/dictionaries"
+import { getDictionary, getLocale } from "@/lib/i18n/dictionaries"
 import { withBold } from "@/lib/i18n/rich-text"
+import { localeAlternates } from "@/lib/i18n/alternates"
 
-export const metadata: Metadata = {
-  title: "Privacy Policy",
-  description:
-    "What ModeAlert collects, why, and how to delete it. Plain-language privacy policy — no tracking pixels, no data resale.",
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+
+  return {
+    title: "Privacy Policy",
+    description:
+      "What ModeAlert collects, why, and how to delete it. Plain-language privacy policy — no tracking pixels, no data resale.",
+    alternates: localeAlternates(locale, "/privacy"),
+  }
 }
 
 export default async function PrivacyPage() {

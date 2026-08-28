@@ -14,13 +14,15 @@ import { eventQueryService } from "@/lib/services/event-query.service"
 import { GAMES_WITH_PROVIDER } from "@/lib/constants/games"
 import { findGameKeyArt, placeholderGameArt } from "@/lib/constants/game-key-art"
 import { getDictionary, getLocale } from "@/lib/i18n/dictionaries"
+import { localeAlternates } from "@/lib/i18n/alternates"
 
 export async function generateMetadata(): Promise<Metadata> {
-  const dict = await getDictionary()
+  const [dict, locale] = await Promise.all([getDictionary(), getLocale()])
 
   return {
     title: dict.games.metaTitle,
     description: `ModeAlert tracks ${GAMES_WITH_PROVIDER.size} games today — League of Legends, Valorant, Destiny 2, TFT, Fortnite, Warframe, Path of Exile, Helldivers 2, Foxhole, PUBG, PlanetSide 2, Final Fantasy XIV, and EA Sports FC — limited-time modes, seasonal events, Night Markets, raid rotations, and special events, all from one watchlist.`,
+    alternates: localeAlternates(locale, "/games"),
   }
 }
 

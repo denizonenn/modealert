@@ -28,6 +28,7 @@ import {
 import { getDictionary, getLocale } from "@/lib/i18n/dictionaries"
 import type { Dictionary } from "@/lib/i18n/dictionaries"
 import { resolveEventDescription } from "@/lib/i18n/event-descriptions"
+import { localeAlternates } from "@/lib/i18n/alternates"
 
 function fieldLabel(field: string, dict: Dictionary): string {
   const t = dict.eventDetailPage
@@ -90,6 +91,7 @@ export async function generateMetadata({
       dict.eventDetailPage.metaDescription
         .replace("{title}", event.title)
         .replace("{game}", event.game.name),
+    alternates: localeAlternates(locale, `/events/${slug}`),
   }
 }
 

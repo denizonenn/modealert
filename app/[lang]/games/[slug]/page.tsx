@@ -28,6 +28,7 @@ import {
 } from "@/lib/constants/event-category"
 import { getDictionary, getLocale } from "@/lib/i18n/dictionaries"
 import { resolveEventDescription } from "@/lib/i18n/event-descriptions"
+import { localeAlternates } from "@/lib/i18n/alternates"
 
 type EventStatus = "LIVE" | "UPCOMING" | "TRACKING" | "ENDED"
 
@@ -48,6 +49,7 @@ export async function generateMetadata({
   const { slug } = await params
   const game = await gameService.getBySlug(slug)
   const dict = await getDictionary()
+  const locale = await getLocale()
 
   if (!game) {
     return { title: dict.gameDetailPage.notFoundTitle }
@@ -59,6 +61,7 @@ export async function generateMetadata({
       "{game}",
       game.name
     ),
+    alternates: localeAlternates(locale, `/games/${slug}`),
   }
 }
 

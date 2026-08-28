@@ -18,15 +18,17 @@ import { Button } from "@/components/ui/button"
 import { SectionEyebrow } from "@/components/shared/section-eyebrow"
 import { GAMES_WITH_PROVIDER } from "@/lib/constants/games"
 import { getDictionary, getLocale, type Dictionary } from "@/lib/i18n/dictionaries"
+import { localeAlternates } from "@/lib/i18n/alternates"
 
 export async function generateMetadata(): Promise<Metadata> {
-  const dict = await getDictionary()
+  const [dict, locale] = await Promise.all([getDictionary(), getLocale()])
 
   return {
     title: dict.featuresPage.eyebrow,
     description: `See how ModeAlert detects game events across League of Legends, Valorant, Destiny 2, and ${
       GAMES_WITH_PROVIDER.size - 3
     } other games before they're officially announced, and alerts you the moment something changes.`,
+    alternates: localeAlternates(locale, "/features"),
   }
 }
 

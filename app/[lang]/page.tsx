@@ -1,3 +1,5 @@
+import type { Metadata } from "next"
+
 import { Navbar } from "@/components/layout/navbar"
 import { Hero } from "@/components/landing/hero"
 import { SupportedGames } from "@/components/landing/supported-games"
@@ -9,14 +11,23 @@ import { Footer } from "@/components/layout/footer"
 import { AnonymousPageBeacon } from "@/components/analytics/anonymous-page-beacon"
 import { SITE_URL } from "@/lib/constants/site"
 import { GAMES_WITH_PROVIDER } from "@/lib/constants/games"
-import { getDictionary } from "@/lib/i18n/dictionaries"
+import { getDictionary, getLocale } from "@/lib/i18n/dictionaries"
 import { ANONYMOUS_FUNNEL_EVENTS } from "@/lib/constants/anonymous-funnel-events"
+import { localeAlternates } from "@/lib/i18n/alternates"
 
 // Hero fetches real event data server-side for the dashboard preview
 // widget — revalidate periodically so it doesn't go stale between
 // deploys (events sync once a day, this just needs to be in that
 // ballpark, not real-time).
 export const revalidate = 1800
+
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+
+  return {
+    alternates: localeAlternates(locale, ""),
+  }
+}
 
 export default async function HomePage() {
   const dict = await getDictionary()
