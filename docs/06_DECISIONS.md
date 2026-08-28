@@ -4571,3 +4571,66 @@ geçmiyor, bkz. `auth.ts`'teki not) tek bir yerden, DB'deki gerçek
   proaktif "şifre de oluştur" istemi — bu özellik zaten
   `/dashboard/settings`'te var (`hasPassword` durumuna göre "Set a
   password" / "Change password"), sadece proaktif sunulmuyor.
+
+---
+
+# ADR-056: Anonim landing→signup funnel takibi — kimliksiz, ham sayaç
+
+Status: Accepted (2026-08-28)
+
+## Bağlam
+
+"Sıradaki Seviye" büyüme araştırması (bkz. docs/09_BACKLOG.md → "P1 —
+Product Analytics & Retention") *The Lean Startup*'tan bir kör noktayı
+işaret etti: `/admin`'in Funnel paneli sadece **giriş yapmış**
+kullanıcıları ölçüyor (bkz. ADR-046) — "kaç kişi landing page'i görüp
+signup'a hiç tıklamadı" sorusu tamamen kör noktaydı. Ama `/privacy`
+o ana kadar açıkça şunu vaat ediyordu: *"nothing is tracked before you
+have an account or if you're signed out."* Bu ADR'ın konusu, bu vaadi
+gerçekten bozmadan o soruyu cevaplamanın yolu.
+
+## Karar
+
+Yeni bir `AnonymousFunnelEvent` tablosu — sadece `id`, `name`,
+`createdAt`. **Kasıtlı olarak yok**: kullanıcı ID'si, çerez, IP,
+user-agent, ya da herhangi bir ziyaretçi kimliği. Yani bu, tekil
+ziyaretçi sayısı değil, **ham sayfa görüntüleme sayısı** — aynı kişi
+10 kez gelirse 10 sayılır. Bilinçli bir basitleştirme: "gerçek
+oturum/ziyaretçi kimliklendirmesi" gizlilik politikasının ruhuna aykırı
+olurdu (docs/09_BACKLOG.md'nin "Future" bölümünde tam olarak bunun
+"gerçek bir karar" gerektirdiği zaten yazıyordu) — hiç kimlik
+kullanmamak o kararı tamamen es geçiyor.
+
+İki event: `landing_page_viewed` (ana sayfa), `signup_page_viewed`
+(`/signup`) — `ANONYMOUS_FUNNEL_EVENTS` allowlist'i, mevcut
+`ANALYTICS_EVENTS`'ten **bilinçli olarak ayrı** bir liste/dosya
+(`lib/constants/anonymous-funnel-events.ts`), böylece "bu event'lerin
+hiçbiri bir kişiye bağlanamaz" tek bakışta belli oluyor.
+
+Kayıt yolu: `POST /api/analytics/anonymous-event` — auth kontrolü
+**yok** (bilinçli), ama IP başına rate limit var (30/saat) — tek bir
+bot/script'in toplam sayıyı anlamsızlaştırmasını önlemek için, birey
+kötüye kullanımını önlemek için değil (zaten hiçbir birey verisi
+saklanmıyor).
+
+Ana sayfa `revalidate = 1800` ile ISR — sunucu tarafında her istekte
+kod çalışmıyor, bu yüzden sayaç sunucu render'ında değil, `
+<AnonymousPageBeacon>` adlı küçük bir client component'in `useEffect`
+ile mount'ta ateşlediği `fetch` çağrısıyla tutuluyor.
+
+`/admin`'de ayrı bir `AnonymousFunnelPanel` — mevcut, giriş-yapmış-
+kullanıcı-only `FunnelPanel`'le **bilinçli olarak birleştirilmedi**,
+ikisinin farklı garantilere sahip olduğu görsel olarak da net kalsın
+diye. `/privacy`'nin "What we collect" bölümüne yeni bir madde
+eklendi ("Anonymous page views") ve eski "nothing is tracked... if
+you're signed out" cümlesi kaldırıldı — artık doğru değildi.
+
+## Bilinçli olarak yapılmadı
+
+- Tekil ziyaretçi/oturum kimliklendirmesi (çerezli ya da başka türlü)
+  — yukarıda açıklandığı gibi, bu ayrı bir karar ve şu an için
+  gerekmiyor; ham sayaç, "büyüyor mu küçülüyor mu" trendini görmek
+  için yeterli.
+- Giriş yapmış kullanıcıların landing/signup sayfasını tekrar
+  ziyaretini hariç tutmak — basitlik için dahil edildi, sayıyı hafif
+  şişirir ama yön/trend okumasını bozmaz.

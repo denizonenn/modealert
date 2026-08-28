@@ -234,6 +234,21 @@ model AnalyticsEvent {
   @@index([userId])
 }
 
+// Deliberately not linked to a user or any per-visitor identifier —
+// no cookie, no session id, nothing that could later be joined back
+// to a person. Just a raw count of an anonymous page view, so
+// landing->signup conversion can be estimated without tracking any
+// individual visitor. See docs/06_DECISIONS.md ADR-056.
+model AnonymousFunnelEvent {
+  id        String   @id @default(cuid())
+
+  name      String
+
+  createdAt DateTime @default(now())
+
+  @@index([name, createdAt])
+}
+
 model Watchlist {
   id        String   @id @default(cuid())
 

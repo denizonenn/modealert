@@ -1268,25 +1268,44 @@ the ones that needed no product/business decision were built:
   `/digest-feedback` thanks page. Zero new infrastructure, piggybacks
   entirely on the existing weekly cron.
 
-Not built from that list (Deniz's call pending or explicitly declined)
+Done (2026-08-28) — anonymous landing→signup funnel
 
-- Landing→signup conversion tracking for anonymous visitors — still
-  blocked on the exact thing "Future" below already flagged: the
-  privacy policy explicitly promises "nothing is tracked before you
-  have an account or if you're signed out." Building this without
-  updating that policy first would just break a stated promise, not
-  a safe default — needs Deniz's explicit go-ahead plus a policy
-  update, not a quiet workaround.
+Deniz confirmed he wanted this one done too, including the privacy
+policy update it needs (bkz. ADR-056). *Lean Startup*'s "kaç kişi
+geliyor, kaçı kayboluyor" kör noktasını kapatan minimum, gizlilik
+politikasının **hiçbir vaadini bozmayan** bir tasarım seçildi:
+
+- New `AnonymousFunnelEvent` table — `id`/`name`/`createdAt` only. No
+  userId, no cookie, no IP, no visitor id of any kind — a raw page-view
+  counter, not unique-visitor tracking (deliberately simpler than the
+  "cookieless session identification" idea "Future" below used to
+  describe — no session concept at all, so there was no privacy
+  decision left to make).
+- Two events (`landing_page_viewed`, `signup_page_viewed`) in their
+  own allowlist (`lib/constants/anonymous-funnel-events.ts`, separate
+  from `ANALYTICS_EVENTS` on purpose) recorded via `POST
+  /api/analytics/anonymous-event` (no auth, IP-rate-limited at
+  30/hour to keep one bot from skewing the aggregate — not for
+  per-visitor abuse, since no per-visitor data exists to abuse).
+  Fired client-side by a tiny `<AnonymousPageBeacon>` on mount, since
+  the homepage is ISR-cached (`revalidate = 1800`) and can't run
+  per-request server code.
+- New `/admin` `AnonymousFunnelPanel`, kept **separate** from the
+  existing signed-in-only `FunnelPanel` so the different guarantees
+  stay visually obvious, not merged into one card.
+- `/privacy`'s "Product usage" bullet no longer claims "nothing is
+  tracked... if you're signed out" (now false) — a new "Anonymous page
+  views" bullet honestly describes the no-identifier page-view count.
+  `LAST_UPDATED` bumped.
+
+Not built from that research (Deniz's call pending or explicitly declined)
+
 - Prediction data in free-tier emails, "share your watchlist" social
   layer, explicit brand positioning copy — all confirmed with Deniz as
   product/business decisions, not attempted.
 
 Future
 
-- Anonymous/pre-signup funnel tracking (landing page → signup) —
-  deliberately out of scope for now, would need a real decision about
-  cookieless session identification that's consistent with the
-  privacy policy's promises, not a quick add.
 - A/B testing the $4.99 price point — needs real signups first.
 
 ---

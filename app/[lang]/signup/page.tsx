@@ -10,7 +10,9 @@ import { Lock, Mail } from "lucide-react"
 import { Navbar } from "@/components/layout/navbar"
 import { Button } from "@/components/ui/button"
 import { PasswordStrength } from "@/components/ui/password-strength"
+import { AnonymousPageBeacon } from "@/components/analytics/anonymous-page-beacon"
 import { useI18n } from "@/components/providers/i18n-provider"
+import { ANONYMOUS_FUNNEL_EVENTS } from "@/lib/constants/anonymous-funnel-events"
 
 const MIN_PASSWORD_LENGTH = 8
 
@@ -97,6 +99,10 @@ function SignUpForm() {
 
   return (
     <div className="mx-auto max-w-sm px-6 py-24">
+      <AnonymousPageBeacon
+        event={ANONYMOUS_FUNNEL_EVENTS.SIGNUP_PAGE_VIEWED}
+      />
+
       <div className="text-center">
         <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">
           {dict.auth.getStarted}

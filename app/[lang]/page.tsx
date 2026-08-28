@@ -6,9 +6,11 @@ import { HowItWorks } from "@/components/landing/how-it-works"
 import { Faq } from "@/components/landing/faq"
 import { Cta } from "@/components/landing/cta"
 import { Footer } from "@/components/layout/footer"
+import { AnonymousPageBeacon } from "@/components/analytics/anonymous-page-beacon"
 import { SITE_URL } from "@/lib/constants/site"
 import { GAMES_WITH_PROVIDER } from "@/lib/constants/games"
 import { getDictionary } from "@/lib/i18n/dictionaries"
+import { ANONYMOUS_FUNNEL_EVENTS } from "@/lib/constants/anonymous-funnel-events"
 
 // Hero fetches real event data server-side for the dashboard preview
 // widget — revalidate periodically so it doesn't go stale between
@@ -67,6 +69,10 @@ export default async function HomePage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
+      <AnonymousPageBeacon
+        event={ANONYMOUS_FUNNEL_EVENTS.LANDING_PAGE_VIEWED}
       />
 
       <Navbar />

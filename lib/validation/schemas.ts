@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { ANALYTICS_EVENTS } from "@/lib/constants/analytics-events";
+import { ANONYMOUS_FUNNEL_EVENTS } from "@/lib/constants/anonymous-funnel-events";
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -67,6 +68,12 @@ export const analyticsEventSchema = z.object({
     Object.values(ANALYTICS_EVENTS) as [string, ...string[]]
   ),
   detail: z.string().max(200).optional(),
+});
+
+export const anonymousFunnelEventSchema = z.object({
+  name: z.enum(
+    Object.values(ANONYMOUS_FUNNEL_EVENTS) as [string, ...string[]]
+  ),
 });
 
 export const lemonSqueezyWebhookSchema = z.object({

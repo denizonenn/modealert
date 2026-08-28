@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     "What ModeAlert collects, why, and how to delete it. Plain-language privacy policy — no tracking pixels, no data resale.",
 }
 
-const LAST_UPDATED = "August 19, 2026"
+const LAST_UPDATED = "August 28, 2026"
 
 export default function PrivacyPage() {
   return (
@@ -93,9 +93,16 @@ export default function PrivacyPage() {
               number of first-party events (e.g. finishing onboarding,
               hitting the free plan&apos;s limit) tied to your account, so
               we can see where the product is confusing without sending
-              anything to a third party. Only recorded while you&apos;re
-              signed in — nothing is tracked before you have an account or
-              if you&apos;re signed out.
+              anything to a third party.
+            </li>
+            <li>
+              <span className="text-white">Anonymous page views</span> —
+              on the homepage and sign-up page only, we count that a page
+              was viewed. No cookie, no visitor id, no IP address is
+              stored with it — just a running total, so we can tell
+              whether the homepage is actually leading anywhere. It can
+              never be linked back to you or to any later account you
+              create.
             </li>
           </ul>
           <p className="leading-relaxed">
