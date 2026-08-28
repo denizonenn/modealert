@@ -1,3 +1,5 @@
+import type { Dictionary } from "@/lib/i18n/dictionaries";
+
 export const EVENT_CATEGORIES = {
   // A real mode/activity/season a player actually plays right now
   // (or did the last time it ran) — the highest-signal category.
@@ -61,6 +63,11 @@ export function categorySortKey(
   );
 }
 
+// English fallbacks — used by the admin panel and other still-English
+// surfaces (see docs/09_BACKLOG.md → "Faz 2 — kalan sayfalar"). Pages
+// already wired for i18n should use eventCategoryLabel()/
+// eventCategoryExample()/rotationFilterLabel() below instead, which
+// read from the active dictionary.
 export const EVENT_CATEGORY_LABELS: Record<EventCategory, string> = {
   PLAYABLE: "Playable",
   SEASON_PASS: "Season / Battle Pass",
@@ -80,6 +87,20 @@ export const EVENT_CATEGORY_EXAMPLES: Record<EventCategory, string> = {
   PLATFORM_STATUS: "e.g. server maintenance windows",
 };
 
+export function eventCategoryLabel(
+  category: EventCategory,
+  dict: Dictionary
+): string {
+  return dict.eventCategory.labels[category];
+}
+
+export function eventCategoryExample(
+  category: EventCategory,
+  dict: Dictionary
+): string {
+  return dict.eventCategory.examples[category];
+}
+
 export const EVENT_CATEGORY_ORDER: EventCategory[] = [
   "PLAYABLE",
   "SEASON_PASS",
@@ -94,6 +115,13 @@ export const ROTATION_FILTER_LABELS: Record<RotationFilter, string> = {
   limited: "Limited Time",
   permanent: "Permanent",
 };
+
+export function rotationFilterLabel(
+  rotation: RotationFilter,
+  dict: Dictionary
+): string {
+  return dict.eventCategory.rotationLabels[rotation];
+}
 
 export const ROTATION_FILTER_ORDER: RotationFilter[] = [
   "limited",

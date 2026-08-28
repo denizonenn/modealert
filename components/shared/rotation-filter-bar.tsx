@@ -3,10 +3,12 @@
 import { cn } from "@/lib/utils"
 
 import {
-  ROTATION_FILTER_LABELS,
   ROTATION_FILTER_ORDER,
+  rotationFilterLabel,
   type RotationFilter,
 } from "@/lib/constants/event-category"
+
+import { useI18n } from "@/components/providers/i18n-provider"
 
 interface Props {
   selected: Set<RotationFilter>
@@ -14,6 +16,8 @@ interface Props {
 }
 
 export function RotationFilterBar({ selected, onToggle }: Props) {
+  const { dict } = useI18n()
+
   return (
     <div className="flex flex-wrap gap-2">
       {ROTATION_FILTER_ORDER.map((rotation) => {
@@ -31,7 +35,7 @@ export function RotationFilterBar({ selected, onToggle }: Props) {
                 : "border-white/10 bg-white/5 text-zinc-500 hover:border-white/20 hover:text-zinc-300"
             )}
           >
-            {ROTATION_FILTER_LABELS[rotation]}
+            {rotationFilterLabel(rotation, dict)}
           </button>
         )
       })}

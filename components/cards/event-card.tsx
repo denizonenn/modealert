@@ -3,11 +3,12 @@
 import { Check } from "lucide-react";
 
 import {
-  EVENT_CATEGORY_LABELS,
+  eventCategoryLabel,
   type EventCategory,
 } from "@/lib/constants/event-category";
 
 import { RotationBadge } from "@/components/shared/rotation-badge";
+import { useI18n } from "@/components/providers/i18n-provider";
 
 interface EventCardProps {
   id: string;
@@ -29,6 +30,8 @@ export default function EventCard({
   selected,
   onClick,
 }: EventCardProps) {
+  const { dict } = useI18n();
+
   return (
     <button
       onClick={onClick}
@@ -46,7 +49,7 @@ export default function EventCard({
 
         {category && (
           <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-zinc-400">
-            {EVENT_CATEGORY_LABELS[category]}
+            {eventCategoryLabel(category, dict)}
           </span>
         )}
 
@@ -58,7 +61,7 @@ export default function EventCard({
       <h3 className="mt-1 font-semibold">{name}</h3>
 
       <p className="mt-2 text-sm text-zinc-400">
-        {description || "No description available for this event yet."}
+        {description || dict.onboarding.noDescription}
       </p>
 
       {selected && (

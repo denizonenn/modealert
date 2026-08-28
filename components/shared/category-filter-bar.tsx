@@ -3,11 +3,13 @@
 import { cn } from "@/lib/utils"
 
 import {
-  EVENT_CATEGORY_EXAMPLES,
-  EVENT_CATEGORY_LABELS,
   EVENT_CATEGORY_ORDER,
+  eventCategoryExample,
+  eventCategoryLabel,
   type EventCategory,
 } from "@/lib/constants/event-category"
+
+import { useI18n } from "@/components/providers/i18n-provider"
 
 interface Props {
   selected: Set<EventCategory>
@@ -15,6 +17,8 @@ interface Props {
 }
 
 export function CategoryFilterBar({ selected, onToggle }: Props) {
+  const { dict } = useI18n()
+
   return (
     <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
       {EVENT_CATEGORY_ORDER.map((category) => {
@@ -33,10 +37,10 @@ export function CategoryFilterBar({ selected, onToggle }: Props) {
             )}
           >
             <p className="text-sm font-semibold">
-              {EVENT_CATEGORY_LABELS[category]}
+              {eventCategoryLabel(category, dict)}
             </p>
             <p className="mt-1 text-xs text-zinc-500">
-              {EVENT_CATEGORY_EXAMPLES[category]}
+              {eventCategoryExample(category, dict)}
             </p>
           </button>
         )

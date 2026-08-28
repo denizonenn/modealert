@@ -276,6 +276,7 @@
     "failedToLoadGames": "Oyunlar yüklenemedi.",
     "noEventsFound": "Seçtiğin oyunlar ve kategoriler için henüz etkinlik bulunamadı — daha sonra tekrar bak.",
     "failedToLoadEvents": "Etkinlikler yüklenemedi.",
+    "noDescription": "Bu etkinlik için henüz açıklama yok.",
     "aboutToTrackOne": "{count} etkinliği takip etmek üzeresin",
     "aboutToTrackMany": "{count} etkinliği takip etmek üzeresin",
     "weWillCheck": "Değişiklikleri otomatik olarak kontrol edeceğiz ve bir şey canlıya geçtiği anda seni e-posta veya Discord ile uyaracağız.",
@@ -286,5 +287,25 @@
     "forUnlimitedTracking": "sınırsız takip için, ya da sığanla devam et.",
     "continueToDashboard": "Panele devam et",
     "startTracking": "Takibe Başla"
+  },
+  "eventCategory": {
+    "labels": {
+      "PLAYABLE": "Oynanabilir",
+      "SEASON_PASS": "Sezon / Battle Pass",
+      "ROTATION_MILESTONE": "Rotasyon & Kilometre Taşları",
+      "COSMETIC_SHOP": "Kozmetik Mağaza",
+      "PLATFORM_STATUS": "Platform Durumu"
+    },
+    "examples": {
+      "PLAYABLE": "örn. URF/Arena/Mayhem, PoE league, Helldivers 2 Major Order, Foxhole savaşı",
+      "SEASON_PASS": "örn. Mayhem/URF İlerleme Rotası, Nightwave, Valorant Act",
+      "ROTATION_MILESTONE": "örn. Şampiyon Rotasyonu, Destiny haftalık kilometre taşları, Warframe Sortie",
+      "COSMETIC_SHOP": "örn. Fortnite Item Shop",
+      "PLATFORM_STATUS": "örn. sunucu bakım pencereleri"
+    },
+    "rotationLabels": {
+      "limited": "Sınırlı Süreli",
+      "permanent": "Kalıcı"
+    }
   }
 }

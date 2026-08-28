@@ -276,6 +276,7 @@
     "failedToLoadGames": "Failed to load games.",
     "noEventsFound": "No events found for your selected games and categories yet — check back soon.",
     "failedToLoadEvents": "Failed to load events.",
+    "noDescription": "No description available for this event yet.",
     "aboutToTrackOne": "You're about to track {count} event",
     "aboutToTrackMany": "You're about to track {count} events",
     "weWillCheck": "We'll check for changes automatically and alert you by email or Discord the moment something goes live.",
@@ -286,5 +287,25 @@
     "forUnlimitedTracking": "for unlimited tracking, or continue with what fit.",
     "continueToDashboard": "Continue to dashboard",
     "startTracking": "Start Tracking"
+  },
+  "eventCategory": {
+    "labels": {
+      "PLAYABLE": "Playable",
+      "SEASON_PASS": "Season / Battle Pass",
+      "ROTATION_MILESTONE": "Rotation & Milestones",
+      "COSMETIC_SHOP": "Cosmetic Shop",
+      "PLATFORM_STATUS": "Platform Status"
+    },
+    "examples": {
+      "PLAYABLE": "e.g. URF/Arena/Mayhem, PoE league, Helldivers 2 Major Order, Foxhole war",
+      "SEASON_PASS": "e.g. Mayhem/URF Progression Track, Nightwave, Valorant Act",
+      "ROTATION_MILESTONE": "e.g. Champion Rotation, Destiny weekly milestones, Warframe Sortie",
+      "COSMETIC_SHOP": "e.g. Fortnite Item Shop",
+      "PLATFORM_STATUS": "e.g. server maintenance windows"
+    },
+    "rotationLabels": {
+      "limited": "Limited Time",
+      "permanent": "Permanent"
+    }
   }
 }

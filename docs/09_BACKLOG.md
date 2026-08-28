@@ -563,16 +563,24 @@ Done (2026-08-20) — Faz 2, `/onboarding`
   `/games/[slug]` arasında paylaşılıyor, tek başına ayrı bir iş
   olarak ele alınmalı (aşağıya eklendi).
 
+Done (2026-08-28) — paylaşılan kategori/rotasyon filtre etiketleri
+
+- **`lib/constants/event-category.ts`'e `dict` alan fonksiyonlar
+  eklendi:** `eventCategoryLabel()`, `eventCategoryExample()`,
+  `rotationFilterLabel()` — yeni `eventCategory` sözlük alanı
+  (`en.json`/`tr.json`: `labels`/`examples`/`rotationLabels`).
+  `CategoryFilterBar`, `RotationFilterBar` (`useI18n()` ile) ve
+  `EventCard` (sadece onboarding'in `event-selector`'ında kullanılıyor
+  — `noDescription` metni de `onboarding` sözlüğüne eklendi) bu
+  fonksiyonlara geçirildi. Eski `EVENT_CATEGORY_LABELS`/
+  `EVENT_CATEGORY_EXAMPLES`/`ROTATION_FILTER_LABELS` sabitleri
+  **kasıtlı olarak kaldırılmadı** — `/events/[slug]`, `/games/[slug]`
+  ve admin'in `global-statistics.service.ts`'i henüz çevrilmemiş
+  sayfalar/servisler, oralarda hâlâ İngilizce sabitler kullanılıyor.
+  O sayfalar çevrildikçe aynı `dict`-alan fonksiyonlara geçirilmeli.
+
 Kaldığım yer — açık işler (öncelik sırasıyla)
 
-- **Paylaşılan kategori/rotasyon filtre etiketleri** —
-  `lib/constants/event-category.ts`'teki `EVENT_CATEGORY_LABELS`,
-  `EVENT_CATEGORY_EXAMPLES`, `ROTATION_FILTER_LABELS` hâlâ sabit
-  İngilizce string'ler; `CategoryFilterBar`/`RotationFilterBar`
-  üzerinden onboarding, dashboard ve muhtemelen `/games/[slug]`'ta
-  kullanılıyor. Fonksiyona çevirip `dict` almalı, tüm çağıranlar
-  güncellenmeli — Faz 2'nin geri kalanından önce veya dashboard'a
-  sıra gelince yapılabilir.
 - **Faz 2 — kalan ~12 sayfanın arayüz metni.**
   `/statistics`, `/status`,
   `/live`, `/privacy`, `/terms`,
