@@ -530,7 +530,12 @@
     "sectionTracking": "Takip Ediliyor",
     "sectionEnded": "Yakın Zamanda Bitti",
     "removeFromWatchlist": "Watchlist'ten kaldır",
-    "addToWatchlist": "Watchlist'e ekle"
+    "addToWatchlist": "Watchlist'e ekle",
+    "saveCurrentFilters": "Filtreyi kaydet",
+    "filterNamePlaceholder": "Filtreye isim ver...",
+    "saveFilter": "Kaydet",
+    "applyFilter": "\"{name}\" filtresini uygula",
+    "deleteFilter": "\"{name}\" filtresini sil"
   },
   "notifications": {
     "title": "Bildirimler",

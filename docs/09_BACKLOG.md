@@ -919,11 +919,27 @@ Done (2026-08-20)
   Both are pure client-side `.filter()` over data already fetched — no
   new API route or index needed at this scale.
 
-Future
+Done (2026-09-02)
 
-- Custom filters (saved combinations of the existing category/
-  rotation/game filters) — no user has asked for this yet, revisit if
-  the plain filter bars stop being enough.
+- **Custom filters** — saved combinations of the existing game/
+  category/rotation filters on the dashboard's "All Events" list.
+  New `lib/dashboard/filter-presets.ts` (pure create/apply/serialize/
+  parse functions, 9 unit tests) + `hooks/use-filter-presets.ts`
+  (`useSyncExternalStore` over `localStorage`, not a `useEffect`
+  hydration dance — avoids the `react-hooks/set-state-in-effect` lint
+  rule and any hydration-mismatch flicker) + `FilterPresetsBar`
+  (`components/shared/filter-presets-bar.tsx`), wired into
+  `WatchingList` next to the existing `CategoryFilterBar`/
+  `RotationFilterBar`. Client-side only (no schema change, no
+  migration) — this is a per-browser convenience for a feature nobody
+  had asked for yet, not data that needs to survive a browser reset or
+  sync across devices; revisit as a real `FilterPreset` DB table if
+  that ever changes. Storage content is treated as untrusted input
+  (validates each preset's shape, silently drops malformed entries
+  instead of crashing) since it round-trips through `JSON.parse` and a
+  user could hand-edit it in devtools. Search text is deliberately
+  excluded from presets — it's a transient lookup, not something
+  worth naming and re-applying. i18n'd (`en.json`/`tr.json`).
 
 ---
 

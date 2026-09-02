@@ -20,8 +20,10 @@ import type { EventStatus } from "@/types/status"
 
 import { CategoryFilterBar } from "@/components/shared/category-filter-bar"
 import { RotationFilterBar } from "@/components/shared/rotation-filter-bar"
+import { FilterPresetsBar } from "@/components/shared/filter-presets-bar"
 import { useI18n } from "@/components/providers/i18n-provider"
 import { resolveEventDescription } from "@/lib/i18n/event-descriptions"
+import type { FilterSelection } from "@/lib/dashboard/filter-presets"
 
 import {
   categorySortKey,
@@ -253,6 +255,12 @@ export default function WatchingList() {
     })
   }
 
+  function applyFilterSelection(selection: FilterSelection) {
+    setSelectedGameId(selection.gameId)
+    setSelectedCategories(selection.categories)
+    setSelectedRotations(selection.rotations)
+  }
+
   const isLoading = eventsLoading || watchlistLoading
 
   const games = useMemo(() => {
@@ -436,6 +444,15 @@ export default function WatchingList() {
             <RotationFilterBar
               selected={selectedRotations}
               onToggle={toggleRotation}
+            />
+
+            <FilterPresetsBar
+              selection={{
+                gameId: selectedGameId,
+                categories: selectedCategories,
+                rotations: selectedRotations,
+              }}
+              onApply={applyFilterSelection}
             />
           </div>
 

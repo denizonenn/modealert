@@ -530,7 +530,12 @@
     "sectionTracking": "Tracking",
     "sectionEnded": "Recently Ended",
     "removeFromWatchlist": "Remove from watchlist",
-    "addToWatchlist": "Add to watchlist"
+    "addToWatchlist": "Add to watchlist",
+    "saveCurrentFilters": "Save current filters",
+    "filterNamePlaceholder": "Name this filter...",
+    "saveFilter": "Save",
+    "applyFilter": "Apply \"{name}\"",
+    "deleteFilter": "Delete \"{name}\""
   },
   "notifications": {
     "title": "Notifications",
