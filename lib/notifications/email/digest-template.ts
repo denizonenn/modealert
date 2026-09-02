@@ -14,19 +14,34 @@ export interface DigestEntry {
   url?: string;
 }
 
-// Real content only — every row is a currently-tracked event's actual
-// status, nothing inferred or padded out to look busier than it is
-// (an empty digest would just not be sent at all, see
-// weekly-digest.service.ts).
 export interface DigestFeedbackUrls {
   useful: string;
   notUseful: string;
 }
 
+// The label fields are the recipient's own translated copy, resolved
+// by weekly-digest.service.ts — this stays a pure string builder with
+// no request scope of its own.
+export interface DigestLabels {
+  eyebrow: string;
+  title: string;
+  intro: string;
+  usefulQuestion: string;
+  yes: string;
+  no: string;
+  footer: string;
+  unsubscribe: string;
+}
+
+// Real content only — every row is a currently-tracked event's actual
+// status, nothing inferred or padded out to look busier than it is
+// (an empty digest would just not be sent at all, see
+// weekly-digest.service.ts).
 export function buildDigestHtml(
   entries: DigestEntry[],
   unsubscribeUrl: string,
-  feedbackUrls: DigestFeedbackUrls
+  feedbackUrls: DigestFeedbackUrls,
+  labels: DigestLabels
 ): string {
   const safeUnsubscribeUrl = escapeHtml(unsubscribeUrl);
   const safeUsefulUrl = escapeHtml(feedbackUrls.useful);
@@ -68,31 +83,29 @@ export function buildDigestHtml(
       <tr>
         <td style="background:#111111;border:1px solid #222222;border-radius:16px;padding:24px;">
           <p style="margin:0 0 8px;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:#888888;">
-            Weekly Digest
+            ${escapeHtml(labels.eyebrow)}
           </p>
           <h1 style="margin:0 0 4px;font-size:20px;">
-            Your watchlist this week
+            ${escapeHtml(labels.title)}
           </h1>
           <p style="margin:0 0 8px;color:#aaaaaa;font-size:13px;">
-            Real-time alerts still fire the moment something changes —
-            this is just the current status of everything you're
-            tracking, in one place.
+            ${escapeHtml(labels.intro)}
           </p>
           <table style="width:100%;border-collapse:collapse;">
             ${rows}
           </table>
           <p style="margin:20px 0 0;padding-top:16px;border-top:1px solid #222222;font-size:12px;color:#888888;">
-            Was this digest useful?
-            <a href="${safeUsefulUrl}" style="color:#ffffff;margin-left:6px;">Yes</a>
+            ${escapeHtml(labels.usefulQuestion)}
+            <a href="${safeUsefulUrl}" style="color:#ffffff;margin-left:6px;">${escapeHtml(labels.yes)}</a>
             ·
-            <a href="${safeNotUsefulUrl}" style="color:#ffffff;">No</a>
+            <a href="${safeNotUsefulUrl}" style="color:#ffffff;">${escapeHtml(labels.no)}</a>
           </p>
         </td>
       </tr>
       <tr>
         <td style="padding-top:16px;font-size:12px;color:#666666;">
-          You're getting this because you're tracking at least one event.
-          <a href="${safeUnsubscribeUrl}" style="color:#666666;">Unsubscribe</a>
+          ${escapeHtml(labels.footer)}
+          <a href="${safeUnsubscribeUrl}" style="color:#666666;">${escapeHtml(labels.unsubscribe)}</a>
         </td>
       </tr>
     </table>

@@ -15,6 +15,13 @@ export const LOCALE_LABELS: Record<Locale, string> = {
   tr: "Türkçe",
 };
 
+// The browsing-language cookie proxy.ts reads/writes and the language
+// switcher writes directly — shared here so a third reader (the
+// welcome/magic-link email, which want "what language was this
+// visitor already seeing the site in" at signup time) doesn't
+// duplicate the literal.
+export const LOCALE_COOKIE_NAME = "modealert-locale";
+
 export function isLocale(value: string): value is Locale {
   return (LOCALES as readonly string[]).includes(value);
 }

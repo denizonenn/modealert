@@ -7,6 +7,8 @@ import { env } from "@/lib/config/env";
 import { SITE_URL } from "@/lib/constants/site";
 import { logger } from "@/lib/logger/logger";
 import { checkRateLimit } from "@/lib/security/rate-limit";
+import { getDictionaryFor } from "@/lib/i18n/load-dictionary";
+import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/config";
 
 // "At most one digest per user per 6 days" is literally a rate limit,
 // so this reuses the existing Postgres-backed limiter rather than
@@ -43,12 +45,17 @@ export const weeklyDigestService = {
     let skipped = 0;
 
     for (const recipient of recipients) {
+      const locale =
+        recipient.locale && isLocale(recipient.locale)
+          ? recipient.locale
+          : DEFAULT_LOCALE;
+
       const entries = recipient.watchlists.map((w) => ({
         title: w.event.title,
         status: w.event.status,
         gameName: w.event.game.name,
         url: w.event.slug
-          ? `${SITE_URL}/events/${w.event.slug}`
+          ? `${SITE_URL}/${locale}/events/${w.event.slug}`
           : undefined,
       }));
 
@@ -88,14 +95,26 @@ export const weeklyDigestService = {
       };
 
       try {
+        const dict = await getDictionaryFor(locale);
+        const t = dict.digestEmail;
+
         await resend.emails.send({
           from: env.EMAIL_FROM,
           to: recipient.email,
-          subject: "Your ModeAlert weekly digest",
+          subject: t.subject,
           text: entries
             .map((e) => `${e.gameName}: ${e.title} — ${e.status}`)
             .join("\n"),
-          html: buildDigestHtml(entries, unsubscribeUrl, feedbackUrls),
+          html: buildDigestHtml(entries, unsubscribeUrl, feedbackUrls, {
+            eyebrow: t.eyebrow,
+            title: t.title,
+            intro: t.intro,
+            usefulQuestion: t.usefulQuestion,
+            yes: t.yes,
+            no: t.no,
+            footer: t.footer,
+            unsubscribe: dict.notificationMessages.unsubscribe,
+          }),
         });
 
         sent++;

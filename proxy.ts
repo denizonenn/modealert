@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-import { LOCALES, resolveLocale, isLocale } from "@/lib/i18n/config";
-
-const LOCALE_COOKIE = "modealert-locale";
+import {
+  LOCALES,
+  resolveLocale,
+  isLocale,
+  LOCALE_COOKIE_NAME,
+} from "@/lib/i18n/config";
 
 // A year — this only holds an explicit language choice, so it should
 // outlive a session.
@@ -52,7 +55,7 @@ export function proxy(request: NextRequest) {
   // An explicit choice (set by the language switcher) always beats
   // the browser's Accept-Language header — otherwise a Turkish
   // browser could never stay on the English site.
-  const chosen = request.cookies.get(LOCALE_COOKIE)?.value;
+  const chosen = request.cookies.get(LOCALE_COOKIE_NAME)?.value;
 
   const locale =
     chosen && isLocale(chosen)
@@ -67,7 +70,7 @@ export function proxy(request: NextRequest) {
   // Remember the detected locale so the next request skips
   // Accept-Language negotiation entirely.
   if (!chosen) {
-    response.cookies.set(LOCALE_COOKIE, locale, {
+    response.cookies.set(LOCALE_COOKIE_NAME, locale, {
       maxAge: LOCALE_COOKIE_MAX_AGE,
       path: "/",
       sameSite: "lax",

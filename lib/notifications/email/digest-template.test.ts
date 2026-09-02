@@ -12,6 +12,21 @@ const FEEDBACK_URLS = {
     "https://modealert.vercel.app/api/digest-feedback?userId=1&token=abc&useful=0",
 };
 
+// The recipient's own translated copy, resolved by
+// weekly-digest.service.ts — English here so assertions stay
+// readable; a tr case is covered separately below.
+const EN_LABELS = {
+  eyebrow: "Weekly Digest",
+  title: "Your watchlist this week",
+  intro:
+    "Real-time alerts still fire the moment something changes — this is just the current status of everything you're tracking, in one place.",
+  usefulQuestion: "Was this digest useful?",
+  yes: "Yes",
+  no: "No",
+  footer: "You're getting this because you're tracking at least one event.",
+  unsubscribe: "Unsubscribe",
+};
+
 describe("buildDigestHtml", () => {
   it("renders every tracked event with its game and status", () => {
     const html = buildDigestHtml(
@@ -20,7 +35,8 @@ describe("buildDigestHtml", () => {
         { title: "War #139", gameName: "Foxhole", status: "ENDED" },
       ],
       UNSUBSCRIBE_URL,
-      FEEDBACK_URLS
+      FEEDBACK_URLS,
+      EN_LABELS
     );
 
     expect(html).toContain("Set 18");
@@ -40,7 +56,8 @@ describe("buildDigestHtml", () => {
         },
       ],
       UNSUBSCRIBE_URL,
-      FEEDBACK_URLS
+      FEEDBACK_URLS,
+      EN_LABELS
     );
 
     expect(html).toContain(
@@ -52,7 +69,8 @@ describe("buildDigestHtml", () => {
     const html = buildDigestHtml(
       [{ title: "Set 18", gameName: "Teamfight Tactics", status: "LIVE" }],
       UNSUBSCRIBE_URL,
-      FEEDBACK_URLS
+      FEEDBACK_URLS,
+      EN_LABELS
     );
 
     expect(html).toContain("Set 18");
@@ -69,7 +87,8 @@ describe("buildDigestHtml", () => {
         },
       ],
       UNSUBSCRIBE_URL,
-      FEEDBACK_URLS
+      FEEDBACK_URLS,
+      EN_LABELS
     );
 
     expect(html).not.toContain("<script>alert(1)</script>");
@@ -88,7 +107,8 @@ describe("buildDigestHtml", () => {
         },
       ],
       UNSUBSCRIBE_URL,
-      FEEDBACK_URLS
+      FEEDBACK_URLS,
+      EN_LABELS
     );
 
     expect(html).not.toContain('"><script>alert(1)</script>');
@@ -98,7 +118,8 @@ describe("buildDigestHtml", () => {
     const html = buildDigestHtml(
       [{ title: "Set 18", gameName: "Teamfight Tactics", status: "LIVE" }],
       UNSUBSCRIBE_URL,
-      FEEDBACK_URLS
+      FEEDBACK_URLS,
+      EN_LABELS
     );
 
     expect(html).toContain(
@@ -107,5 +128,32 @@ describe("buildDigestHtml", () => {
     expect(html).toContain(
       `href="${FEEDBACK_URLS.notUseful.replace(/&/g, "&amp;")}"`
     );
+  });
+
+  it("renders the caller's translated labels rather than hardcoded English", () => {
+    const html = buildDigestHtml(
+      [{ title: "Set 18", gameName: "Teamfight Tactics", status: "LIVE" }],
+      UNSUBSCRIBE_URL,
+      FEEDBACK_URLS,
+      {
+        eyebrow: "Haftalık Özet",
+        title: "Bu hafta watchlist'in",
+        intro: "Anlık uyarılar bir şey değiştiği an gelmeye devam ediyor.",
+        usefulQuestion: "Bu özet işine yaradı mı?",
+        yes: "Evet",
+        no: "Hayır",
+        footer: "Bunu, en az bir etkinliği takip ettiğin için alıyorsun.",
+        unsubscribe: "Abonelikten çık",
+      }
+    );
+
+    expect(html).toContain("Haftalık Özet");
+    expect(html).toContain("Bu hafta watchlist&#39;in");
+    expect(html).toContain("Bu özet işine yaradı mı?");
+    expect(html).toContain(">Evet<");
+    expect(html).toContain(">Hayır<");
+    expect(html).toContain("Abonelikten çık");
+    expect(html).not.toContain("Weekly Digest");
+    expect(html).not.toContain("Was this digest useful?");
   });
 });

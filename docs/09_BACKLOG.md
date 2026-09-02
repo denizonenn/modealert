@@ -773,15 +773,26 @@ Done (2026-08-29) — Faz 4b: sayfa-seviyesi hreflang
 Faz 1-5 + SEO Faz 4/4b böylece hepsi tamamlandı — kalan tek i18n işi
 aşağıdaki e-posta şablonları.
 
+- **E-posta şablonları da çevrildi (Faz 5b).** Haftalık digest,
+  hoş geldin e-postası ve magic-link giriş e-postası artık alıcının
+  kendi dilinde gidiyor. Digest `User.locale`'ı kullanıyor (`null`
+  ise `DEFAULT_LOCALE`'a düşüyor). Hoş geldin ve magic-link için henüz
+  `User.locale` yok (hesap yeni oluşturuluyor) — bunun yerine yeni
+  `lib/i18n/request-locale.ts` → `getRequestLocale()`, ziyaretçiye
+  zaten gösterilmekte olan `modealert-locale` çerezini okuyor.
+  `LOCALE_COOKIE_NAME` artık `lib/i18n/config.ts`'te tek yerden
+  tanımlı (`proxy.ts` ve `language-switcher.tsx` da oradan alıyor).
+  Şablon fonksiyonları (`buildDigestHtml`, `buildWelcomeEmailHtml`,
+  `buildMagicLinkHtml`) hâlâ saf string builder — locale'i kendileri
+  çözmüyor, çağıran taraf zaten çözülmüş `labels` objesini veriyor.
+  Bilinçli olarak İngilizce kalan tek e-posta: admin uyarıları
+  (sadece Deniz'e gidiyor).
+
 Kaldığım yer — açık işler
 
-- **Kalan çevrilmemiş e-postalar:** hoş geldin e-postası, magic-link
-  giriş e-postası, haftalık digest, admin uyarıları. Faz 5'te
-  bilinçli olarak dışarıda bırakıldı — ilk ikisi kullanıcı henüz bir
-  dil seçmeden gönderiliyor (yeni hesap, `User.locale` hâlâ `null`),
-  digest kendi ayrı şablonunda, admin uyarıları zaten sadece Deniz'e
-  gidiyor. Digest en mantıklı sıradaki aday: `User.locale` artık var,
-  `getDigestRecipients()`'a bir alan eklemek yetiyor.
+- Bilinen açık i18n işi kalmadı. Yeni sayfa/e-posta eklenirse aynı
+  desen: metni `en.json`+`tr.json`'a ekle, `Dictionary` tipinden
+  gelsin.
 
 Yeni dil eklemek
 

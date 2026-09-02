@@ -9,9 +9,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { useI18n } from "@/components/providers/i18n-provider"
-import { LOCALES, LOCALE_LABELS, type Locale } from "@/lib/i18n/config"
+import {
+  LOCALES,
+  LOCALE_LABELS,
+  LOCALE_COOKIE_NAME,
+  type Locale,
+} from "@/lib/i18n/config"
 
-const LOCALE_COOKIE = "modealert-locale"
 const ONE_YEAR_SECONDS = 365 * 24 * 60 * 60
 
 // Persisted so proxy.ts stops falling back to Accept-Language —
@@ -20,7 +24,7 @@ const ONE_YEAR_SECONDS = 365 * 24 * 60 * 60
 // outside the component because it's a side effect on a browser
 // global, not component state.
 function rememberLocale(locale: Locale) {
-  document.cookie = `${LOCALE_COOKIE}=${locale};path=/;max-age=${ONE_YEAR_SECONDS};samesite=lax`
+  document.cookie = `${LOCALE_COOKIE_NAME}=${locale};path=/;max-age=${ONE_YEAR_SECONDS};samesite=lax`
 }
 
 export function LanguageSwitcher() {

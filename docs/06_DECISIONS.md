@@ -4605,6 +4605,38 @@ fallback değişirse mevcut satırlar bilinçli bir seçim sanılmasın).
   şablon, admin uyarıları zaten sadece Deniz'e gidiyor. Ayrı bir iş
   olarak backlog'da.
 
+**Faz 5b (2026-08-29): Kalan üç e-posta da çevrildi.** Haftalık
+digest, hoş geldin e-postası ve magic-link giriş e-postası.
+
+- **Digest:** `getDigestRecipients()` artık `locale` de seçiyor;
+  gönderim döngüsünün içinde alıcı başına `dict = await
+  getDictionaryFor(locale)` çözülüyor (Faz 5'teki "içerik alıcı
+  başına kurulur" deseniyle aynı). `buildDigestHtml()` 4. parametre
+  olarak `labels` alıyor artık, kendi içinde sözlük okumuyor.
+- **Hoş geldin ve magic-link — henüz `User.locale` yok sorunu:**
+  ikisi de hesap oluşturulurken/girişten önce gönderiliyor, yani
+  okunacak bir `User.locale` henüz yok. Çözüm: yeni
+  `lib/i18n/request-locale.ts` → `getRequestLocale()`, ziyaretçiye
+  zaten gösterilmekte olan `modealert-locale` çerezini `next/headers`
+  `cookies()` ile okuyor (istek kapsamında çalışıyor, sayfa/root-param
+  gerekmiyor — `auth.ts`'in `sendVerificationRequest` callback'i ve
+  `welcome.ts` ikisi de gerçek bir Next sayfası değil, ama hâlâ bir
+  istek kapsamının içindeler).
+- **`LOCALE_COOKIE_NAME` merkezi hale getirildi.** Daha önce
+  `proxy.ts` ve `language-switcher.tsx`'te birbirinden bağımsız iki
+  ayrı sabitti (aynı string, iki yerde elle yazılmış) — artık
+  `lib/i18n/config.ts`'te tek tanım, ikisi de oradan import ediyor.
+- **`buildWelcomeEmailHtml`/`buildMagicLinkHtml`** de `buildEmailHtml`
+  ile aynı desene geçti: `labels` objesi parametre, kendileri sözlük
+  okumuyor. Ayrıca hoş geldin e-postasındaki sabit "13 games" metni
+  `GAMES_WITH_PROVIDER.size`'a bağlandı (dinamik, uygulamanın geri
+  kalanıyla aynı desen).
+- `template.test.ts`'e `buildMagicLinkHtml` için yeni bir `describe`
+  bloğu + Türkçe label testi eklendi, `buildWelcomeEmailHtml`
+  testlerine de bir Türkçe vaka eklendi (221 test, hepsi yeşil).
+- **Artık bilinçli olarak İngilizce kalan tek e-posta: admin
+  uyarıları** (sadece Deniz'e gidiyor, çeviriye gerek yok).
+
 ## Sonuçlar
 
 - Üçüncü bir dil eklemek: `lib/i18n/dictionaries/<kod>.json` + 

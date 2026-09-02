@@ -38,6 +38,7 @@ export async function getDigestRecipients() {
     select: {
       id: true,
       email: true,
+      locale: true,
       watchlists: {
         select: {
           event: {

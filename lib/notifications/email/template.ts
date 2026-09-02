@@ -56,7 +56,21 @@ export function buildAdminAlertHtml(
 // tracking notification. `url` is a one-time, expiring, HMAC-signed
 // Auth.js token — safe to link directly, not user-controlled input,
 // but still escaped for consistency with the rest of this file.
-export function buildMagicLinkHtml(url: string): string {
+// Labels come from the caller's own dictionary (resolved from the
+// visitor's browsing-language cookie, see lib/i18n/request-locale.ts
+// — there's no signed-in user yet to have a stored locale of their
+// own at this point), same "pure string builder" pattern as the
+// other templates in this file.
+export function buildMagicLinkHtml(
+  url: string,
+  labels: {
+    eyebrow: string
+    title: string
+    intro: string
+    cta: string
+    footer: string
+  }
+): string {
   const safeUrl = escapeHtml(url)
 
   return `<!doctype html>
@@ -71,23 +85,22 @@ export function buildMagicLinkHtml(url: string): string {
       <tr>
         <td style="background:#111111;border:1px solid #222222;border-radius:16px;padding:24px;">
           <p style="margin:0 0 8px;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:#888888;">
-            Sign In
+            ${escapeHtml(labels.eyebrow)}
           </p>
           <h1 style="margin:0 0 12px;font-size:20px;">
-            Your sign-in link
+            ${escapeHtml(labels.title)}
           </h1>
           <p style="margin:0 0 20px;color:#aaaaaa;font-size:14px;line-height:1.5;">
-            Click below to sign in to ModeAlert. This link expires in
-            24 hours and can only be used once.
+            ${escapeHtml(labels.intro)}
           </p>
           <a href="${safeUrl}" style="display:inline-block;background:#ffffff;color:#000000;font-size:14px;font-weight:600;text-decoration:none;padding:10px 20px;border-radius:8px;">
-            Sign in
+            ${escapeHtml(labels.cta)}
           </a>
         </td>
       </tr>
       <tr>
         <td style="padding-top:16px;font-size:12px;color:#666666;">
-          If you didn&apos;t request this, you can safely ignore this email.
+          ${escapeHtml(labels.footer)}
         </td>
       </tr>
     </table>
@@ -100,7 +113,16 @@ export function buildMagicLinkHtml(url: string): string {
 // email+password via /api/auth/register) — same visual language as
 // the other templates, points straight at onboarding since a
 // brand-new account has no watchlist yet.
-export function buildWelcomeEmailHtml(onboardingUrl: string): string {
+export function buildWelcomeEmailHtml(
+  onboardingUrl: string,
+  labels: {
+    eyebrow: string
+    title: string
+    intro: string
+    cta: string
+    footer: string
+  }
+): string {
   const safeUrl = escapeHtml(onboardingUrl)
 
   return `<!doctype html>
@@ -115,26 +137,22 @@ export function buildWelcomeEmailHtml(onboardingUrl: string): string {
       <tr>
         <td style="background:#111111;border:1px solid #222222;border-radius:16px;padding:24px;">
           <p style="margin:0 0 8px;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:#888888;">
-            Welcome
+            ${escapeHtml(labels.eyebrow)}
           </p>
           <h1 style="margin:0 0 12px;font-size:20px;">
-            You&apos;re in.
+            ${escapeHtml(labels.title)}
           </h1>
           <p style="margin:0 0 20px;color:#aaaaaa;font-size:14px;line-height:1.5;">
-            ModeAlert watches limited-time modes and events across 13
-            games and emails you the moment one you care about goes
-            live, ends, or changes. Pick your games and events to get
-            your first alert.
+            ${escapeHtml(labels.intro)}
           </p>
           <a href="${safeUrl}" style="display:inline-block;background:#ffffff;color:#000000;font-size:14px;font-weight:600;text-decoration:none;padding:10px 20px;border-radius:8px;">
-            Set up your watchlist
+            ${escapeHtml(labels.cta)}
           </a>
         </td>
       </tr>
       <tr>
         <td style="padding-top:16px;font-size:12px;color:#666666;">
-          You&apos;re getting this email because you just created a
-          ModeAlert account.
+          ${escapeHtml(labels.footer)}
         </td>
       </tr>
     </table>

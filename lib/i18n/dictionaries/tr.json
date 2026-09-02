@@ -694,5 +694,31 @@
     "unsubscribe": "Abonelikten çık",
     "emailEyebrow": "Etkinlik Güncellemesi",
     "emailFooter": "Bu e-postayı, watchlist'indeki bir etkinlik güncellendiği için alıyorsun."
+  },
+  "digestEmail": {
+    "subject": "ModeAlert haftalık özetin",
+    "eyebrow": "Haftalık Özet",
+    "title": "Bu hafta watchlist'in",
+    "intro": "Anlık uyarılar bir şey değiştiği an gelmeye devam ediyor — bu sadece takip ettiğin her şeyin güncel durumu, tek bir yerde.",
+    "usefulQuestion": "Bu özet işine yaradı mı?",
+    "yes": "Evet",
+    "no": "Hayır",
+    "footer": "Bunu, en az bir etkinliği takip ettiğin için alıyorsun."
+  },
+  "welcomeEmail": {
+    "subject": "ModeAlert'e hoş geldin",
+    "eyebrow": "Hoş Geldin",
+    "title": "Hazırsın.",
+    "intro": "ModeAlert, {count} oyunda süreli modları ve etkinlikleri izler, önemsediğin biri canlıya geçtiğinde, bittiğinde ya da değiştiğinde sana e-posta gönderir. İlk uyarını almak için oyunlarını ve etkinliklerini seç.",
+    "cta": "Watchlist'ini kur",
+    "footer": "Bu e-postayı, az önce bir ModeAlert hesabı oluşturduğun için alıyorsun."
+  },
+  "magicLinkEmail": {
+    "subject": "ModeAlert'e giriş yap",
+    "eyebrow": "Giriş",
+    "title": "Giriş linkin",
+    "intro": "ModeAlert'e giriş yapmak için aşağıya tıkla. Bu link 24 saat sonra süresi doluyor ve sadece bir kez kullanılabiliyor.",
+    "cta": "Giriş yap",
+    "footer": "Bunu sen istemediysen, bu e-postayı görmezden gelebilirsin."
   }
 }

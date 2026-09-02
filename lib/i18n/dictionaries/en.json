@@ -694,5 +694,31 @@
     "unsubscribe": "Unsubscribe",
     "emailEyebrow": "Event Update",
     "emailFooter": "You're getting this email because an event on your watchlist was updated."
+  },
+  "digestEmail": {
+    "subject": "Your ModeAlert weekly digest",
+    "eyebrow": "Weekly Digest",
+    "title": "Your watchlist this week",
+    "intro": "Real-time alerts still fire the moment something changes — this is just the current status of everything you're tracking, in one place.",
+    "usefulQuestion": "Was this digest useful?",
+    "yes": "Yes",
+    "no": "No",
+    "footer": "You're getting this because you're tracking at least one event."
+  },
+  "welcomeEmail": {
+    "subject": "Welcome to ModeAlert",
+    "eyebrow": "Welcome",
+    "title": "You're in.",
+    "intro": "ModeAlert watches limited-time modes and events across {count} games and emails you the moment one you care about goes live, ends, or changes. Pick your games and events to get your first alert.",
+    "cta": "Set up your watchlist",
+    "footer": "You're getting this email because you just created a ModeAlert account."
+  },
+  "magicLinkEmail": {
+    "subject": "Sign in to ModeAlert",
+    "eyebrow": "Sign In",
+    "title": "Your sign-in link",
+    "intro": "Click below to sign in to ModeAlert. This link expires in 24 hours and can only be used once.",
+    "cta": "Sign in",
+    "footer": "If you didn't request this, you can safely ignore this email."
   }
 }

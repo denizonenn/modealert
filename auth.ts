@@ -13,6 +13,8 @@ import { analyticsService } from "@/lib/services/analytics.service";
 import { ANALYTICS_EVENTS } from "@/lib/constants/analytics-events";
 import { buildMagicLinkHtml } from "@/lib/notifications/email/template";
 import { sendWelcomeEmail } from "@/lib/notifications/email/welcome";
+import { getRequestLocale } from "@/lib/i18n/request-locale";
+import { getDictionaryFor } from "@/lib/i18n/load-dictionary";
 
 const LOCKOUT_THRESHOLD = 5;
 const LOCKOUT_DURATION_MS = 15 * 60 * 1000;
@@ -69,6 +71,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             // gap. Same Resend API call the built-in provider makes,
             // just with our own subject/HTML.
             async sendVerificationRequest({ identifier, url, provider }) {
+              // No signed-in user yet (that's the whole point of this
+              // link), so there's no User.locale to read — fall back
+              // to the browsing-language cookie the site was already
+              // showing this visitor.
+              const locale = await getRequestLocale();
+              const dict = await getDictionaryFor(locale);
+              const t = dict.magicLinkEmail;
+
               const response = await fetch(
                 "https://api.resend.com/emails",
                 {
@@ -80,9 +90,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                   body: JSON.stringify({
                     from: provider.from,
                     to: identifier,
-                    subject: "Sign in to ModeAlert",
-                    html: buildMagicLinkHtml(url),
-                    text: `Sign in to ModeAlert: ${url}\n\nThis link expires in 24 hours and can only be used once. If you didn't request this, you can safely ignore this email.`,
+                    subject: t.subject,
+                    html: buildMagicLinkHtml(url, {
+                      eyebrow: t.eyebrow,
+                      title: t.title,
+                      intro: t.intro,
+                      cta: t.cta,
+                      footer: t.footer,
+                    }),
+                    text: `${t.subject}: ${url}\n\n${t.intro}`,
                   }),
                 }
               );
