@@ -1373,6 +1373,37 @@ Deliberately not built (would be fake or genuinely risky)
 
 ---
 
+# P1 — Sellable API
+
+Status: 🟡 (2026-09-04)
+
+Done
+
+- **Public read-only v1 API.** New `ApiKey` model (SHA-256 keyHash,
+  raw key shown once at creation, `keyPrefix` for identification).
+  `GET /api/v1/games`, `/api/v1/events` (filter: game/category/status/
+  limitedTime, paginated), `/api/v1/events/:slug`, `.../history`,
+  `.../statistics` — all behind `verifyApiKey()`
+  (`lib/api/verify-api-key.ts`): Bearer token + 300 req/hour, reusing
+  the existing Postgres-backed rate limiter (ADR-045) keyed by API key
+  id instead of IP. `/developers` docs page (English only, same
+  "some pages stay English" pattern as elsewhere) with the endpoint
+  reference and a contact email for access requests.
+- **Manual-approval issuance for now** — same gap as Premium
+  (Lemon Squeezy not live yet): admin-only `POST`/`GET`/`DELETE`
+  `/api/admin/api-keys`, issued by email via `isAdminEmail()`. No
+  self-serve signup or billing tier exists yet.
+
+Remaining
+
+- Self-serve signup + a real paid tier (separate from consumer
+  Premium — different audience, developers not watchlist users),
+  blocked on Lemon Squeezy the same way Premium is.
+- No usage dashboard for a key holder yet (request count, remaining
+  quota) — `RateLimitHit` rows exist but nothing surfaces them.
+
+---
+
 # P1 — Product Analytics & Retention
 
 Status: 🟢 (2026-08-13, ADR-046)
