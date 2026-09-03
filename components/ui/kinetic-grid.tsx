@@ -403,6 +403,18 @@ export default function KineticGrid({
         className="absolute inset-0 w-full h-full z-0 pointer-events-none"
       />
 
+      {/* Softens the hard edge where this section ends and the next
+          section's flat background begins — without it the grid reads
+          as abruptly clipped rather than fading out. */}
+      <div
+        className={cn(
+          "pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-40 bg-gradient-to-b from-transparent",
+          globalColor === "monochrome" || globalColor === "brand"
+            ? "to-[#000000]"
+            : "to-[#161618]",
+        )}
+      />
+
       <div className="relative z-10 w-full h-full">{children}</div>
     </div>
   );
