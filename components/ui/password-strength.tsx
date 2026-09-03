@@ -109,10 +109,21 @@ export function usePasswordStrength(
   }, [value, rules, labels]);
 
   const [settled, setSettled] = useState("");
+  const [prevAnnouncement, setPrevAnnouncement] = useState(state.announcement);
+
+  // Clearing (e.g. the field emptied) is reflected immediately — adjusting
+  // state during render, not in an effect, avoids an extra cascading
+  // render for this synchronous case. The delayed case (a real announcement
+  // to debounce for screen readers) still needs the effect below.
+  if (state.announcement !== prevAnnouncement) {
+    setPrevAnnouncement(state.announcement);
+    if (state.announcement === "") {
+      setSettled("");
+    }
+  }
 
   useEffect(() => {
     if (state.announcement === "") {
-      setSettled("");
       return;
     }
     const id = setTimeout(() => setSettled(state.announcement), announceDelay);
