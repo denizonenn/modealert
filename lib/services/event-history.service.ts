@@ -3,7 +3,9 @@ import {
   closeHistory,
   getLatestHistory,
   getHistoryByEvent,
+  getHistoryByEventIds,
   getHistoryBySeriesKey,
+  getHistoryBySeriesKeys,
 } from "@/lib/repositories/event-history.repository";
 
 export const eventHistoryService = {
@@ -59,5 +61,13 @@ export const eventHistoryService = {
     return getHistoryBySeriesKey(
       seriesKey
     );
+  },
+
+  async getByEventIds(eventIds: string[]) {
+    return getHistoryByEventIds(eventIds);
+  },
+
+  async getBySeriesKeys(seriesKeys: string[]) {
+    return getHistoryBySeriesKeys(seriesKeys);
   },
 };

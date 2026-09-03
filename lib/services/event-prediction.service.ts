@@ -271,7 +271,79 @@ async function predictNextArrivalWithResearchedFallback(
   };
 }
 
+// Batched version of predict()+predictNextArrival() together for many
+// events at once — one round trip for eventId-keyed history and one
+// for seriesKey-keyed history (via eventHistoryService.getByEventIds/
+// getBySeriesKeys), instead of 2 round trips per event. Used by
+// /calendar, which otherwise fires 2 * N history queries for N
+// limited-time events on every request (this page can't use ISR since
+// it also reads the session for premium gating).
+async function predictManyWithHistoryMaps(
+  events: Array<{ id: string; seriesKey: string | null }>,
+  historyByEventId: Map<string, HistoryEntry[]>,
+  historyBySeriesKey: Map<string, HistoryEntry[]>
+) {
+  const results = new Map<
+    string,
+    {
+      prediction: Awaited<ReturnType<typeof predictWithResearchedFallback>>;
+      nextArrival: Awaited<
+        ReturnType<typeof predictNextArrivalWithResearchedFallback>
+      >;
+    }
+  >();
+
+  await Promise.all(
+    events.map(async (event) => {
+      const key = event.seriesKey ?? event.id;
+      const history =
+        (event.seriesKey
+          ? historyBySeriesKey.get(event.seriesKey)
+          : historyByEventId.get(event.id)) ?? [];
+
+      const [prediction, nextArrival] = await Promise.all([
+        predictWithResearchedFallback(key, history),
+        predictNextArrivalWithResearchedFallback(key, history),
+      ]);
+
+      results.set(event.id, { prediction, nextArrival });
+    })
+  );
+
+  return results;
+}
+
 export const eventPredictionService = {
+  // events without a seriesKey are looked up by their own id; events
+  // sharing a seriesKey are looked up by that key (same grouping
+  // predict()/predictBySeriesKey() already use individually).
+  async predictMany(
+    events: Array<{ id: string; seriesKey: string | null }>
+  ) {
+    const eventIds = events
+      .filter((event) => !event.seriesKey)
+      .map((event) => event.id);
+
+    const seriesKeys = Array.from(
+      new Set(
+        events
+          .map((event) => event.seriesKey)
+          .filter((key): key is string => key !== null)
+      )
+    );
+
+    const [historyByEventId, historyBySeriesKey] = await Promise.all([
+      eventHistoryService.getByEventIds(eventIds),
+      eventHistoryService.getBySeriesKeys(seriesKeys),
+    ]);
+
+    return predictManyWithHistoryMaps(
+      events,
+      historyByEventId,
+      historyBySeriesKey
+    );
+  },
+
   async predictNextArrival(
     eventId: string
   ) {

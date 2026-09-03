@@ -51,23 +51,6 @@ function currentTime(): number {
   return Date.now()
 }
 
-async function getPredictionFor(event: {
-  id: string
-  seriesKey: string | null
-}) {
-  return event.seriesKey
-    ? Promise.all([
-        eventPredictionService.predictBySeriesKey(event.seriesKey),
-        eventPredictionService.predictNextArrivalBySeriesKey(
-          event.seriesKey
-        ),
-      ])
-    : Promise.all([
-        eventPredictionService.predict(event.id),
-        eventPredictionService.predictNextArrival(event.id),
-      ])
-}
-
 export default async function CalendarPage() {
   const dict = await getDictionary()
   const locale = await getLocale()
@@ -95,29 +78,49 @@ export default async function CalendarPage() {
   const endingSoon: CalendarRow[] = []
   const returning: CalendarRow[] = []
 
-  await Promise.all(
-    limitedTime.map(async (event) => {
-      const status = event.status as EventStatus
+  // One batched pair of DB round trips for every limited-time event's
+  // history, instead of 2 per event — this page can't rely on ISR
+  // (revalidate below) since auth()/billingService above already read
+  // the session and force dynamic rendering, so this runs on every
+  // request.
+  const needsPrediction = limitedTime.filter((event) => {
+    const status = event.status as EventStatus
+    return status === "LIVE" || status === "TRACKING" || status === "ENDED"
+  })
 
-      if (status === "LIVE") {
-        liveNow.push({
-          id: event.id,
-          title: event.title,
-          slug: event.slug,
-          status,
-          game: event.game,
-          date: liveSince.get(event.id) ?? null,
-          researched: false,
-        })
-      }
+  const predictions = await eventPredictionService.predictMany(
+    needsPrediction.map((event) => ({
+      id: event.id,
+      seriesKey: event.seriesKey,
+    }))
+  )
 
-      if (status !== "LIVE" && status !== "TRACKING" && status !== "ENDED") {
-        return
-      }
+  for (const event of limitedTime) {
+    const status = event.status as EventStatus
 
-      const [prediction, nextArrival] = await getPredictionFor(event)
+    if (status === "LIVE") {
+      liveNow.push({
+        id: event.id,
+        title: event.title,
+        slug: event.slug,
+        status,
+        game: event.game,
+        date: liveSince.get(event.id) ?? null,
+        researched: false,
+      })
+    }
 
-      // A predicted end date that's already passed while the event is
+    if (status !== "LIVE" && status !== "TRACKING" && status !== "ENDED") {
+      continue
+    }
+
+    const result = predictions.get(event.id)
+    if (!result) {
+      continue
+    }
+    const { prediction, nextArrival } = result
+
+    // A predicted end date that's already passed while the event is
       // still live means the estimate was simply wrong — showing it
       // under "Estimated to end" presents a date in the past as a
       // forecast (seen live: "Mayhem Set 2 — Aug 14" on Aug 19).
@@ -162,8 +165,7 @@ export default async function CalendarPage() {
             nextArrival.researched === true,
         })
       }
-    })
-  )
+    }
 
   liveNow.sort((a, b) => a.title.localeCompare(b.title))
   endingSoon.sort(

@@ -100,6 +100,49 @@ export async function getHistoryByEvent(
   });
 }
 
+// Same shape as getHistoryByEvent, batched — one round trip for many
+// events' history instead of one per event. Grouped by eventId so
+// callers can look up each event's own timeline in memory.
+export async function getHistoryByEventIds(
+  eventIds: string[]
+): Promise<Map<string, Awaited<ReturnType<typeof getHistoryByEvent>>>> {
+  if (eventIds.length === 0) {
+    return new Map();
+  }
+
+  const rows = await prisma.eventHistory.findMany({
+    where: {
+      eventId: { in: eventIds },
+    },
+    include: {
+      event: {
+        select: {
+          title: true,
+        },
+      },
+    },
+    orderBy: {
+      startedAt: "asc",
+    },
+  });
+
+  const byEventId = new Map<
+    string,
+    typeof rows
+  >();
+
+  for (const row of rows) {
+    const existing = byEventId.get(row.eventId);
+    if (existing) {
+      existing.push(row);
+    } else {
+      byEventId.set(row.eventId, [row]);
+    }
+  }
+
+  return byEventId;
+}
+
 // Combined history across every Event row sharing the same seriesKey
 // (e.g. every "Mayhem Set N" pass window) — lets stats/predictions
 // look at the full recurring pattern, not just one occurrence's row.
@@ -126,6 +169,56 @@ export async function getHistoryBySeriesKey(
       startedAt: "asc",
     },
   });
+}
+
+// Batched getHistoryBySeriesKey — one round trip for many series at
+// once, grouped by seriesKey. `event.seriesKey` is selected alongside
+// the existing `event.title` purely to group rows back to their
+// series in memory; it isn't otherwise part of this query's shape.
+export async function getHistoryBySeriesKeys(
+  seriesKeys: string[]
+): Promise<Map<string, Awaited<ReturnType<typeof getHistoryBySeriesKey>>>> {
+  if (seriesKeys.length === 0) {
+    return new Map();
+  }
+
+  const rows = await prisma.eventHistory.findMany({
+    where: {
+      event: {
+        seriesKey: { in: seriesKeys },
+      },
+    },
+    include: {
+      event: {
+        select: {
+          title: true,
+          seriesKey: true,
+        },
+      },
+    },
+    orderBy: {
+      startedAt: "asc",
+    },
+  });
+
+  const bySeriesKey = new Map<
+    string,
+    typeof rows
+  >();
+
+  for (const row of rows) {
+    // Guaranteed non-null by the where clause (`event.seriesKey: {
+    // in: seriesKeys }`), but Prisma's type doesn't encode that.
+    const key = row.event.seriesKey as string;
+    const existing = bySeriesKey.get(key);
+    if (existing) {
+      existing.push(row);
+    } else {
+      bySeriesKey.set(key, [row]);
+    }
+  }
+
+  return bySeriesKey;
 }
 
 // Most-recent-first, capped — for the public RSS feed. `getAllHistory`
