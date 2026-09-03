@@ -1,6 +1,13 @@
 import { prisma } from "@/lib/db/prisma";
 import { PLANS, type Plan } from "@/lib/constants/plan";
 
+export async function getUserByEmail(email: string) {
+  return prisma.user.findUnique({
+    where: { email },
+    select: { id: true, email: true },
+  });
+}
+
 export async function getUserPlan(
   userId: string
 ): Promise<Plan> {

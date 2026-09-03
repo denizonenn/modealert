@@ -47,6 +47,7 @@ model User {
   notifications       Notification[]
   analyticsEvents     AnalyticsEvent[]
   feedback            Feedback[]
+  apiKeys             ApiKey[]
 }
 
 model Account {
@@ -343,4 +344,29 @@ model Feedback {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([createdAt])
+}
+
+// Public read API (developer product). keyHash is a SHA-256 digest of
+// the raw key — the raw value is shown to the user exactly once at
+// creation and never stored, same principle as a password hash but
+// deterministic (SHA-256, not bcrypt) since every request needs a
+// fast, direct lookup by hash, not a per-request comparison. keyPrefix
+// (the raw key's first 12 chars) is stored in the clear so a user can
+// tell their keys apart in a list without ModeAlert ever holding the
+// full value.
+model ApiKey {
+  id         String    @id @default(cuid())
+  userId     String
+
+  name       String
+  keyHash    String    @unique
+  keyPrefix  String
+
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+  revokedAt  DateTime?
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

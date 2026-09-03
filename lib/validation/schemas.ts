@@ -81,6 +81,15 @@ export const localeSchema = z.object({
   locale: z.enum(LOCALES as unknown as [string, ...string[]]),
 });
 
+export const createApiKeySchema = z.object({
+  email: z.string().trim().toLowerCase().email(),
+  name: z.string().trim().min(1).max(100),
+});
+
+export const revokeApiKeySchema = z.object({
+  id: z.string().trim().min(1),
+});
+
 export const lemonSqueezyWebhookSchema = z.object({
   meta: z.object({
     event_name: z.string(),
