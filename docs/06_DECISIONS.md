@@ -5239,3 +5239,77 @@ aynı yeni email'le gönderildi, biri 200 biri 409 döndü (asla 500).
 dışında), `npm run build`, **255 test** (235 → 255, +20). Tüm test
 verisi (kullanıcılar + rate-limit satırları) temizlendi, kullanıcı
 sayısı test öncesiyle birebir aynı (6) doğrulandı.
+
+---
+
+# ADR-061: `/events/[slug]` geçmiş grafiği — Gantt-stili occurrence chart
+
+Status: Accepted
+
+Date: 2026-09-05
+
+## Bağlam
+
+Deniz "event tahmini/statistics kısmı bitmemiş gibi geliyor,
+geçmişte bütün eventler ne zaman çıkmış ne kadar kalmış historical
+data lazım" dedi. Gerçek DB'ye bakıldı: history takibi 2026-08-04'te
+başladı, bugün 2026-09-05 — 84 history satırı, 31'i tamamlanmış, 24
+farklı event'in en az 1 tamamlanmış görünümü, 4 event'in 2+ tamamlanmış
+görünümü var (Xûr gerçek ~haftalık kadans + ~3.5 gün süreyle 3 kez
+görünmüş). Yani motor (tahmin/istatistik) zaten gerçek veriyle
+çalışıyor — sorun kod değil, çoğu event için henüz yeterli geçmiş
+birikmemiş (geriye doldurulamaz). Netleştirme sorusuyla Deniz'in asıl
+istediği: mevcut düz-metin zaman çizelgesi yerine **görsel/grafik**.
+
+## Karar
+
+`/statistics` sayfası zaten gerçek bar grafiklere sahipti
+(`MagnitudeBarList`, `UptimeBars`) — düz metin olan asıl yer
+`/events/[slug]`'in "Timeline" bölümüydü (sadece "15 Ağu → 18 Ağu,
+3g" gibi metin satırları). Yeni `components/events/event-history-
+chart.tsx` — her occurrence'ı ortak bir zaman ekseninde yatay bir bar
+olarak çizen, bağımlılıksız (kütüphane yok, projenin diğer bar
+grafikleri gibi elle SVG) bir Gantt-stili grafik. Mevcut metin
+listesinin **üstüne** eklendi, onu değiştirmedi — dataviz skill'inin
+"bir tablo görünümü her zaman mevcut olmalı" kuralı zaten var olan
+listeyle karşılanıyor.
+
+- Renk: skill'in soyut referans paletini değil, **uygulamanın zaten
+  kurulu renklerini** kullandı — mor (`#a855f7`, bu sayfada
+  `MagnitudeBarList`'in "gerçek hesaplanmış veri" rengi) tamamlanmış
+  occurrence'lar için, yeşil (`#0ca30c`, `UptimeBars`'ın "healthy"
+  durumu ve `EventStatusBadge`'in LIVE noktasıyla aynı) devam eden
+  (henüz `endedAt` almamış) occurrence için. İki keyfi kategorik seri
+  değil, bir durum ayrımı (tamamlandı/devam ediyor) olduğu için
+  aralarında kategorik CVD-pair kontrolüne gerek yok — yine de her
+  zaman metinle eşleştiriliyor (lejant + her bar'ın native `<title>`
+  tooltip'i), asla sadece renkle değil.
+- **Gerçek bir tasarım hatası test yazarken yakalandı ve düzeltildi:**
+  ilk taslak, hiçbir occurrence devam etmiyor olsa bile grafik
+  eksenini her zaman "şimdi"ye kadar uzatıyordu — aylar önce bir kez
+  olup hiç tekrarlamamış bir event, geniş bir eksende sol kenara
+  sıkışmış minik bir bar olarak görünürdü. Düzeltildi: eksen sadece
+  gerçekten devam eden bir occurrence varsa "şimdi"ye uzanıyor
+  (`endedAt ?? now` fallback'i zaten bunu doğal olarak sağlıyor,
+  ayrıca zorlayan `Math.max(now, ...)` kaldırıldı).
+- Yoğun kadanslı event'ler için son 20 occurrence'a sınırlı (tam
+  detay hâlâ alttaki metin listesinde, sınırsız).
+- Layout matematiği (`computeHistoryChartLayout`) saf bir fonksiyona
+  ayrıldı — sıfıra bölme, tek-occurrence sıkışması, devam eden bar'ın
+  doğru genişlikte olması gibi köşe durumları 10 testle pinlendi.
+
+## Yapılmayan
+
+- `/games/[slug]`'in event listesine aynı grafik eklenmedi — bir oyun
+  sayfasında onlarca event olabilir, her birine tam bir Gantt grafiği
+  koymak görsel ağırlık/performans açısından ayrı bir karar
+  gerektirir. `/events/[slug]` (tek event detay sayfası) bu turun
+  kapsamı.
+- Ekran görüntüsüyle gerçek görsel doğrulama yapılamadı — Chrome
+  uzantısı bu oturumda bağlı değildi. Geometri elle (gerçek Xûr
+  verisiyle) hesaplanıp doğrulandı, ama Deniz canlıda bir göz atmalı.
+
+## Doğrulama
+
+`tsc --noEmit`, `npm run lint` (önceden var olan, ilgisiz 1 hata
+dışında), `npm run build`, **265 test** (255 → 265, +10).

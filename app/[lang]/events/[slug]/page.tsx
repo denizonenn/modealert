@@ -10,6 +10,7 @@ import { EventStatusBadge } from "@/components/shared/event-status-badge"
 import { SectionEyebrow } from "@/components/shared/section-eyebrow"
 import { PremiumTeaser } from "@/components/shared/premium-teaser"
 import { ExternalResourceLinks } from "@/components/shared/external-resource-links"
+import { EventHistoryChart } from "@/components/events/event-history-chart"
 import { Badge } from "@/components/ui/badge"
 
 import { auth } from "@/auth"
@@ -420,6 +421,17 @@ export default async function EventDetailPage({ params }: Props) {
           <h2 className="mt-1 text-xl font-semibold tracking-tight">
             {t.timelineTitle}
           </h2>
+
+          {history.length > 0 && (
+            <EventHistoryChart
+              occurrences={history}
+              locale={locale}
+              now={renderedAt}
+              legendCompleted={t.timelineChartCompleted}
+              legendOngoing={t.timelineChartOngoing}
+              chartAriaLabel={t.timelineChartAriaLabel}
+            />
+          )}
 
           <div className="mt-6 space-y-2">
             {timeline.length === 0 ? (
