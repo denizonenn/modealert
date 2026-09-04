@@ -52,25 +52,16 @@ function currentTime(): number {
 }
 
 export default async function CalendarPage() {
-  const dict = await getDictionary()
-  const locale = await getLocale()
-  const session = await auth()
-  const plan = await billingService.getPlan(session?.user?.id)
-  const isPremium = plan === PLANS.PREMIUM
+  // Independent of each other — fetched concurrently instead of as a
+  // sequential waterfall (see docs/06_DECISIONS.md ADR-059).
+  const [dict, locale, session, events] = await Promise.all([
+    getDictionary(),
+    getLocale(),
+    auth(),
+    eventQueryService.getAll(),
+  ])
 
-  const events = await eventQueryService.getAll()
   const limitedTime = events.filter((event) => event.isLimitedTime)
-
-  // Real "live since" dates from EventHistory. This column used to
-  // show `event.lastChecked` — the last sync timestamp — which, with
-  // a daily sync, meant every single live row displayed today's date,
-  // reading like an event date while carrying no event information at
-  // all.
-  const liveSince = await getOpenHistoryStartsByEventIds(
-    limitedTime
-      .filter((event) => event.status === "LIVE")
-      .map((event) => event.id)
-  )
 
   const now = currentTime()
 
@@ -88,12 +79,29 @@ export default async function CalendarPage() {
     return status === "LIVE" || status === "TRACKING" || status === "ENDED"
   })
 
-  const predictions = await eventPredictionService.predictMany(
-    needsPrediction.map((event) => ({
-      id: event.id,
-      seriesKey: event.seriesKey,
-    }))
-  )
+  // Also independent of each other — plan only needs `session`
+  // (already resolved above), liveSince/predictions only need
+  // `limitedTime`/`needsPrediction` (derived from `events` above).
+  const [plan, liveSince, predictions] = await Promise.all([
+    billingService.getPlan(session?.user?.id),
+    // Real "live since" dates from EventHistory. This column used to
+    // show `event.lastChecked` — the last sync timestamp — which,
+    // with a daily sync, meant every single live row displayed
+    // today's date, reading like an event date while carrying no
+    // event information at all.
+    getOpenHistoryStartsByEventIds(
+      limitedTime
+        .filter((event) => event.status === "LIVE")
+        .map((event) => event.id)
+    ),
+    eventPredictionService.predictMany(
+      needsPrediction.map((event) => ({
+        id: event.id,
+        seriesKey: event.seriesKey,
+      }))
+    ),
+  ])
+  const isPremium = plan === PLANS.PREMIUM
 
   for (const event of limitedTime) {
     const status = event.status as EventStatus

@@ -100,58 +100,69 @@ export async function generateMetadata({
 
 export default async function EventDetailPage({ params }: Props) {
   const { slug } = await params
-  const event = await eventQueryService.getBySlug(slug)
+
+  // None of these four depend on each other — fetched concurrently
+  // instead of as a 4-deep sequential waterfall (real latency on a
+  // serverless DB connection, see docs/06_DECISIONS.md ADR-059).
+  const [event, dict, locale, session] = await Promise.all([
+    eventQueryService.getBySlug(slug),
+    getDictionary(),
+    getLocale(),
+    auth(),
+  ])
 
   if (!event) {
     notFound()
   }
 
-  const dict = await getDictionary()
-  const locale = await getLocale()
   const t = dict.eventDetailPage
   const description = resolveEventDescription(event, locale)
 
-  // Some events (e.g. every "Mayhem Set N" pass window, every "Season
-  // N: Act X" battle pass) are real, successive occurrences of the
-  // same recurring thing under different event ids — see
-  // docs/06_DECISIONS.md ADR-031. When that's the case, stats/history/
-  // predictions look at the whole series instead of just this one
-  // occurrence's row, so "times seen"/"typically returns after" mean
-  // what they say.
-  const [history, statistics, prediction, nextArrival] = event.seriesKey
-    ? await Promise.all([
-        eventHistoryService.getBySeriesKey(event.seriesKey),
-        eventStatisticsService.getBySeriesKey(event.seriesKey),
-        eventPredictionService.predictBySeriesKey(event.seriesKey),
-        eventPredictionService.predictNextArrivalBySeriesKey(
-          event.seriesKey
-        ),
-      ])
-    : await Promise.all([
-        eventHistoryService.getByEvent(event.id),
-        eventStatisticsService.getByEvent(event.id),
-        eventPredictionService.predict(event.id),
-        eventPredictionService.predictNextArrival(event.id),
-      ])
+  // Everything below only needs event.id/seriesKey (already resolved
+  // above) or session (ditto) — none of these four groups depend on
+  // each other's *results*, so they run as one concurrent batch
+  // instead of four more sequential round trips.
+  const [insights, changes, recommendations, plan] = await Promise.all([
+    // Some events (e.g. every "Mayhem Set N" pass window, every
+    // "Season N: Act X" battle pass) are real, successive occurrences
+    // of the same recurring thing under different event ids — see
+    // docs/06_DECISIONS.md ADR-031. When that's the case, stats/
+    // history/predictions look at the whole series instead of just
+    // this one occurrence's row, so "times seen"/"typically returns
+    // after" mean what they say.
+    event.seriesKey
+      ? Promise.all([
+          eventHistoryService.getBySeriesKey(event.seriesKey),
+          eventStatisticsService.getBySeriesKey(event.seriesKey),
+          eventPredictionService.predictBySeriesKey(event.seriesKey),
+          eventPredictionService.predictNextArrivalBySeriesKey(
+            event.seriesKey
+          ),
+        ])
+      : Promise.all([
+          eventHistoryService.getByEvent(event.id),
+          eventStatisticsService.getByEvent(event.id),
+          eventPredictionService.predict(event.id),
+          eventPredictionService.predictNextArrival(event.id),
+        ]),
+    // Field-level edit log (title/description/status/category/
+    // permanence changing over time) — separate from the LIVE/
+    // TRACKING occurrence spans above, and scoped to this specific
+    // event row (not series-wide, since a series' other occurrences
+    // are different rows with their own independent edit history).
+    eventChangeService.getByEvent(event.id),
+    // Real collaborative filtering — of the users tracking this
+    // event, what else do they track most. See
+    // docs/06_DECISIONS.md ADR-047.
+    eventQueryService.getRecommendationsFor(event.id),
+    // Average duration/estimated-end/next-expected-arrival are the
+    // Premium-gated "deep insight" tier — see docs/06_DECISIONS.md
+    // ADR-041. First tracked/times seen/raw timeline/changes stay
+    // free.
+    billingService.getPlan(session?.user?.id),
+  ])
 
-  // Field-level edit log (title/description/status/category/permanence
-  // changing over time) — separate from the LIVE/TRACKING occurrence
-  // spans above, and scoped to this specific event row (not
-  // series-wide, since a series' other occurrences are different rows
-  // with their own independent edit history).
-  const changes = await eventChangeService.getByEvent(event.id)
-
-  // Real collaborative filtering — of the users tracking this event,
-  // what else do they track most. See docs/06_DECISIONS.md ADR-047.
-  const recommendations = await eventQueryService.getRecommendationsFor(
-    event.id
-  )
-
-  // Average duration / estimated-end / next-expected-arrival are the
-  // Premium-gated "deep insight" tier — see docs/06_DECISIONS.md
-  // ADR-041. First tracked/times seen/raw timeline/changes stay free.
-  const session = await auth()
-  const plan = await billingService.getPlan(session?.user?.id)
+  const [history, statistics, prediction, nextArrival] = insights
   const isPremium = plan === PLANS.PREMIUM
 
   const predictedEndAt =

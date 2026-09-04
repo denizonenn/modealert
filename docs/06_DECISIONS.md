@@ -5021,3 +5021,84 @@ dışında), `npm run build`, 235 test hepsi temiz. Görsel bir regresyon
 kontrolü (canlı tarayıcıda before/after) bu oturumda yapılmadı — renk
 değişimi (`zinc-600`→`zinc-400`) hafif bir açma, tasarım hiyerarşisini
 bozmuyor ama Deniz canlıda gözden geçirebilir.
+
+---
+
+# ADR-059: Performans geçişi — sunucu tarafı waterfall'lar ve N+1 sorgular
+
+Status: Accepted
+
+Date: 2026-09-04
+
+## Bağlam
+
+Deniz "site yavaş açılıyor, linkler yavaş açılıyor" dedi. Kod
+seviyesinde gerçek, ölçülebilir üç sınıf sorun bulundu — hepsi
+sunucu tarafı, hepsi düzeltildi:
+
+## 1. Bağımsız `await`'lerin gereksiz sıralı çalışması
+
+Neredeyse her sayfa aynı deseni tekrarlıyordu: `getDictionary()`,
+`getLocale()`, `auth()` ve sayfaya özel bir DB sorgusu birbirinden
+bağımsız olduğu hâlde art arda `await`leniyordu — her biri gerçek bir
+ağ round-trip'i (Neon serverless Postgres + Auth.js JWT decode),
+sıralı yapıldığında toplam gecikme üst üste binmiş oluyor.
+
+Düzeltilen sayfalar (her biri `Promise.all`'a alındı):
+
+- `/events/[slug]` — **en kötü örnek**: event fetch → dict → locale
+  → (stats/prediction Promise.all) → changes → recommendations →
+  auth() → plan, yani 6 sıralı adım. Şimdi 2 adım: `[event, dict,
+  locale, session]` birlikte, ardından `[insights, changes,
+  recommendations, plan]` birlikte (dördü de sadece `event.id`/
+  `session`'a bağlı, birbirine değil).
+- `/games/[slug]` — game fetch → dict/locale → auth → plan → events,
+  5 sıralı adım → 2 adıma indirildi.
+- `/calendar` — dict → locale → auth → plan → events → liveSince →
+  predictions, 7 sıralı adım → 2 adıma indirildi.
+- `/statistics` — stats → dict → locale, 3 sıralı adım → 1 adıma
+  indirildi.
+
+`/pricing` zaten bu oturumun başında (yıllık/lifetime planlar
+eklenirken) doğru şekilde yazılmıştı, referans alındı.
+
+## 2. N+1 sorgu — `/games/[slug]`
+
+Bir oyunun event listesindeki **her event için ayrı ayrı** hem
+istatistik hem tahmin hesaplanıyordu, ikisi de kendi içinde ayrı bir
+`EventHistory` sorgusu yapıyordu — yani N event için 2N ayrı DB
+round-trip'i (20 event'li bir oyun sayfası ~40 sorgu demek).
+`/calendar` bu sorunu Ağustos'ta `eventPredictionService.predictMany()`
+ile zaten çözmüştü (tek bir `getByEventIds()` + tek bir
+`getBySeriesKeys()`); `/games/[slug]` bu deseni hiç kullanmıyordu.
+
+Yeni `eventStatisticsService.getManyByEvent()` eklendi (aynı
+`getByEventIds()` batch'ini kullanan, `computeStatistics()`'i her
+event için bellekte hesaplayan saf bir fonksiyon) ve `/games/[slug]`
+hem bunu hem mevcut `predictMany()`'yi kullanacak şekilde yeniden
+yazıldı — artık 2N sorgu yerine 2 sorgu (istatistik + tahmin, ikisi de
+kendi içinde tek round-trip). `seriesKey: null` bilinçli olarak sabit
+geçildi — bu sayfa hiçbir zaman seriesKey-farkında tahmin yapmıyordu
+(`/events/[slug]` ve `/calendar`'ın aksine), bir performans geçişinin
+sessizce davranış değiştirmesi doğru olmaz.
+
+## Yapılmayan / kod dışı kalan gerçek faktörler
+
+- **Vercel Hobby + Neon serverless'in kendi soğuk-başlangıç
+  gecikmesi** — kod tarafında giderilemez, plan/altyapı kararı. İlk
+  istek (özellikle bir süre trafik olmadıysa) Neon compute'unun
+  "uyanması"nı bekler; bu koddan bağımsız bir gecikme kaynağı.
+  `DATABASE_URL` zaten pooled bağlantıyı kullanıyor (doğru kurulum),
+  başka bir kod değişikliği bunu gizleyemez.
+- Statik/ISR'a geçirilebilecek sayfalar (örn. `/features`, `/games`)
+  araştırılmadı — bu oturumun kapsamı "gereksiz sıralı sorguları
+  paralelleştirmek" ile sınırlı tutuldu, rendering stratejisini
+  değiştirmek (ISR/static) ayrı, daha büyük bir karar.
+
+## Doğrulama
+
+`tsc --noEmit`, `npm run lint` (önceden var olan, ilgisiz 1 hata
+dışında), `npm run build`, 235 test hepsi temiz. Gerçek bir
+before/after gecikme ölçümü (örn. Vercel'in kendi analytics'i veya
+bir Lighthouse taraması) bu oturumda yapılmadı — canlıya çıktıktan
+sonra Deniz'in gözlemlemesi faydalı olur.

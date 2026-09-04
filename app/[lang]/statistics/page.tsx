@@ -24,9 +24,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function StatisticsPage() {
-  const stats = await globalStatisticsService.get()
-  const dict = await getDictionary()
-  const locale = await getLocale()
+  const [stats, dict, locale] = await Promise.all([
+    globalStatisticsService.get(),
+    getDictionary(),
+    getLocale(),
+  ])
   const t = dict.statisticsPage
 
   return (

@@ -70,4 +70,23 @@ export const eventStatisticsService = {
 
     return computeStatistics(history);
   },
+
+  // Batched version of getByEvent() for many events at once — one
+  // round trip instead of one per event. Used by /games/[slug], which
+  // otherwise fires a history query per event on every request (see
+  // docs/06_DECISIONS.md ADR-059, same fix predictMany() already
+  // applied to /calendar).
+  async getManyByEvent(
+    eventIds: string[]
+  ): Promise<Map<string, ReturnType<typeof computeStatistics>>> {
+    const historyByEventId =
+      await eventHistoryService.getByEventIds(eventIds);
+
+    return new Map(
+      eventIds.map((eventId) => [
+        eventId,
+        computeStatistics(historyByEventId.get(eventId) ?? []),
+      ])
+    );
+  },
 };

@@ -66,42 +66,71 @@ export async function generateMetadata({
   }
 }
 
-async function getEventInsights(eventId: string) {
-  const [statistics, prediction] = await Promise.all([
-    eventStatisticsService.getByEvent(eventId),
-    eventPredictionService.predict(eventId),
+// Batched across every event on the page — one history query pair
+// instead of one per event (a game with 20 events used to fire ~40
+// sequential-ish round trips; see docs/06_DECISIONS.md ADR-059).
+// `seriesKey: null` on every entry preserves the pre-existing
+// behavior of always looking predictions up by the event's own id,
+// not its series (unlike /events/[slug] and /calendar, this page
+// never did series-aware prediction — not something to silently
+// change as part of a performance pass).
+async function getEventInsightsForGame(
+  events: Array<{ id: string }>
+) {
+  const eventIds = events.map((event) => event.id)
+
+  const [statsById, predictionsById] = await Promise.all([
+    eventStatisticsService.getManyByEvent(eventIds),
+    eventPredictionService.predictMany(
+      events.map((event) => ({ id: event.id, seriesKey: null }))
+    ),
   ])
 
-  const predictedEndAt =
-    "predictedEndAt" in prediction ? prediction.predictedEndAt : undefined
+  const byEventId = new Map(
+    eventIds.map((eventId) => {
+      const statistics = statsById.get(eventId)!
+      const { prediction } = predictionsById.get(eventId)!
 
-  return { statistics, prediction, predictedEndAt }
+      const predictedEndAt =
+        "predictedEndAt" in prediction ? prediction.predictedEndAt : undefined
+
+      return [eventId, { statistics, prediction, predictedEndAt }] as const
+    })
+  )
+
+  return byEventId
 }
 
 export default async function GameDetailPage({ params }: Props) {
   const { slug } = await params
-  const game = await gameService.getBySlug(slug)
+
+  // Independent of each other — fetched concurrently instead of as a
+  // sequential waterfall (see docs/06_DECISIONS.md ADR-059).
+  const [game, dict, locale, session] = await Promise.all([
+    gameService.getBySlug(slug),
+    getDictionary(),
+    getLocale(),
+    auth(),
+  ])
 
   if (!game) {
     notFound()
   }
 
-  const dict = await getDictionary()
-  const locale = await getLocale()
   const t = dict.gameDetailPage
 
-  const session = await auth()
-  const plan = await billingService.getPlan(session?.user?.id)
+  const [plan, events] = await Promise.all([
+    billingService.getPlan(session?.user?.id),
+    eventQueryService.getByGame(game.id),
+  ])
   const isPremium = plan === PLANS.PREMIUM
 
-  const events = await eventQueryService.getByGame(game.id)
+  const insightsByEventId = await getEventInsightsForGame(events)
 
-  const eventsWithInsights = await Promise.all(
-    events.map(async (event) => ({
-      event,
-      ...(await getEventInsights(event.id)),
-    }))
-  )
+  const eventsWithInsights = events.map((event) => ({
+    event,
+    ...insightsByEventId.get(event.id)!,
+  }))
 
   eventsWithInsights.sort(
     (a, b) =>
