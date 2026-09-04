@@ -19,10 +19,18 @@ import type { EventWithGame } from "@/lib/repositories/event.repository";
 // overridden anywhere else — same "DB column is decorative, override
 // with a real value at read time" fix as Game.activeUsers got in
 // ADR-007. See docs/06_DECISIONS.md ADR-047.
+// Takes the events fetch as a still-pending promise (not an already-
+// resolved array) so it can run concurrently with the trackedUsers
+// count query below instead of waiting for it first — the count query
+// doesn't depend on the events result at all (see docs/06_DECISIONS.md
+// ADR-059).
 async function withRealTrackedUsers(
-  events: EventWithGame[]
+  eventsPromise: Promise<EventWithGame[]>
 ): Promise<EventWithGame[]> {
-  const counts = await getTrackedUserCountsByEvent();
+  const [events, counts] = await Promise.all([
+    eventsPromise,
+    getTrackedUserCountsByEvent(),
+  ]);
 
   return events.map((event) => ({
     ...event,
@@ -34,9 +42,7 @@ const RECOMMENDATION_LIMIT = 5;
 
 export const eventQueryService = {
   async getAll() {
-    const events = await getEvents();
-
-    return withRealTrackedUsers(events);
+    return withRealTrackedUsers(getEvents());
   },
 
   async getById(
@@ -70,9 +76,7 @@ export const eventQueryService = {
   async getByGame(
     gameId: string
   ) {
-    const events = await getEventsByGame(gameId);
-
-    return withRealTrackedUsers(events);
+    return withRealTrackedUsers(getEventsByGame(gameId));
   },
 
   // Real collaborative filtering, not a guess — see

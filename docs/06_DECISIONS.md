@@ -5102,3 +5102,25 @@ dışında), `npm run build`, 235 test hepsi temiz. Gerçek bir
 before/after gecikme ölçümü (örn. Vercel'in kendi analytics'i veya
 bir Lighthouse taraması) bu oturumda yapılmadı — canlıya çıktıktan
 sonra Deniz'in gözlemlemesi faydalı olur.
+
+## Follow-up (aynı gün): canlıda ölçüldü, bir waterfall daha bulundu
+
+Deploy sonrası `curl -w "%{time_total}"` ile canlı zamanlama yapıldı
+(gerçek ölçüm, tahmin değil): `/pricing` ilk istekte 3.19s (soğuk
+başlangıç), sonraki 3 istekte 0.41-0.45s — beklenen soğuk-başlangıç
+deseni. `/calendar` ise ilk istekte 3.62s, sonraki 3 istekte
+1.29-1.62s — ısındıktan sonra bile diğer sayfalardan (0.4-0.9s)
+belirgin şekilde yavaş kaldı, ikinci bir gerçek soruna işaret etti.
+
+Bulunan: `eventQueryService.getAll()`/`getByGame()`'in ortak
+`withRealTrackedUsers()` helper'ı, event'leri **çektikten sonra**
+`getTrackedUserCountsByEvent()`'i ayrı bir sıralı `await` ile
+çağırıyordu — bu sayım sorgusu event listesine hiç bağımlı değil
+(ayrı bir gruplu aggregate sorgusu), paralel çalışabilirdi. Helper artık
+henüz resolve olmamış event promise'ini alıyor ve
+`Promise.all([eventsPromise, getTrackedUserCountsByEvent()])` ile
+ikisini birlikte bekliyor. `/calendar` (`getAll()` üzerinden) ve
+`/games/[slug]` (`getByGame()` üzerinden) ikisi de bu düzeltmeden
+faydalanıyor.
+
+`tsc --noEmit`, `npm run lint`, `npm run build`, 235 test temiz.
