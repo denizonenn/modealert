@@ -5140,3 +5140,32 @@ ayrı, kısa bir TTL'le (örn. 30dk, mevcut `revalidate` niyetiyle aynı)
 cache'lemek — proje genelinde henüz hiç kullanılmayan yeni bir
 pattern, staleness/invalidation tradeoff'ları Deniz'le konuşulmadan
 sessizce eklenmedi.
+
+## Follow-up (aynı gün): unstable_cache uygulandı
+
+Deniz "mantıklı diyorsan yap" dedi, yukarıdaki `unstable_cache`
+fikri uygulandı. `/calendar`'ın ağır kısmı (`eventQueryService.getAll()`,
+`getOpenHistoryStartsByEventIds()`, `eventPredictionService.predictMany()`,
+satırların LIVE/ending-soon/returning'e ayrıştırılması ve sıralanması)
+`buildCalendarRows()` adında `unstable_cache(..., ["calendar-rows"],
+{ revalidate: 1800 })` ile sarmalı yeni bir fonksiyona taşındı —
+`auth()`'tan tamamen bağımsız, tüm ziyaretçiler için aynı veri
+(sadece tahmin tarihinin **gösterilip gösterilmeyeceği** viewer'ın
+planına bağlı, render sırasında ayrıca karar veriliyor).
+
+Gerçek bir teknik detay: `unstable_cache` dönüş değerini serialize
+ediyor, `Date` nesneleri cache sınırını ISO string olarak geçiyor —
+cache'lenen fonksiyon `Date`'leri `.toISOString()` ile string'e çeviriyor,
+sonuç `hydrateRows()` ile sayfa bileşeninde tekrar gerçek `Date`
+nesnelerine çevriliyor (render kodu `.toLocaleDateString()`
+çağırdığı için `Date` bekliyor). Sıralama mantığı da string'ler
+üzerinden `new Date(...).getTime()` ile yapılacak şekilde güncellendi.
+
+Artık ilk 30 dakikalık pencerede sadece bir ziyaretçi bu ağır
+hesaplamayı tetikliyor, geri kalan herkes cache'ten okuyor —
+`auth()`/`billingService.getPlan()` hâlâ her istekte taze (hızlı:
+JWT decode + tek indexli sorgu).
+
+`tsc --noEmit`, `npm run lint`, `npm run build`, 235 test temiz.
+Deploy sonrası canlı zamanlama tekrar kontrol edilmeli (bu, projenin
+ilk `unstable_cache` kullanımı).

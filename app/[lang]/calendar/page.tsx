@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import { unstable_cache } from "next/cache"
 
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
@@ -27,8 +28,6 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-export const revalidate = 1800
-
 type EventStatus = "LIVE" | "UPCOMING" | "TRACKING" | "ENDED"
 
 interface CalendarRow {
@@ -43,92 +42,90 @@ interface CalendarRow {
   researched: boolean
 }
 
-// Read once per render of this server-rendered, ISR-cached page
-// (revalidate = 1800). Extracted so it reads as a deliberate
-// snapshot of "now" rather than an ambient clock call inside the
-// component body.
-function currentTime(): number {
-  return Date.now()
-}
+// unstable_cache serializes its return value, so dates cross the
+// cache boundary as ISO strings, not Date instances — rehydrated back
+// to Date by hydrateRows() right after the cached call returns.
+type CachedCalendarRow = Omit<CalendarRow, "date"> & { date: string | null }
 
-export default async function CalendarPage() {
-  // Independent of each other — fetched concurrently instead of as a
-  // sequential waterfall (see docs/06_DECISIONS.md ADR-059).
-  const [dict, locale, session, events] = await Promise.all([
-    getDictionary(),
-    getLocale(),
-    auth(),
-    eventQueryService.getAll(),
-  ])
+// The rows here are the same for every viewer — only whether a
+// prediction date is *shown* (vs. blurred behind PremiumTeaser)
+// depends on the viewer's plan, decided at render time below. So the
+// actual DB work (event fetch, history, predictions — the expensive
+// part of this page) is cacheable independent of auth() entirely.
+// Previously this lived directly in the page body behind a route-level
+// `export const revalidate = 1800`, but that was silently dead: Next
+// treats any route calling auth() as fully dynamic regardless of a
+// declared revalidate window, so it ran fresh on every request (see
+// docs/06_DECISIONS.md ADR-059 follow-up). unstable_cache gives it the
+// 30-minute window that was always the intent, matching the sync
+// cadence, without needing the whole route to skip auth().
+const buildCalendarRows = unstable_cache(
+  async (): Promise<{
+    liveNow: CachedCalendarRow[]
+    endingSoon: CachedCalendarRow[]
+    returning: CachedCalendarRow[]
+  }> => {
+    const events = await eventQueryService.getAll()
+    const limitedTime = events.filter((event) => event.isLimitedTime)
 
-  const limitedTime = events.filter((event) => event.isLimitedTime)
+    const now = Date.now()
 
-  const now = currentTime()
+    const liveNow: CachedCalendarRow[] = []
+    const endingSoon: CachedCalendarRow[] = []
+    const returning: CachedCalendarRow[] = []
 
-  const liveNow: CalendarRow[] = []
-  const endingSoon: CalendarRow[] = []
-  const returning: CalendarRow[] = []
+    const needsPrediction = limitedTime.filter((event) => {
+      const status = event.status as EventStatus
+      return status === "LIVE" || status === "TRACKING" || status === "ENDED"
+    })
 
-  // One batched pair of DB round trips for every limited-time event's
-  // history, instead of 2 per event — this page can't rely on ISR
-  // (revalidate below) since auth()/billingService above already read
-  // the session and force dynamic rendering, so this runs on every
-  // request.
-  const needsPrediction = limitedTime.filter((event) => {
-    const status = event.status as EventStatus
-    return status === "LIVE" || status === "TRACKING" || status === "ENDED"
-  })
+    // Independent of each other — one batched pair of DB round trips
+    // for every limited-time event's history, instead of 2 per event.
+    const [liveSince, predictions] = await Promise.all([
+      // Real "live since" dates from EventHistory. This column used
+      // to show `event.lastChecked` — the last sync timestamp —
+      // which, with a daily sync, meant every single live row
+      // displayed today's date, reading like an event date while
+      // carrying no event information at all.
+      getOpenHistoryStartsByEventIds(
+        limitedTime
+          .filter((event) => event.status === "LIVE")
+          .map((event) => event.id)
+      ),
+      eventPredictionService.predictMany(
+        needsPrediction.map((event) => ({
+          id: event.id,
+          seriesKey: event.seriesKey,
+        }))
+      ),
+    ])
 
-  // Also independent of each other — plan only needs `session`
-  // (already resolved above), liveSince/predictions only need
-  // `limitedTime`/`needsPrediction` (derived from `events` above).
-  const [plan, liveSince, predictions] = await Promise.all([
-    billingService.getPlan(session?.user?.id),
-    // Real "live since" dates from EventHistory. This column used to
-    // show `event.lastChecked` — the last sync timestamp — which,
-    // with a daily sync, meant every single live row displayed
-    // today's date, reading like an event date while carrying no
-    // event information at all.
-    getOpenHistoryStartsByEventIds(
-      limitedTime
-        .filter((event) => event.status === "LIVE")
-        .map((event) => event.id)
-    ),
-    eventPredictionService.predictMany(
-      needsPrediction.map((event) => ({
-        id: event.id,
-        seriesKey: event.seriesKey,
-      }))
-    ),
-  ])
-  const isPremium = plan === PLANS.PREMIUM
+    for (const event of limitedTime) {
+      const status = event.status as EventStatus
 
-  for (const event of limitedTime) {
-    const status = event.status as EventStatus
+      if (status === "LIVE") {
+        liveNow.push({
+          id: event.id,
+          title: event.title,
+          slug: event.slug,
+          status,
+          game: event.game,
+          date: liveSince.get(event.id)?.toISOString() ?? null,
+          researched: false,
+        })
+      }
 
-    if (status === "LIVE") {
-      liveNow.push({
-        id: event.id,
-        title: event.title,
-        slug: event.slug,
-        status,
-        game: event.game,
-        date: liveSince.get(event.id) ?? null,
-        researched: false,
-      })
-    }
+      if (status !== "LIVE" && status !== "TRACKING" && status !== "ENDED") {
+        continue
+      }
 
-    if (status !== "LIVE" && status !== "TRACKING" && status !== "ENDED") {
-      continue
-    }
+      const result = predictions.get(event.id)
+      if (!result) {
+        continue
+      }
+      const { prediction, nextArrival } = result
 
-    const result = predictions.get(event.id)
-    if (!result) {
-      continue
-    }
-    const { prediction, nextArrival } = result
-
-    // A predicted end date that's already passed while the event is
+      // A predicted end date that's already passed while the event is
       // still live means the estimate was simply wrong — showing it
       // under "Estimated to end" presents a date in the past as a
       // forecast (seen live: "Mayhem Set 2 — Aug 14" on Aug 19).
@@ -144,7 +141,7 @@ export default async function CalendarPage() {
           slug: event.slug,
           status,
           game: event.game,
-          date: prediction.predictedEndAt,
+          date: prediction.predictedEndAt.toISOString(),
           researched:
             "researched" in prediction &&
             prediction.researched === true,
@@ -167,7 +164,7 @@ export default async function CalendarPage() {
           slug: event.slug,
           status,
           game: event.game,
-          date: nextArrival.nextExpectedAt,
+          date: nextArrival.nextExpectedAt.toISOString(),
           researched:
             "researched" in nextArrival &&
             nextArrival.researched === true,
@@ -175,13 +172,47 @@ export default async function CalendarPage() {
       }
     }
 
-  liveNow.sort((a, b) => a.title.localeCompare(b.title))
-  endingSoon.sort(
-    (a, b) => (a.date?.getTime() ?? 0) - (b.date?.getTime() ?? 0)
-  )
-  returning.sort(
-    (a, b) => (a.date?.getTime() ?? 0) - (b.date?.getTime() ?? 0)
-  )
+    liveNow.sort((a, b) => a.title.localeCompare(b.title))
+    endingSoon.sort(
+      (a, b) =>
+        (a.date ? new Date(a.date).getTime() : 0) -
+        (b.date ? new Date(b.date).getTime() : 0)
+    )
+    returning.sort(
+      (a, b) =>
+        (a.date ? new Date(a.date).getTime() : 0) -
+        (b.date ? new Date(b.date).getTime() : 0)
+    )
+
+    return { liveNow, endingSoon, returning }
+  },
+  ["calendar-rows"],
+  { revalidate: 1800 }
+)
+
+function hydrateRows(rows: CachedCalendarRow[]): CalendarRow[] {
+  return rows.map((row) => ({
+    ...row,
+    date: row.date ? new Date(row.date) : null,
+  }))
+}
+
+export default async function CalendarPage() {
+  // Independent of each other — fetched concurrently instead of as a
+  // sequential waterfall (see docs/06_DECISIONS.md ADR-059).
+  const [dict, locale, session, cached] = await Promise.all([
+    getDictionary(),
+    getLocale(),
+    auth(),
+    buildCalendarRows(),
+  ])
+
+  const plan = await billingService.getPlan(session?.user?.id)
+  const isPremium = plan === PLANS.PREMIUM
+
+  const liveNow = hydrateRows(cached.liveNow)
+  const endingSoon = hydrateRows(cached.endingSoon)
+  const returning = hydrateRows(cached.returning)
 
   return (
     <main id="main-content" className="min-h-screen bg-black text-white">
