@@ -2408,6 +2408,30 @@ No open bugs.
   result, don't reconstruct them from memory even when the pattern
   looks obvious.
 
+- ~~Per-event, mode-specific build/tier-list links~~ — **done
+  (2026-09-04).** Deniz's actual ask: opening the URF *event page*
+  specifically should surface a URF tier list, not just the generic
+  per-game link `/games/[slug]` already had — and free for every plan
+  (the Premium gate is only for ModeAlert's own predictions/stats, not
+  this). Also asked to extend coverage beyond LoL/TFT/Valorant to
+  "every event." Shipped: `externalResourcesForEvent(gameId,
+  eventTitle)` (same `external-resources.ts`) checks the event title
+  against known LoL rotating-mode keywords first (`/urf/i` →
+  `u.gg/lol/urf-tier-list`, `/arena/i` → `u.gg/lol/arena-tier-list`,
+  both freshly WebSearch-verified, not typed from memory — repeating
+  the same mistake this section already documents once would be
+  worse) before falling back to the per-game entry. `EXTERNAL_RESOURCES`
+  itself extended with 6 more games that have a real, verified
+  companion site (Destiny 2 → light.gg, Warframe → Overframe, PoE →
+  poe.ninja, PUBG → op.gg, Fortnite → Fortnite.GG, EA FC → FUT.GG);
+  Helldivers 2/Foxhole/PlanetSide 2/FFXIV deliberately skipped — no
+  comparably real, well-known build/tier-list site found for them, and
+  forcing a weak link would be worse than none. Rendered on
+  `/events/[slug]` (new shared `ExternalResourceLinks` component,
+  `/games/[slug]`'s inline pill markup extracted into it, no visual
+  change there) gated to `PLAYABLE`/`ROTATION_MILESTONE` categories —
+  a Platform Status or shop-rotation event has no "build" to link to.
+
 - **Riot account linking (RSO)** — Deniz wants "connect your LoL
   account, show your actual champion" personalization. Researched
   2026-08-06: RSO (Riot Sign-On) requires an **already-approved

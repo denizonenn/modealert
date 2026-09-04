@@ -653,6 +653,8 @@
   "eventDetailPage": {
     "notFoundTitle": "Etkinlik bulunamadı",
     "metaDescription": "{game} içindeki {title} için takip geçmişi ve durumu.",
+    "externalResourcesTitle": "Build'ler ve tier list'ler",
+    "externalResourcesDisclaimer": "Topluluk kaynağı — ModeAlert tarafından işletilmiyor, her planda ücretsiz.",
     "fieldTitle": "Başlık",
     "fieldDescription": "Açıklama",
     "fieldStatus": "Durum",

@@ -9,6 +9,7 @@ import { GameIcon } from "@/components/shared/game-icon"
 import { EventStatusBadge } from "@/components/shared/event-status-badge"
 import { SectionEyebrow } from "@/components/shared/section-eyebrow"
 import { PremiumTeaser } from "@/components/shared/premium-teaser"
+import { ExternalResourceLinks } from "@/components/shared/external-resource-links"
 import { Badge } from "@/components/ui/badge"
 
 import { auth } from "@/auth"
@@ -23,8 +24,10 @@ import { formatDuration } from "@/lib/utils"
 import { PLANS } from "@/lib/constants/plan"
 import {
   eventCategoryLabel,
+  EVENT_CATEGORIES,
   type EventCategory,
 } from "@/lib/constants/event-category"
+import { externalResourcesForEvent } from "@/lib/constants/external-resources"
 import { getDictionary, getLocale } from "@/lib/i18n/dictionaries"
 import type { Dictionary } from "@/lib/i18n/dictionaries"
 import { resolveEventDescription } from "@/lib/i18n/event-descriptions"
@@ -172,6 +175,19 @@ export default async function EventDetailPage({ params }: Props) {
     href: `/${locale}/pricing`,
   }
 
+  // Free for every plan — links to real community sites (u.gg,
+  // op.gg, etc.), not data ModeAlert generates. Only shown for
+  // categories where "what to play/build" is actually relevant, and
+  // picks a mode-specific tier list (e.g. URF) over the generic
+  // per-game one when the event title matches — see
+  // lib/constants/external-resources.ts.
+  const showExternalResources =
+    event.category === EVENT_CATEGORIES.PLAYABLE ||
+    event.category === EVENT_CATEGORIES.ROTATION_MILESTONE
+  const externalResources = showExternalResources
+    ? externalResourcesForEvent(event.game.id, event.title)
+    : undefined
+
   return (
     <main className="min-h-screen bg-black text-white">
       <Navbar />
@@ -233,6 +249,21 @@ export default async function EventDetailPage({ params }: Props) {
           <p className="mt-2 max-w-2xl text-xs text-zinc-500">
             {t.seriesNote}
           </p>
+        )}
+
+        {externalResources && externalResources.length > 0 && (
+          <div className="mt-6">
+            <p className="text-xs uppercase tracking-wide text-zinc-600">
+              {t.externalResourcesTitle}
+            </p>
+            <ExternalResourceLinks
+              resources={externalResources}
+              className="mt-2 flex flex-wrap gap-3"
+            />
+            <p className="mt-2 text-xs text-zinc-600">
+              {t.externalResourcesDisclaimer}
+            </p>
+          </div>
         )}
 
         <div className="mt-8 grid gap-4 rounded-2xl border border-white/10 bg-white/5 p-5 text-sm sm:grid-cols-4">

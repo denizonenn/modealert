@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeft, ArrowUpRight } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
@@ -10,6 +10,7 @@ import { EventStatusBadge } from "@/components/shared/event-status-badge"
 import { SectionEyebrow } from "@/components/shared/section-eyebrow"
 import { RotationBadge } from "@/components/shared/rotation-badge"
 import { PremiumTeaser } from "@/components/shared/premium-teaser"
+import { ExternalResourceLinks } from "@/components/shared/external-resource-links"
 import { FollowGameButton } from "@/components/games/follow-game-button"
 
 import { auth } from "@/auth"
@@ -154,20 +155,7 @@ export default async function GameDetailPage({ params }: Props) {
         </div>
 
         {EXTERNAL_RESOURCES[game.id] && (
-          <div className="mt-4 flex flex-wrap gap-3">
-            {EXTERNAL_RESOURCES[game.id]!.map((resource) => (
-              <a
-                key={resource.url}
-                href={resource.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm text-zinc-300 hover:border-white/20 hover:text-white"
-              >
-                {resource.label}
-                <ArrowUpRight className="h-3.5 w-3.5" />
-              </a>
-            ))}
-          </div>
+          <ExternalResourceLinks resources={EXTERNAL_RESOURCES[game.id]!} />
         )}
 
         <div className="mt-10 space-y-3">

@@ -653,6 +653,8 @@
   "eventDetailPage": {
     "notFoundTitle": "Event not found",
     "metaDescription": "Tracking history and status for {title} in {game}.",
+    "externalResourcesTitle": "Builds & tier lists",
+    "externalResourcesDisclaimer": "Community resource — not run by ModeAlert, free for every plan.",
     "fieldTitle": "Title",
     "fieldDescription": "Description",
     "fieldStatus": "Status",
