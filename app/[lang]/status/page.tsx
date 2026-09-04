@@ -72,7 +72,7 @@ export default function StatusPage() {
     <>
       <Navbar />
 
-      <main className="mx-auto min-h-screen max-w-3xl px-6 py-16">
+      <main id="main-content" className="mx-auto min-h-screen max-w-3xl px-6 py-16">
         <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">
           {dict.statusPage.eyebrow}
         </p>
@@ -175,7 +175,7 @@ export default function StatusPage() {
         </div>
 
         {checkedAt && (
-          <p className="mt-8 text-center text-xs text-zinc-600">
+          <p className="mt-8 text-center text-xs text-zinc-400">
             {dict.statusPage.lastChecked.replace(
               "{time}",
               new Date(checkedAt).toLocaleTimeString()

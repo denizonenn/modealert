@@ -52,7 +52,7 @@ export function ModeRotator() {
             {dict.home.modeRotatorIsBack}
           </span>
 
-          <span className="text-zinc-600">
+          <span className="text-zinc-400">
             •
           </span>
 

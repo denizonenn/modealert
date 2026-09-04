@@ -58,14 +58,14 @@ export default function OnboardingPage() {
 
   if (authStatus !== "authenticated") {
     return (
-      <main className="min-h-screen bg-black text-white">
+      <main id="main-content" className="min-h-screen bg-black text-white">
         <Navbar />
       </main>
     )
   }
 
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main id="main-content" className="min-h-screen bg-black text-white">
       <Navbar />
 
       <div className="mx-auto max-w-5xl px-6 py-16">

@@ -26,7 +26,7 @@ export default async function UnsubscribedPage({
       : null
 
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main id="main-content" className="min-h-screen bg-black text-white">
       <Navbar />
 
       <div className="mx-auto max-w-sm px-6 py-24 text-center">

@@ -189,7 +189,7 @@ export default async function EventDetailPage({ params }: Props) {
     : undefined
 
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main id="main-content" className="min-h-screen bg-black text-white">
       <Navbar />
 
       <section className="mx-auto max-w-4xl px-6 py-16">
@@ -253,14 +253,14 @@ export default async function EventDetailPage({ params }: Props) {
 
         {externalResources && externalResources.length > 0 && (
           <div className="mt-6">
-            <p className="text-xs uppercase tracking-wide text-zinc-600">
+            <p className="text-xs uppercase tracking-wide text-zinc-400">
               {t.externalResourcesTitle}
             </p>
             <ExternalResourceLinks
               resources={externalResources}
               className="mt-2 flex flex-wrap gap-3"
             />
-            <p className="mt-2 text-xs text-zinc-600">
+            <p className="mt-2 text-xs text-zinc-400">
               {t.externalResourcesDisclaimer}
             </p>
           </div>
@@ -268,7 +268,7 @@ export default async function EventDetailPage({ params }: Props) {
 
         <div className="mt-8 grid gap-4 rounded-2xl border border-white/10 bg-white/5 p-5 text-sm sm:grid-cols-4">
           <div>
-            <p className="text-xs uppercase tracking-wide text-zinc-600">
+            <p className="text-xs uppercase tracking-wide text-zinc-400">
               {t.firstTracked}
             </p>
             <p className="mt-0.5 text-zinc-300">
@@ -279,7 +279,7 @@ export default async function EventDetailPage({ params }: Props) {
           </div>
 
           <div>
-            <p className="text-xs uppercase tracking-wide text-zinc-600">
+            <p className="text-xs uppercase tracking-wide text-zinc-400">
               {t.timesSeen}
             </p>
             <p className="mt-0.5 text-zinc-300">
@@ -289,7 +289,7 @@ export default async function EventDetailPage({ params }: Props) {
 
           {isPremium ? (
             <div>
-              <p className="text-xs uppercase tracking-wide text-zinc-600">
+              <p className="text-xs uppercase tracking-wide text-zinc-400">
                 {t.averageDuration}
               </p>
               <p className="mt-0.5 text-zinc-300">
@@ -301,7 +301,7 @@ export default async function EventDetailPage({ params }: Props) {
           ) : (
             <PremiumTeaser {...premiumTeaserProps}>
               <div>
-                <p className="text-xs uppercase tracking-wide text-zinc-600">
+                <p className="text-xs uppercase tracking-wide text-zinc-400">
                   {t.averageDuration}
                 </p>
                 <p className="mt-0.5 text-zinc-300">
@@ -314,7 +314,7 @@ export default async function EventDetailPage({ params }: Props) {
           {prediction.active ? (
             isPremium ? (
               <div>
-                <p className="text-xs uppercase tracking-wide text-zinc-600">
+                <p className="text-xs uppercase tracking-wide text-zinc-400">
                   {t.estimatedToEnd}
                 </p>
                 <p className="mt-0.5 text-zinc-300">
@@ -323,7 +323,7 @@ export default async function EventDetailPage({ params }: Props) {
                     : t.notEnoughHistoryYet}
                 </p>
                 {predictedEndAt && (
-                  <p className="mt-0.5 text-xs text-zinc-600">
+                  <p className="mt-0.5 text-xs text-zinc-400">
                     {t.confidencePercent.replace(
                       "{confidence}",
                       String(prediction.confidence)
@@ -334,7 +334,7 @@ export default async function EventDetailPage({ params }: Props) {
             ) : (
               <PremiumTeaser {...premiumTeaserProps}>
                 <div>
-                  <p className="text-xs uppercase tracking-wide text-zinc-600">
+                  <p className="text-xs uppercase tracking-wide text-zinc-400">
                     {t.estimatedToEnd}
                   </p>
                   <p className="mt-0.5 text-zinc-300">
@@ -345,7 +345,7 @@ export default async function EventDetailPage({ params }: Props) {
             )
           ) : (
             <div>
-              <p className="text-xs uppercase tracking-wide text-zinc-600">
+              <p className="text-xs uppercase tracking-wide text-zinc-400">
                 {t.lastSeen}
               </p>
               <p className="mt-0.5 text-zinc-300">
@@ -359,7 +359,7 @@ export default async function EventDetailPage({ params }: Props) {
           {!prediction.active && nextExpectedAt && (
             isPremium ? (
               <div>
-                <p className="text-xs uppercase tracking-wide text-zinc-600">
+                <p className="text-xs uppercase tracking-wide text-zinc-400">
                   {t.typicallyReturnsAfter}
                 </p>
                 <p className="mt-0.5 text-zinc-300">
@@ -367,7 +367,7 @@ export default async function EventDetailPage({ params }: Props) {
                     ? formatDuration(recurrenceIntervalMs, locale)
                     : "—"}
                 </p>
-                <p className="mt-0.5 text-xs text-zinc-600">
+                <p className="mt-0.5 text-xs text-zinc-400">
                   {t.nextExpectedAround.replace(
                     "{date}",
                     nextExpectedAt.toLocaleDateString(locale)
@@ -386,7 +386,7 @@ export default async function EventDetailPage({ params }: Props) {
             ) : (
               <PremiumTeaser {...premiumTeaserProps}>
                 <div>
-                  <p className="text-xs uppercase tracking-wide text-zinc-600">
+                  <p className="text-xs uppercase tracking-wide text-zinc-400">
                     {t.typicallyReturnsAfter}
                   </p>
                   <p className="mt-0.5 text-zinc-300">
@@ -401,7 +401,7 @@ export default async function EventDetailPage({ params }: Props) {
         {!prediction.active &&
           nextArrival.available &&
           !nextExpectedAt && (
-            <p className="mt-3 text-xs text-zinc-600">{t.onlySeenOnce}</p>
+            <p className="mt-3 text-xs text-zinc-400">{t.onlySeenOnce}</p>
           )}
 
         <div className="mt-10">
@@ -437,7 +437,7 @@ export default async function EventDetailPage({ params }: Props) {
                       <span className="text-zinc-300">
                         {entry.startedAt.toLocaleString(locale)}
                       </span>
-                      <span className="text-zinc-600">→</span>
+                      <span className="text-zinc-400">→</span>
                       <span className="text-zinc-300">
                         {entry.endedAt
                           ? entry.endedAt.toLocaleString(locale)
@@ -481,7 +481,7 @@ export default async function EventDetailPage({ params }: Props) {
                   </div>
                   <p className="mt-1 text-zinc-400">
                     {formatChangeValue(change.field, change.oldValue, dict)}
-                    <span className="mx-2 text-zinc-600">→</span>
+                    <span className="mx-2 text-zinc-400">→</span>
                     {formatChangeValue(change.field, change.newValue, dict)}
                   </p>
                 </div>

@@ -58,7 +58,7 @@ export function MagnitudeBarList({ items }: { items: MagnitudeBarItem[] }) {
                 {label}
                 {item.sublabel && (
                   <>
-                    <span className="shrink-0 text-zinc-600">·</span>
+                    <span className="shrink-0 text-zinc-400">·</span>
                     <span className="shrink-0 text-zinc-500">
                       {item.sublabel}
                     </span>

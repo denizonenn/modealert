@@ -118,7 +118,7 @@ export default async function GameDetailPage({ params }: Props) {
   )
 
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main id="main-content" className="min-h-screen bg-black text-white">
       <Navbar />
 
       <section className="mx-auto max-w-4xl px-6 py-16">
@@ -203,7 +203,7 @@ export default async function GameDetailPage({ params }: Props) {
 
                   <div className="mt-4 grid gap-4 text-sm sm:grid-cols-3">
                     <div>
-                      <p className="text-xs uppercase tracking-wide text-zinc-600">
+                      <p className="text-xs uppercase tracking-wide text-zinc-400">
                         {t.firstTracked}
                       </p>
                       <p className="mt-0.5 text-zinc-300">
@@ -216,7 +216,7 @@ export default async function GameDetailPage({ params }: Props) {
                     </div>
 
                     <div>
-                      <p className="text-xs uppercase tracking-wide text-zinc-600">
+                      <p className="text-xs uppercase tracking-wide text-zinc-400">
                         {t.timesSeen}
                       </p>
                       <p className="mt-0.5 text-zinc-300">
@@ -227,7 +227,7 @@ export default async function GameDetailPage({ params }: Props) {
                     {statistics.averageDuration > 0 &&
                       (isPremium ? (
                         <div>
-                          <p className="text-xs uppercase tracking-wide text-zinc-600">
+                          <p className="text-xs uppercase tracking-wide text-zinc-400">
                             {t.averageDuration}
                           </p>
                           <p className="mt-0.5 text-zinc-300">
@@ -243,7 +243,7 @@ export default async function GameDetailPage({ params }: Props) {
                           href={`/${locale}/pricing`}
                         >
                           <div>
-                            <p className="text-xs uppercase tracking-wide text-zinc-600">
+                            <p className="text-xs uppercase tracking-wide text-zinc-400">
                               {t.averageDuration}
                             </p>
                             <p className="mt-0.5 text-zinc-300">
@@ -257,7 +257,7 @@ export default async function GameDetailPage({ params }: Props) {
                       predictedEndAt &&
                       (isPremium ? (
                         <div className="sm:col-span-3">
-                          <p className="text-xs uppercase tracking-wide text-zinc-600">
+                          <p className="text-xs uppercase tracking-wide text-zinc-400">
                             {t.estimatedToEnd}
                           </p>
                           <p className="mt-0.5 text-zinc-300">
@@ -287,7 +287,7 @@ export default async function GameDetailPage({ params }: Props) {
                             href={`/${locale}/pricing`}
                           >
                             <div>
-                              <p className="text-xs uppercase tracking-wide text-zinc-600">
+                              <p className="text-xs uppercase tracking-wide text-zinc-400">
                                 {t.estimatedToEnd}
                               </p>
                               <p className="mt-0.5 text-zinc-300">
@@ -303,13 +303,13 @@ export default async function GameDetailPage({ params }: Props) {
                   </div>
 
                   {prediction.active && !predictedEndAt && (
-                    <p className="mt-3 text-xs text-zinc-600">
+                    <p className="mt-3 text-xs text-zinc-400">
                       {t.notEnoughHistory}
                     </p>
                   )}
 
                   {!prediction.active && statistics.lastSeen && (
-                    <p className="mt-3 text-xs text-zinc-600">
+                    <p className="mt-3 text-xs text-zinc-400">
                       {t.lastSeen.replace(
                         "{date}",
                         new Date(statistics.lastSeen).toLocaleDateString(

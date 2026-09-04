@@ -28,7 +28,7 @@ export function AdminProviderStatus() {
       <div className="flex items-center justify-between">
         <h3 className="font-semibold">Provider status</h3>
         {checkedAt && (
-          <span className="text-xs text-zinc-600">
+          <span className="text-xs text-zinc-400">
             checked {new Date(checkedAt).toLocaleTimeString()}
           </span>
         )}

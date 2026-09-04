@@ -3769,11 +3769,13 @@ kapsam bilinçli olarak sınırlandı — bkz. "Yapılmayan" bölümü.
   docs/09_BACKLOG.md'de zaten "P2 — Public API" olarak duruyor,
   tamamen ayrı bir ürün yüzeyi, Deniz'den açık bir istek gelmeden
   inşa edilmedi.
-- **Tam WCAG denetimi / renk kontrastı taraması** — icon-only
-  butonlar ve form label'ları (en yüksek etkili, en ucuz kazanımlar)
-  kapatıldı; kapsamlı bir denetim (ekran okuyucu testi, klavye
-  navigasyonu uçtan uca, renk kontrast oranları) ayrı, daha büyük bir
-  iş.
+- ~~Tam WCAG denetimi / renk kontrastı taraması~~ — **ilk gerçek geçiş
+  yapıldı (2026-09-04, ADR-058).** Kontrast oranları hesaplanıp gerçek
+  bir renk hatası (site genelinde `text-zinc-600`) ve tamamen eksik
+  bir klavye odak göstergesi (5 form input'u) bulundu, ikisi de
+  düzeltildi. Ekran okuyucuyla gerçek bir kullanıcı testi hâlâ
+  yapılmadı — otomatik/hesaplanmış bir denetim, canlı bir NVDA/VoiceOver
+  oturumunun yerini tutmaz.
 - **Nonce-tabanlı sıkı CSP** — yukarıda gerekçelendirildi, mevcut
   `'unsafe-inline'`'lı CSP zaten hiç CSP olmamasından büyük bir
   iyileştirme.
@@ -4932,3 +4934,90 @@ kazanmalı.
   oturumda yeni bir event/game değişikliği tetiklenmedi) — mantık
   birim testleriyle doğrulandı, bir sonraki gerçek bildirim
   gönderiminde davranışı gözlemlemek faydalı olur.
+
+---
+
+# ADR-058: WCAG denetimi — ilk gerçek geçiş (kontrast + klavye odağı + skip link)
+
+Status: Accepted
+
+Date: 2026-09-04
+
+## Bağlam
+
+ADR-045 (2026-08-13) "tam WCAG denetimi/renk kontrastı taraması"nı
+bilinçli olarak ertelemişti — o zamanki hardening pass sadece
+icon-only butonlara `aria-label` ve form input'larına `aria-label`
+eklemekle sınırlıydı. Deniz bu turda gerçek bir denetim istedi.
+
+## Yöntem
+
+Ekran okuyucu/gerçek kullanıcı testi yerine (bu oturumda mevcut değil)
+**hesaplanabilir, doğrulanabilir** iki şeye odaklanıldı: WCAG'nin
+matematiksel olarak kontrol edilebilen kuralları (renk kontrast oranı,
+klavye odağının var/yok olduğu, `<html lang>`, skip link) — tahmin
+değil, gerçek relative-luminance formülüyle hesaplandı (node script,
+sRGB → linear → WCAG kontrast oranı).
+
+## Bulgular ve düzeltmeler
+
+1. **`text-zinc-600` (#52525b), siyah zemine karşı 2.72:1 kontrast —
+   WCAG AA'nın gerektirdiği 4.5:1'in çok altında.** Site genelinde 15
+   dosyada 49 kullanım bulundu — neredeyse hepsi gerçek bilgi içeren
+   etiket/zaman damgası metni (`text-xs uppercase tracking-wide`
+   alan etiketleri, "created/last used" zaman damgaları, disclaimer
+   metinleri), dekoratif değil. `text-zinc-400` (#a1a1aa, 8.19:1 —
+   güvenle geçiyor) ile değiştirildi. Bir istisna bilinçli olarak
+   dokunulmadı: `notification-item.tsx`'teki `disabled` "already
+   reported" durum metni — WCAG 1.4.3'ün "inaktif UI bileşeni" istisnası
+   kapsamına giriyor (aynı gerekçe `ChannelToggle`'ın "muted" ikon
+   durumunda da kullanıldı, ADR-057).
+2. **5 form input'unda (dashboard/settings: display name, current/new/
+   confirm password, Discord webhook URL) klavye odağı için HİÇBİR
+   görsel gösterge yoktu** — sarmalayıcı `<div>` tarayıcının varsayılan
+   outline'ını `outline-none` ile kaldırıyordu ama yerine hiçbir
+   `focus-within` stili koymamıştı. Bu, WCAG 2.4.7 (Focus Visible)
+   ihlali — klavye kullanan biri formda hangi alanda olduğunu
+   göremiyordu. `/signin`, `/signup` ve arama kutuları (`games-grid-
+   search.tsx`, dashboard) zaten doğru deseni (`focus-within:border-
+   white/30 focus-within:ring-2 focus-within:ring-white/15`)
+   kullanıyordu — aynı desen settings'in 5 input'una da uygulandı.
+   `feedback-widget.tsx`'in textarea'sı (sarmalayıcı div'i yok, border
+   doğrudan üzerinde) için `focus:` varyantı kullanıldı.
+3. **Skip-to-content link hiç yoktu** (WCAG 2.4.1, Bypass Blocks) —
+   klavye kullanan her ziyaretçi her sayfada asıl içeriğe ulaşmadan
+   önce tüm navbar'ı (linkler, dil seçici, bildirim zili, kullanıcı
+   menüsü) tab'lamak zorundaydı. `app/[lang]/layout.tsx`'e `<body>`nin
+   ilk odaklanabilir elemanı olarak sr-only bir link eklendi
+   (`focus:not-sr-only` ile sadece klavye odağı aldığında görünür
+   oluyor), `#main-content`'e atlıyor. Bunun çalışması için her
+   sayfanın `<main>`'ine gerçek bir `id="main-content"` gerekiyordu —
+   20 sayfanın standart `<main className="min-h-screen bg-black
+   text-white">` deseni + 4 dashboard sayfasının farklı `<main
+   className="mx-auto min-h-screen max-w-*xl...">` deseni + `not-
+   found.tsx`'in `<main>` yerine çıplak `<div>` kullanan tek istisnası
+   (düzeltildi, artık gerçek bir `<main>`) — toplam 25 sayfa.
+
+## Yapılmayan (bilinçli sınır)
+
+- **Gerçek bir ekran okuyucuyla (NVDA/VoiceOver) uçtan uca test** —
+  bu ortamda mevcut değil; hesaplanmış kontrast/odak denetimi gerçek
+  bir kullanıcı testinin yerini tutmuyor, sadece ölçülebilir/otomatik
+  kısmı kapatıyor.
+- Renk kontrastı dışındaki diğer zinc tonları (`zinc-500` @ 4.35:1,
+  WCAG'nin 4.5:1 eşiğine göre teknik olarak sınırda başarısız ama
+  `zinc-600`'ün 2.72:1'i kadar ciddi değil) — daha küçük bir sonraki
+  adım, bu turda kapsam dışı bırakıldı (görsel hiyerarşiyi bozmadan
+  daha ince bir karar gerektiriyor).
+- `filter-presets-bar.tsx`'in input'undaki zayıf odak göstergesi
+  (`focus:border-white/40` — bir renk değişimi var ama zayıf, ring
+  yok) — tamamen eksik değil, sadece geliştirilebilir; bu turda
+  "sıfırdan eksik" olanlar önceliklendirildi.
+
+## Doğrulama
+
+`tsc --noEmit`, `npm run lint` (önceden var olan, ilgisiz 1 hata
+dışında), `npm run build`, 235 test hepsi temiz. Görsel bir regresyon
+kontrolü (canlı tarayıcıda before/after) bu oturumda yapılmadı — renk
+değişimi (`zinc-600`→`zinc-400`) hafif bir açma, tasarım hiyerarşisini
+bozmuyor ama Deniz canlıda gözden geçirebilir.

@@ -19,7 +19,7 @@ export default function DashboardPage() {
     <>
       <Navbar />
 
-      <main className="mx-auto min-h-screen max-w-7xl px-6 py-16">
+      <main id="main-content" className="mx-auto min-h-screen max-w-7xl px-6 py-16">
         {authStatus !== "authenticated" || isLoading || !stats ? (
           <div className="space-y-8">
             <div>

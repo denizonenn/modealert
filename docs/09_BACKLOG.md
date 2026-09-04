@@ -2145,6 +2145,14 @@ Yok — hepsi ya tamamlandı (aşağıda) ya da Deniz'in aksiyonuna bloklu
 (bkz. "Riot dev API key" notu ve `docs/09_BACKLOG.md`'nin diğer
 "Pending Deniz'in action" bölümleri).
 
+- ~~Tam WCAG denetimi~~ — **ilk gerçek geçiş yapıldı (2026-09-04,
+  ADR-058).** Hesaplanmış kontrast oranı + klavye odağı taraması:
+  site genelinde başarısız `text-zinc-600` (2.72:1) → `text-zinc-400`
+  (8.19:1), 5 form input'unda tamamen eksik klavye odak göstergesi
+  düzeltildi, hiç var olmayan bir skip-to-content link eklendi (tüm
+  25 sayfaya gerçek `id="main-content"` gerekti). Gerçek bir ekran
+  okuyucu testi hâlâ yapılmadı — ayrı, daha büyük bir adım.
+
 - ~~Riot endpoint discovery~~ — **doküman/kod tutarsızlığı olarak
   çözüldü (2026-08-19).** Bu madde "P0 — Riot Integration → Riot Local
   Client" bölümündeki ✅ işaretli LCU çalışmasına (connect/auth/gameflow/

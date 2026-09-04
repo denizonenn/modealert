@@ -165,7 +165,7 @@ function EventSections({
                 {label}
               </h3>
 
-              <span className="text-sm text-zinc-600">
+              <span className="text-sm text-zinc-400">
                 {items.length}
               </span>
             </div>

@@ -102,7 +102,7 @@ export function FeedbackWidget() {
               placeholder={dict.feedback.placeholder}
               rows={4}
               aria-label={dict.feedback.ariaLabel}
-              className="w-full resize-none rounded-lg border border-white/10 bg-white/5 p-2.5 text-sm text-white placeholder:text-zinc-500 outline-none"
+              className="w-full resize-none rounded-lg border border-white/10 bg-white/5 p-2.5 text-sm text-white placeholder:text-zinc-500 outline-none transition-colors focus:border-white/30 focus:ring-2 focus:ring-white/15"
             />
 
             {error && <p className="text-xs text-red-400">{error}</p>}

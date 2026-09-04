@@ -50,7 +50,7 @@ export default function NotificationHistoryPage() {
     <>
       <Navbar />
 
-      <main className="mx-auto min-h-screen max-w-3xl px-6 py-16">
+      <main id="main-content" className="mx-auto min-h-screen max-w-3xl px-6 py-16">
         <Link
           href={path("/dashboard")}
           className="inline-flex items-center gap-1 text-sm text-zinc-400 hover:text-white"

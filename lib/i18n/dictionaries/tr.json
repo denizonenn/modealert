@@ -24,6 +24,7 @@
     "github": "GitHub"
   },
   "common": {
+    "skipToContent": "İçeriğe geç",
     "loading": "Yükleniyor…",
     "save": "Kaydet",
     "saving": "Kaydediliyor...",

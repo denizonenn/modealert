@@ -65,7 +65,7 @@ export function HowItWorks() {
                 <Icon className="h-6 w-6" />
               </div>
 
-              <span className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-zinc-600">
+              <span className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-zinc-400">
                 {dict.howItWorks.step} {index + 1}
               </span>
 

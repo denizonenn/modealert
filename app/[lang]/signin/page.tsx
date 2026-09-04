@@ -209,7 +209,7 @@ function SignInForm() {
           : dict.auth.preferEmailLink}
       </button>
 
-      <p className="mt-8 text-center text-xs text-zinc-600">
+      <p className="mt-8 text-center text-xs text-zinc-400">
         {dict.auth.continuingAgreement}
       </p>
 
@@ -225,7 +225,7 @@ function SignInForm() {
 
 export default function SignInPage() {
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main id="main-content" className="min-h-screen bg-black text-white">
       <Navbar />
 
       <Suspense fallback={null}>

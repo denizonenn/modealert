@@ -15,7 +15,10 @@ export default async function NotFound() {
     <KineticGrid globalColor="monochrome" className="text-white">
       <Navbar />
 
-      <div className="mx-auto flex max-w-sm flex-col items-center px-6 py-24 text-center">
+      <main
+        id="main-content"
+        className="mx-auto flex max-w-sm flex-col items-center px-6 py-24 text-center"
+      >
         <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm">
           <Compass className="h-5 w-5 text-zinc-400" />
         </div>
@@ -33,7 +36,7 @@ export default async function NotFound() {
             {dict.notFoundPage.backToHomepage}
           </Button>
         </Link>
-      </div>
+      </main>
 
       <Footer />
     </KineticGrid>

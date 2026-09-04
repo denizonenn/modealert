@@ -96,7 +96,7 @@ export function ApiKeysPanel() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="developer@example.com"
-            className="w-56 rounded-lg border border-white/10 bg-black/30 px-3 py-1.5 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-white/30"
+            className="w-56 rounded-lg border border-white/10 bg-black/30 px-3 py-1.5 text-sm text-white placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-white/30"
           />
         </div>
 
@@ -110,7 +110,7 @@ export function ApiKeysPanel() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Discord bot"
-            className="w-48 rounded-lg border border-white/10 bg-black/30 px-3 py-1.5 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:ring-1 focus:ring-white/30"
+            className="w-48 rounded-lg border border-white/10 bg-black/30 px-3 py-1.5 text-sm text-white placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-white/30"
           />
         </div>
 
@@ -167,7 +167,7 @@ export function ApiKeysPanel() {
                     {key.keyPrefix}…
                   </code>
                 </div>
-                <p className="text-xs text-zinc-600">
+                <p className="text-xs text-zinc-400">
                   {key.email} · created{" "}
                   {new Date(key.createdAt).toLocaleDateString()} · last used{" "}
                   {key.lastUsedAt
@@ -199,6 +199,7 @@ export function ApiKeysPanel() {
                     size="icon"
                     onClick={() => revoke(key.id)}
                     title="Revoke key"
+                    aria-label={`Revoke key ${key.name}`}
                   >
                     <Trash2 className="h-4 w-4 text-red-400" />
                   </Button>

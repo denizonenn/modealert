@@ -24,6 +24,7 @@
     "github": "GitHub"
   },
   "common": {
+    "skipToContent": "Skip to content",
     "loading": "Loading…",
     "save": "Save",
     "saving": "Saving...",

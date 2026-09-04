@@ -93,7 +93,7 @@ export default function NotificationItem({
           disabled={isReported}
           className={`mt-2 inline-flex items-center gap-1 text-xs transition ${
             isReported
-              ? "cursor-default text-zinc-600"
+              ? "cursor-default text-zinc-400"
               : "cursor-pointer text-zinc-500 hover:text-red-400"
           }`}
         >

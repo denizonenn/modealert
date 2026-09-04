@@ -203,7 +203,7 @@ function ProfileSection({
   return (
     <Section title={t.profileTitle} description={t.profileDesc}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3">
+        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 transition-colors focus-within:border-white/30 focus-within:ring-2 focus-within:ring-white/15">
           <User className="h-4 w-4 shrink-0 text-zinc-500" />
           <input
             type="text"
@@ -315,7 +315,7 @@ function PasswordSection({
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         {account.hasPassword && (
-          <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3">
+          <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 transition-colors focus-within:border-white/30 focus-within:ring-2 focus-within:ring-white/15">
             <Lock className="h-4 w-4 shrink-0 text-zinc-500" />
             <input
               type="password"
@@ -329,7 +329,7 @@ function PasswordSection({
           </div>
         )}
 
-        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3">
+        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 transition-colors focus-within:border-white/30 focus-within:ring-2 focus-within:ring-white/15">
           <Lock className="h-4 w-4 shrink-0 text-zinc-500" />
           <input
             type="password"
@@ -348,7 +348,7 @@ function PasswordSection({
           />
         </div>
 
-        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3">
+        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 transition-colors focus-within:border-white/30 focus-within:ring-2 focus-within:ring-white/15">
           <Lock className="h-4 w-4 shrink-0 text-zinc-500" />
           <input
             type="password"
@@ -578,7 +578,7 @@ function DiscordSection({
   return (
     <Section title={t.discordTitle} description={t.discordDesc}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3">
+        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 transition-colors focus-within:border-white/30 focus-within:ring-2 focus-within:ring-white/15">
           <SiDiscord className="h-4 w-4 shrink-0 text-zinc-500" />
           <input
             type="url"
@@ -734,7 +734,7 @@ export default function SettingsPage() {
     <>
       <Navbar />
 
-      <main className="mx-auto min-h-screen max-w-2xl px-6 py-16">
+      <main id="main-content" className="mx-auto min-h-screen max-w-2xl px-6 py-16">
         <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">
           {dict.settingsPage.eyebrow}
         </p>

@@ -71,7 +71,7 @@ export function ManualSyncPanel() {
           )}
 
           {response.durationMs !== undefined && (
-            <p className="text-xs text-zinc-600">
+            <p className="text-xs text-zinc-400">
               Finished in {(response.durationMs / 1000).toFixed(1)}s
             </p>
           )}
@@ -86,7 +86,7 @@ export function ManualSyncPanel() {
               {result.error ? (
                 <span className="text-red-400">{result.error}</span>
               ) : result.skipped ? (
-                <span className="text-zinc-600">disabled</span>
+                <span className="text-zinc-400">disabled</span>
               ) : (
                 <span className="text-zinc-500">
                   {result.received ?? 0} received · {result.saved ?? 0} saved

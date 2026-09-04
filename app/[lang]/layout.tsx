@@ -92,6 +92,13 @@ export default async function RootLayout({
   return (
     <html lang={lang} className={`${inter.variable} ${spaceGrotesk.variable}`}>
       <body className="bg-black text-white antialiased">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-black"
+        >
+          {dict.common.skipToContent}
+        </a>
+
         <I18nProvider locale={lang} dict={dict}>
           <SessionProvider>{children}</SessionProvider>
         </I18nProvider>

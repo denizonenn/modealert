@@ -22,7 +22,7 @@ export default function GlobalError({
   }, [error])
 
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main id="main-content" className="min-h-screen bg-black text-white">
       <Navbar />
 
       <div className="mx-auto flex max-w-sm flex-col items-center px-6 py-24 text-center">

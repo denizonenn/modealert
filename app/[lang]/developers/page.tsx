@@ -49,7 +49,7 @@ function Endpoint({
 
 export default async function DevelopersPage() {
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main id="main-content" className="min-h-screen bg-black text-white">
       <Navbar />
 
       <section className="mx-auto max-w-3xl px-6 pt-20 pb-4">

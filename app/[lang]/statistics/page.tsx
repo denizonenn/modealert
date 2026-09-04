@@ -30,7 +30,7 @@ export default async function StatisticsPage() {
   const t = dict.statisticsPage
 
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main id="main-content" className="min-h-screen bg-black text-white">
       <Navbar />
 
       <section className="mx-auto max-w-4xl px-6 py-16">
@@ -94,7 +94,7 @@ export default async function StatisticsPage() {
           ) : (
             <>
               <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-5">
-                <p className="text-xs uppercase tracking-wide text-zinc-600">
+                <p className="text-xs uppercase tracking-wide text-zinc-400">
                   {t.overallAllGames}
                 </p>
                 <p className="mt-1 text-2xl font-semibold">
@@ -103,7 +103,7 @@ export default async function StatisticsPage() {
                     locale
                   )}
                 </p>
-                <p className="mt-1 text-xs text-zinc-600">
+                <p className="mt-1 text-xs text-zinc-400">
                   {(stats.averageDuration.sampleSize === 1
                     ? t.basedOnOccurrenceOne
                     : t.basedOnOccurrenceMany
@@ -149,7 +149,7 @@ export default async function StatisticsPage() {
               <p className="text-2xl font-semibold">
                 ~{stats.predictionAccuracy.score}%
               </p>
-              <p className="mt-1 text-xs text-zinc-600">
+              <p className="mt-1 text-xs text-zinc-400">
                 {(stats.predictionAccuracy.sampleSize === 1
                   ? t.basedOnPredictionOne
                   : t.basedOnPredictionMany
@@ -190,7 +190,7 @@ export default async function StatisticsPage() {
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-              <p className="text-xs uppercase tracking-wide text-zinc-600">
+              <p className="text-xs uppercase tracking-wide text-zinc-400">
                 {t.allTime}
               </p>
               <p className="mt-1 text-2xl font-semibold">
@@ -199,7 +199,7 @@ export default async function StatisticsPage() {
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-              <p className="text-xs uppercase tracking-wide text-zinc-600">
+              <p className="text-xs uppercase tracking-wide text-zinc-400">
                 {t.last30Days}
               </p>
               <p className="mt-1 text-2xl font-semibold">
@@ -208,7 +208,7 @@ export default async function StatisticsPage() {
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-white/5 p-5 sm:col-span-2">
-              <p className="text-xs uppercase tracking-wide text-zinc-600">
+              <p className="text-xs uppercase tracking-wide text-zinc-400">
                 {t.successRateTitle}
               </p>
               {stats.notifications.successRate30d === null ? (
@@ -220,7 +220,7 @@ export default async function StatisticsPage() {
                   <p className="mt-1 text-2xl font-semibold">
                     {stats.notifications.successRate30d}%
                   </p>
-                  <p className="mt-1 text-xs text-zinc-600">
+                  <p className="mt-1 text-xs text-zinc-400">
                     {t.sentFailed
                       .replace(
                         "{sent}",
@@ -236,10 +236,10 @@ export default async function StatisticsPage() {
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-white/5 p-5 sm:col-span-2">
-              <p className="text-xs uppercase tracking-wide text-zinc-600">
+              <p className="text-xs uppercase tracking-wide text-zinc-400">
                 {t.reportedWrongTitle}
               </p>
-              <p className="mt-1 text-xs text-zinc-600">
+              <p className="mt-1 text-xs text-zinc-400">
                 {t.reportedWrongIntro}
               </p>
               {stats.notifications.falsePositives.rate === null ? (
@@ -251,7 +251,7 @@ export default async function StatisticsPage() {
                   <p className="mt-2 text-2xl font-semibold">
                     {stats.notifications.falsePositives.rate}%
                   </p>
-                  <p className="mt-1 text-xs text-zinc-600">
+                  <p className="mt-1 text-xs text-zinc-400">
                     {t.ofTotalSent
                       .replace(
                         "{reported}",

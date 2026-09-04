@@ -45,7 +45,7 @@ export function UptimeBars({ providers }: { providers: UptimeBarItem[] }) {
                   aria-hidden
                 />
                 <span className="text-zinc-300">{provider.providerName}</span>
-                <span className="text-xs text-zinc-600">{status.label}</span>
+                <span className="text-xs text-zinc-400">{status.label}</span>
               </div>
 
               <span className="shrink-0 text-xs text-zinc-500">

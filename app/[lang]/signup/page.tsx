@@ -228,7 +228,7 @@ function SignUpForm() {
 
 export default function SignUpPage() {
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main id="main-content" className="min-h-screen bg-black text-white">
       <Navbar />
 
       <Suspense fallback={null}>
