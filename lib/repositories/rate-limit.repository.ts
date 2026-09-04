@@ -50,3 +50,16 @@ export async function checkAndRecordHit(
     { maxWait: 10_000, timeout: 10_000 }
   );
 }
+
+// Read-only usage count for a key within a window — unlike
+// checkAndRecordHit, this never inserts a row, so it's safe to call
+// purely for display (e.g. an admin usage dashboard) without affecting
+// the limit itself.
+export async function countHitsSince(
+  key: string,
+  since: Date
+): Promise<number> {
+  return prisma.rateLimitHit.count({
+    where: { key, createdAt: { gte: since } },
+  });
+}

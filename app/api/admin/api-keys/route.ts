@@ -53,8 +53,8 @@ export const GET = withErrorHandling(async () => {
 
   const keys = await apiKeyService.listAll();
 
-  return NextResponse.json({
-    data: keys.map((key) => ({
+  const data = await Promise.all(
+    keys.map(async (key) => ({
       id: key.id,
       name: key.name,
       keyPrefix: key.keyPrefix,
@@ -62,8 +62,11 @@ export const GET = withErrorHandling(async () => {
       createdAt: key.createdAt,
       lastUsedAt: key.lastUsedAt,
       revokedAt: key.revokedAt,
-    })),
-  });
+      usage: await apiKeyService.usageFor(key.id),
+    }))
+  );
+
+  return NextResponse.json({ data });
 });
 
 export const DELETE = withErrorHandling(async (request: NextRequest) => {

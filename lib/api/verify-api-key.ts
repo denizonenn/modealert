@@ -7,8 +7,8 @@ import { checkRateLimit } from "@/lib/security/rate-limit";
 // yet, see docs/09_BACKLOG.md "Sellable API"), so every holder is a
 // known, vetted developer, not an anonymous script. Revisit once
 // self-serve tiers exist.
-const API_LIMIT = 300;
-const API_WINDOW_MS = 60 * 60 * 1000;
+export const API_LIMIT = 300;
+export const API_WINDOW_MS = 60 * 60 * 1000;
 
 type ApiKeyAuthResult =
   | { ok: true; keyId: string; userId: string }

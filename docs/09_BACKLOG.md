@@ -1399,8 +1399,26 @@ Remaining
 - Self-serve signup + a real paid tier (separate from consumer
   Premium — different audience, developers not watchlist users),
   blocked on Lemon Squeezy the same way Premium is.
-- No usage dashboard for a key holder yet (request count, remaining
-  quota) — `RateLimitHit` rows exist but nothing surfaces them.
+
+Done (2026-09-04)
+
+- ~~No usage dashboard for a key holder yet~~ — since there's no
+  self-serve developer login yet (`apiKeyService.listForUser()` exists
+  but nothing calls it — same "written but not connected" pattern
+  documented elsewhere in this file), the practical MVP is admin-
+  facing: new `ApiKeysPanel` on `/admin`, wired to the `/api/admin/
+  api-keys` route that already existed but had zero UI consumer.
+  Lists every issued key with the account email, prefix, created/
+  last-used timestamps, and current-hour usage (`used/limit`, amber
+  badge past 80%) read from `RateLimitHit` via a new read-only
+  `countHitsSince()` (doesn't insert a row, unlike `checkAndRecordHit`,
+  so viewing usage can never itself trip the rate limit). Same form +
+  revoke button the admin route already supported, just never had a
+  UI. `API_LIMIT`/`API_WINDOW_MS` exported from `verify-api-key.ts` so
+  the usage calculation uses the exact same window the real enforcement
+  does, not a second hardcoded copy. A genuine per-developer self-serve
+  view (their own keys, their own usage, no admin access) is still not
+  built — same self-serve blocker as the rest of this section.
 
 ---
 

@@ -8,7 +8,9 @@ import {
   touchApiKeyLastUsed,
   revokeApiKey,
 } from "@/lib/repositories/api-key.repository";
+import { countHitsSince } from "@/lib/repositories/rate-limit.repository";
 import { getUserByEmail } from "@/lib/repositories/user.repository";
+import { API_LIMIT, API_WINDOW_MS } from "@/lib/api/verify-api-key";
 
 const KEY_PREFIX = "mdlrt_live_";
 const PREFIX_DISPLAY_LENGTH = 12;
@@ -60,6 +62,16 @@ export const apiKeyService = {
 
   async listAll() {
     return getAllApiKeys();
+  },
+
+  // Current-hour usage against the same fixed window verifyApiKey()
+  // enforces — reads RateLimitHit without recording a hit, purely for
+  // display (see docs/09_BACKLOG.md "Sellable API" → usage dashboard).
+  async usageFor(keyId: string) {
+    const windowStart = new Date(Date.now() - API_WINDOW_MS);
+    const used = await countHitsSince(`apikey:${keyId}`, windowStart);
+
+    return { used, limit: API_LIMIT };
   },
 
   // Manual-approval issuance path (see docs/09_BACKLOG.md "Sellable

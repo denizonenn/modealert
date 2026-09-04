@@ -10,6 +10,7 @@ import { AdminProviderStatus } from "@/components/admin/admin-provider-status"
 import { FunnelPanel } from "@/components/admin/funnel-panel"
 import { AnonymousFunnelPanel } from "@/components/admin/anonymous-funnel-panel"
 import { FeedbackPanel } from "@/components/admin/feedback-panel"
+import { ApiKeysPanel } from "@/components/admin/api-keys-panel"
 
 import { auth } from "@/auth"
 import { isAdminEmail } from "@/lib/auth/is-admin"
@@ -46,6 +47,7 @@ export default async function AdminPage() {
           <FunnelPanel />
           <AnonymousFunnelPanel />
           <FeedbackPanel />
+          <ApiKeysPanel />
         </div>
       </section>
 
