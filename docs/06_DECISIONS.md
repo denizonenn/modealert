@@ -5169,3 +5169,73 @@ JWT decode + tek indexli sorgu).
 `tsc --noEmit`, `npm run lint`, `npm run build`, 235 test temiz.
 Deploy sonrası canlı zamanlama tekrar kontrol edilmeli (bu, projenin
 ilk `unstable_cache` kullanımı).
+
+---
+
+# ADR-060: Sign in / sign up "foolproof" QA geçişi
+
+Status: Accepted
+
+Date: 2026-09-04
+
+## Bağlam
+
+Deniz kayıt/giriş akışlarının sağlam olduğundan emin olmak istedi —
+"foolproof, QA/CI gibi test et". Statik kod incelemesi + gerçek DB'ye
+karşı uçtan uca canlı test (local `next dev`, aynı Neon DB — CLAUDE.md
+kuralı gereği sadece ekleme/silme, hiç migration/schema dokunulmadı,
+tüm test verisi sonda temizlendi) yapıldı.
+
+## Bulunan ve düzeltilen gerçek bug
+
+**`POST /api/auth/register`'da race condition.** `findUnique` ile
+email kontrolü, ardından ayrı bir `create` — iki eşzamanlı istek aynı
+(henüz var olmayan) email ile gelirse ikisi de `existing` kontrolünü
+geçebilir, ikinci `create` `User.email`'in `@unique` kısıtına çarpar.
+Bu hata `withErrorHandling()`'in genel handler'ına düşüp kullanıcıya
+"Something went wrong" (500) gösteriyordu — gerçek, beklenen bir
+senaryo (çift tıklama, iki sekme) yanlış bir hata mesajıyla
+karşılanıyordu. Veri bütünlüğü zaten DB kısıtıyla korunuyordu (asla
+çift hesap oluşmuyordu), sadece **yanıt** yanlıştı. `create`'i
+`Prisma.PrismaClientKnownRequestError` (`P2002`) yakalayan bir
+try/catch'e aldık — artık ikinci istek de doğru 409 "already exists"
+mesajını alıyor. **Canlı doğrulandı:** iki eşzamanlı `curl` isteği
+aynı yeni email'le gönderildi, biri 200 biri 409 döndü (asla 500).
+
+## Canlı uçtan uca doğrulanan (gerçek DB'ye karşı, curl ile)
+
+- Gerçek kayıt → başarı (200).
+- Aynı email'le tekrar kayıt → 409, doğru mesaj.
+- Geçersiz email formatı → 400, zod hata detayı.
+- Kısa şifre (< 8 karakter) → 400, DB'ye hiç satır yazılmadı
+  (doğrulandı — kayıt bulunamadı).
+- Eksik alanlar → 400, her iki alan için de hata.
+- **Hesap kilitleme:** gerçek bir test kullanıcısına 5 yanlış şifre
+  denemesi → `failedLoginAttempts=5`, `lockedUntil` ~15dk ileri
+  ayarlandı (DB'den doğrulandı). Kilitliyken **doğru** şifre bile
+  reddedildi (redirect'te `error=CredentialsSignin`, session cookie
+  hiç set edilmedi). `lockedUntil`'i manuel geçmişe alıp (zaman
+  geçmesini simüle ederek) doğru şifreyle giriş denendi → başarılı,
+  session cookie set edildi, `failedLoginAttempts` 0'a resetlendi.
+- **`/api/post-auth`:** onboard olmamış kullanıcı doğru şekilde
+  `/onboarding`'e yönleniyor; `next` parametresine
+  `https://evil.example.com` ve `//evil.example.com` (iki farklı
+  open-redirect deseni) verildiğinde ikisi de güvenli şekilde
+  reddedilip iç bir path'e düşüyor — dışarıya hiç yönlendirmiyor.
+
+## Yeni testler (DB gerektirmeyen, pure-function — proje deseniyle tutarlı)
+
+- `lib/auth/lockout.ts` (yeni) — `isLockedOut()`/`nextLockedUntil()`,
+  auth.ts'in inline eşik/süre mantığından çıkarıldı, 8 test.
+- `components/ui/password-strength.tsx` — skorlama mantığı
+  (`computePasswordStrength`) hook'tan ayrıldı, 12 test. "Guessable"
+  tespiti (yaygın şifre/klavye run'ı/4+ tekrar eden karakter) gerçek
+  bir güvenlik kararı — uzun ama "password123456" gibi bir şifrenin
+  hâlâ "Weak" skorlanması artık pinlenmiş durumda.
+
+## Doğrulama
+
+`tsc --noEmit`, `npm run lint` (önceden var olan, ilgisiz 1 hata
+dışında), `npm run build`, **255 test** (235 → 255, +20). Tüm test
+verisi (kullanıcılar + rate-limit satırları) temizlendi, kullanıcı
+sayısı test öncesiyle birebir aynı (6) doğrulandı.

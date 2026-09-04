@@ -60,6 +60,55 @@ export const defaultPasswordRules: readonly PasswordRule[] = [
 
 const defaultLabels = ["Empty", "Weak", "Fair", "Good", "Strong"] as const;
 
+// Pure scoring, pulled out of the hook so it's directly unit-testable
+// without rendering a component — the "guessable" check in particular
+// is a real security decision (a password meeting every length/case/
+// digit/symbol rule still scores as Weak if it's a known-common
+// pattern), worth pinning down with tests.
+export function computePasswordStrength(
+  value: string,
+  rules: readonly PasswordRule[] = defaultPasswordRules,
+  labels: readonly string[] = defaultLabels,
+): PasswordStrengthState {
+  const evaluated = rules.map((rule) => ({ ...rule, met: rule.test(value) }));
+  const passed = evaluated.reduce((n, r) => n + (r.met ? 1 : 0), 0);
+  const guessable =
+    value.length > 0 &&
+    (COMMON.test(value) || RUN.test(value) || RUN_UP.test(value));
+
+  const score =
+    value.length === 0
+      ? 0
+      : guessable
+        ? 1
+        : Math.min(rules.length, Math.max(1, passed));
+
+  const label = labels[Math.min(score, labels.length - 1)] ?? "";
+  const unmet = evaluated.filter((r) => !r.met);
+
+  const announcement =
+    value.length === 0
+      ? ""
+      : [
+          `Password strength ${label.toLowerCase()}.`,
+          guessable ? "This is a commonly guessed pattern." : "",
+          unmet.length === 0
+            ? "All requirements met."
+            : `Still needed: ${unmet.map((r) => r.label.toLowerCase()).join(", ")}.`,
+        ]
+          .filter(Boolean)
+          .join(" ");
+
+  return {
+    score,
+    max: rules.length,
+    label,
+    rules: evaluated,
+    guessable,
+    announcement,
+  };
+}
+
 export function usePasswordStrength(
   value: string,
   {
@@ -68,45 +117,10 @@ export function usePasswordStrength(
     announceDelay = 700,
   }: UsePasswordStrengthOptions = {},
 ): PasswordStrengthState {
-  const state = useMemo(() => {
-    const evaluated = rules.map((rule) => ({ ...rule, met: rule.test(value) }));
-    const passed = evaluated.reduce((n, r) => n + (r.met ? 1 : 0), 0);
-    const guessable =
-      value.length > 0 &&
-      (COMMON.test(value) || RUN.test(value) || RUN_UP.test(value));
-
-    const score =
-      value.length === 0
-        ? 0
-        : guessable
-          ? 1
-          : Math.min(rules.length, Math.max(1, passed));
-
-    const label = labels[Math.min(score, labels.length - 1)] ?? "";
-    const unmet = evaluated.filter((r) => !r.met);
-
-    const announcement =
-      value.length === 0
-        ? ""
-        : [
-            `Password strength ${label.toLowerCase()}.`,
-            guessable ? "This is a commonly guessed pattern." : "",
-            unmet.length === 0
-              ? "All requirements met."
-              : `Still needed: ${unmet.map((r) => r.label.toLowerCase()).join(", ")}.`,
-          ]
-            .filter(Boolean)
-            .join(" ");
-
-    return {
-      score,
-      max: rules.length,
-      label,
-      rules: evaluated,
-      guessable,
-      announcement,
-    };
-  }, [value, rules, labels]);
+  const state = useMemo(
+    () => computePasswordStrength(value, rules, labels),
+    [value, rules, labels],
+  );
 
   const [settled, setSettled] = useState("");
   const [prevAnnouncement, setPrevAnnouncement] = useState(state.announcement);

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/db/prisma";
 import { withErrorHandling } from "@/lib/api/with-error-handling";
@@ -43,24 +44,48 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
 
   const existing = await prisma.user.findUnique({ where: { email } });
 
-  if (existing) {
-    return NextResponse.json(
+  const alreadyExistsResponse = () =>
+    NextResponse.json(
       {
         error:
           "An account with this email already exists. Sign in with Google or email instead.",
       },
       { status: 409 }
     );
+
+  if (existing) {
+    return alreadyExistsResponse();
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
 
-  const user = await prisma.user.create({
-    data: {
-      email,
-      password: passwordHash,
-    },
-  });
+  let user;
+
+  try {
+    user = await prisma.user.create({
+      data: {
+        email,
+        password: passwordHash,
+      },
+    });
+  } catch (error) {
+    // The findUnique check above has a real race window (two
+    // concurrent submits with the same email — a double-click, or two
+    // tabs — can both pass it before either insert lands): without
+    // this, the second request's unique-constraint violation would
+    // bubble up as a generic 500 instead of the same friendly 409 the
+    // first check gives, even though no double account is ever
+    // actually created (the DB constraint itself is what's
+    // protecting us — this only fixes the response, not the safety).
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return alreadyExistsResponse();
+    }
+
+    throw error;
+  }
 
   await analyticsService.record(
     user.id,

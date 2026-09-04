@@ -9,6 +9,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/db/prisma";
 import { env } from "@/lib/config/env";
 import { checkRateLimit, getClientIp } from "@/lib/security/rate-limit";
+import { isLockedOut, nextLockedUntil } from "@/lib/auth/lockout";
 import { analyticsService } from "@/lib/services/analytics.service";
 import { ANALYTICS_EVENTS } from "@/lib/constants/analytics-events";
 import { buildMagicLinkHtml } from "@/lib/notifications/email/template";
@@ -153,7 +154,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
-        if (user.lockedUntil && user.lockedUntil > new Date()) {
+        if (isLockedOut(user.lockedUntil)) {
           return null;
         }
 
@@ -181,10 +182,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           await prisma.user.update({
             where: { id: user.id },
             data: {
-              lockedUntil:
-                updated.failedLoginAttempts >= LOCKOUT_THRESHOLD
-                  ? new Date(Date.now() + LOCKOUT_DURATION_MS)
-                  : null,
+              lockedUntil: nextLockedUntil(
+                updated.failedLoginAttempts,
+                LOCKOUT_THRESHOLD,
+                LOCKOUT_DURATION_MS
+              ),
             },
           });
 
