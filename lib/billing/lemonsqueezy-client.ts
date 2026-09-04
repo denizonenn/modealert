@@ -3,15 +3,30 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { env } from "@/lib/config/env";
 import { http } from "@/lib/http/client";
 import { SITE_URL } from "@/lib/constants/site";
+import { BILLING_INTERVALS, type BillingInterval } from "@/lib/constants/plan";
+
+function variantIdFor(interval: BillingInterval): string {
+  switch (interval) {
+    case BILLING_INTERVALS.YEARLY:
+      return env.LEMONSQUEEZY_VARIANT_ID_YEARLY;
+    case BILLING_INTERVALS.LIFETIME:
+      return env.LEMONSQUEEZY_VARIANT_ID_LIFETIME;
+    default:
+      return env.LEMONSQUEEZY_VARIANT_ID;
+  }
+}
 
 // No key/store/variant configured yet — same "disabled until Deniz
 // provides real credentials" pattern as Resend/Google OAuth (see
 // docs/06_DECISIONS.md ADR-003/ADR-005). Checkout stays hidden, not
-// broken.
-export function isCheckoutConfigured(): boolean {
+// broken. Yearly has its own variant and can go live independently of
+// monthly (e.g. monthly configured first, yearly added later).
+export function isCheckoutConfigured(
+  interval: BillingInterval = BILLING_INTERVALS.MONTHLY
+): boolean {
   return (
     env.LEMONSQUEEZY_STORE_SUBDOMAIN !== "" &&
-    env.LEMONSQUEEZY_VARIANT_ID !== ""
+    variantIdFor(interval) !== ""
   );
 }
 
@@ -29,14 +44,15 @@ export function isApiConfigured(): boolean {
 // handler knows which ModeAlert user to credit.
 export function buildCheckoutUrl(
   userId: string,
-  email: string
+  email: string,
+  interval: BillingInterval = BILLING_INTERVALS.MONTHLY
 ): string | null {
-  if (!isCheckoutConfigured()) {
+  if (!isCheckoutConfigured(interval)) {
     return null;
   }
 
   const url = new URL(
-    `/buy/${env.LEMONSQUEEZY_VARIANT_ID}`,
+    `/buy/${variantIdFor(interval)}`,
     `https://${env.LEMONSQUEEZY_STORE_SUBDOMAIN}.lemonsqueezy.com`
   );
 

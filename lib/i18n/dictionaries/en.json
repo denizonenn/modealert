@@ -165,7 +165,7 @@
       },
       {
         "question": "Is ModeAlert free?",
-        "answer": "Yes — the Free plan tracks up to 5 events with email and Discord alerts, no credit card required. Premium ($4.99/mo) adds unlimited tracked events and per-event predictions."
+        "answer": "Yes — the Free plan tracks up to 5 events with email and Discord alerts, no credit card required. Premium ($4.99/mo, or $49/year) adds unlimited tracked events and per-event predictions."
       },
       {
         "question": "How do you detect events before Riot announces them?",
@@ -219,7 +219,14 @@
     "getStarted": "Get started",
     "premiumBadge": "Premium",
     "premiumTitle": "Premium",
+    "billingMonthly": "Monthly",
+    "billingYearly": "Yearly",
+    "billingLifetime": "Lifetime",
     "perMonth": "/ month",
+    "perYear": "/ year",
+    "oneTime": "one-time",
+    "yearlySavings": "2 months free vs. paying monthly",
+    "buyLifetime": "Buy lifetime access",
     "premiumFeature1": "Unlimited tracked events",
     "premiumFeature2": "Per-event predictions — estimated end date, average duration, when a mode typically comes back",
     "premiumFeature3": "Everything in Free",
@@ -403,7 +410,7 @@
     "s3Title": "3. Free and Premium plans — no guarantees",
     "s3Body": "ModeAlert's Free plan is provided **as-is**, without warranty of any kind, and Premium doesn't change that. Event detection depends entirely on third-party APIs we don't control — they can change, rate-limit, or go offline without notice, which can delay or prevent an alert. We do our best to keep data accurate and timely, but we can't guarantee you'll be notified of every event, or that notifications will always be on time.",
     "s4Title": "4. Premium billing",
-    "s4Body": "Premium is $4.99/month, billed monthly until you cancel. Payments are processed by **Lemon Squeezy**, our Merchant of Record — Lemon Squeezy handles your payment details directly and is the merchant on your card statement; ModeAlert never sees or stores your card number.",
+    "s4Body": "Premium is $4.99/month or $49/year (both billed on that cadence until you cancel). Payments are processed by **Lemon Squeezy**, our Merchant of Record — Lemon Squeezy handles your payment details directly and is the merchant on your card statement; ModeAlert never sees or stores your card number.",
     "s4Item1": "You can cancel anytime from **Dashboard → Settings** — you keep Premium access until the end of the period you already paid for, then the account reverts to Free (your data isn't deleted, tracking above the Free limit just pauses).",
     "s4Item2Pre": "Not happy with Premium? Email",
     "s4Item2Post": "within 7 days of being charged for a full refund, no questions asked.",
@@ -562,6 +569,7 @@
     "subscriptionDescPremium": "Unlimited tracked events and per-event predictions.",
     "subscriptionDescFree": "Upgrade for unlimited tracked events and per-event predictions.",
     "renews": "renews {date}",
+    "lifetimeAccess": "lifetime access, no renewal",
     "manageSubscription": "Manage subscription",
     "upgradeToPremium": "Upgrade to Premium",
     "seePlans": "See plans",

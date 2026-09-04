@@ -50,10 +50,6 @@ export const GET = withErrorHandling(async () => {
     subscriptionStatus: billing?.subscriptionStatus ?? null,
     subscriptionRenewsAt: billing?.subscriptionRenewsAt ?? null,
     manageSubscriptionUrl: billing?.manageUrl ?? null,
-    checkoutUrl: billingService.getCheckoutUrl(
-      session.user.id,
-      user.email
-    ),
   });
 });
 

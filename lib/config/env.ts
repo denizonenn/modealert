@@ -67,6 +67,18 @@ export const env = {
   LEMONSQUEEZY_VARIANT_ID:
     process.env.LEMONSQUEEZY_VARIANT_ID ?? "",
 
+  // Separate variant for the yearly plan — same product, a second
+  // price/variant in the Lemon Squeezy dashboard. Optional: yearly
+  // checkout stays hidden (not broken) until this is set, same
+  // pattern as every other LEMONSQUEEZY_* var.
+  LEMONSQUEEZY_VARIANT_ID_YEARLY:
+    process.env.LEMONSQUEEZY_VARIANT_ID_YEARLY ?? "",
+
+  // A one-time "Single Payment" product/variant in Lemon Squeezy, not
+  // a subscription — see the order-webhook path in billing.service.ts.
+  LEMONSQUEEZY_VARIANT_ID_LIFETIME:
+    process.env.LEMONSQUEEZY_VARIANT_ID_LIFETIME ?? "",
+
   LEMONSQUEEZY_WEBHOOK_SECRET:
     process.env.LEMONSQUEEZY_WEBHOOK_SECRET ?? "",
 } as const;

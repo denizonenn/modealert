@@ -6,12 +6,11 @@ import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
 import { SectionEyebrow } from "@/components/shared/section-eyebrow"
-import { CheckoutLink } from "@/components/pricing/checkout-link"
+import { PricingToggle } from "@/components/pricing/pricing-toggle"
 
 import { auth } from "@/auth"
 import { billingService } from "@/lib/services/billing.service"
-import { PLANS } from "@/lib/constants/plan"
-import { FREE_WATCHLIST_LIMIT } from "@/lib/constants/plan"
+import { PLANS, BILLING_INTERVALS, FREE_WATCHLIST_LIMIT } from "@/lib/constants/plan"
 import { getDictionary, getLocale } from "@/lib/i18n/dictionaries"
 import { localeAlternates } from "@/lib/i18n/alternates"
 
@@ -40,10 +39,32 @@ export default async function PricingPage() {
     ? await billingService.getBillingInfo(userId)
     : null
 
-  const checkoutUrl =
-    userId && billing
-      ? billingService.getCheckoutUrl(userId, billing.email)
-      : null
+  const checkoutUrls = {
+    [BILLING_INTERVALS.MONTHLY]:
+      userId && billing
+        ? billingService.getCheckoutUrl(
+            userId,
+            billing.email,
+            BILLING_INTERVALS.MONTHLY
+          )
+        : null,
+    [BILLING_INTERVALS.YEARLY]:
+      userId && billing
+        ? billingService.getCheckoutUrl(
+            userId,
+            billing.email,
+            BILLING_INTERVALS.YEARLY
+          )
+        : null,
+    [BILLING_INTERVALS.LIFETIME]:
+      userId && billing
+        ? billingService.getCheckoutUrl(
+            userId,
+            billing.email,
+            BILLING_INTERVALS.LIFETIME
+          )
+        : null,
+  }
 
   const FREE_FEATURES = [
     dict.pricingPage.freeFeature1.replace(
@@ -111,13 +132,30 @@ export default async function PricingPage() {
             </span>
 
             <h2 className="text-lg font-semibold">{dict.pricingPage.premiumTitle}</h2>
-            <p className="mt-2">
-              <span className="text-3xl font-bold">$4.99</span>
-              <span className="text-base font-normal text-zinc-400">
-                {" "}
-                {dict.pricingPage.perMonth}
-              </span>
-            </p>
+
+            <div className="mt-4">
+              <PricingToggle
+                isPremium={isPremium}
+                signInHref={
+                  !session ? `/${locale}/signin?callbackUrl=/pricing` : null
+                }
+                checkoutUrls={checkoutUrls}
+                labels={{
+                  monthly: dict.pricingPage.billingMonthly,
+                  yearly: dict.pricingPage.billingYearly,
+                  lifetime: dict.pricingPage.billingLifetime,
+                  perMonth: dict.pricingPage.perMonth,
+                  perYear: dict.pricingPage.perYear,
+                  oneTime: dict.pricingPage.oneTime,
+                  yearlySavings: dict.pricingPage.yearlySavings,
+                  youreOnPremium: dict.pricingPage.youreOnPremium,
+                  signInToUpgrade: dict.pricingPage.signInToUpgrade,
+                  upgradeToPremium: dict.pricingPage.upgradeToPremium,
+                  buyLifetime: dict.pricingPage.buyLifetime,
+                  upgradesNotLive: dict.pricingPage.upgradesNotLive,
+                }}
+              />
+            </div>
 
             <ul className="mt-6 space-y-3 text-sm text-zinc-300">
               {PREMIUM_FEATURES.map((feature) => (
@@ -127,28 +165,6 @@ export default async function PricingPage() {
                 </li>
               ))}
             </ul>
-
-            {isPremium ? (
-              <div className="mt-8 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-2.5 text-center text-sm font-medium text-emerald-300">
-                {dict.pricingPage.youreOnPremium}
-              </div>
-            ) : !session ? (
-              <Link href={`/${locale}/signin?callbackUrl=/pricing`}>
-                <Button className="mt-8 w-full bg-gradient-brand text-white shadow-[0_0_30px_rgba(168,85,247,0.35)] hover:shadow-[0_0_40px_rgba(168,85,247,0.5)]">
-                  {dict.pricingPage.signInToUpgrade}
-                </Button>
-              </Link>
-            ) : checkoutUrl ? (
-              <CheckoutLink href={checkoutUrl} source="pricing-page">
-                <Button className="mt-8 w-full bg-gradient-brand text-white shadow-[0_0_30px_rgba(168,85,247,0.35)] hover:shadow-[0_0_40px_rgba(168,85,247,0.5)]">
-                  {dict.pricingPage.upgradeToPremium}
-                </Button>
-              </CheckoutLink>
-            ) : (
-              <p className="mt-8 text-center text-xs text-zinc-500">
-                {dict.pricingPage.upgradesNotLive}
-              </p>
-            )}
           </div>
         </div>
       </section>

@@ -11,7 +11,10 @@ import {
 } from "@/lib/billing/lemonsqueezy-client";
 import {
   ACTIVE_SUBSCRIPTION_STATUSES,
+  BILLING_INTERVALS,
   PLANS,
+  SUBSCRIPTION_STATUS_LIFETIME,
+  type BillingInterval,
   type Plan,
 } from "@/lib/constants/plan";
 import type { z } from "zod";
@@ -20,6 +23,11 @@ import type { lemonSqueezyWebhookSchema } from "@/lib/validation/schemas";
 type LemonSqueezyWebhookPayload = z.infer<
   typeof lemonSqueezyWebhookSchema
 >;
+
+// Lemon Squeezy's order status vocabulary — distinct from a
+// subscription's. "paid" is the only status that should ever grant
+// access; a refund/void on a lifetime purchase revokes it.
+const PAID_ORDER_STATUSES = new Set(["paid"]);
 
 export const billingService = {
   async getPlan(
@@ -48,8 +56,12 @@ export const billingService = {
     return { ...billing, manageUrl };
   },
 
-  getCheckoutUrl(userId: string, email: string) {
-    return buildCheckoutUrl(userId, email);
+  getCheckoutUrl(
+    userId: string,
+    email: string,
+    interval: BillingInterval = BILLING_INTERVALS.MONTHLY
+  ) {
+    return buildCheckoutUrl(userId, email, interval);
   },
 
   // Best-effort — called right before account deletion so a Premium
@@ -108,5 +120,41 @@ export const billingService = {
       subscriptionStatus: attributes.status,
       subscriptionRenewsAt,
     });
+  },
+
+  // Called by the webhook route for order_created/order_refunded — a
+  // one-time lifetime purchase, not a subscription. No renewal, no
+  // subscription id to store or later cancel (setting it null is
+  // deliberate — see SubscriptionUpdate). Requires custom_data.user_id
+  // (always present on checkouts built by buildCheckoutUrl, since we
+  // control that URL); an order created directly in the Lemon Squeezy
+  // dashboard without it can't be matched to a ModeAlert account and
+  // is logged, not silently dropped.
+  async syncOrderFromWebhook(
+    payload: LemonSqueezyWebhookPayload
+  ): Promise<{ matched: boolean }> {
+    const { attributes } = payload.data;
+    const userId = payload.meta.custom_data?.user_id;
+
+    if (!userId) {
+      return { matched: false };
+    }
+
+    const plan: Plan = PAID_ORDER_STATUSES.has(attributes.status)
+      ? PLANS.PREMIUM
+      : PLANS.FREE;
+
+    await setUserSubscriptionByUserId(userId, {
+      plan,
+      lemonSqueezyCustomerId: String(attributes.customer_id),
+      lemonSqueezySubscriptionId: null,
+      subscriptionStatus:
+        plan === PLANS.PREMIUM
+          ? SUBSCRIPTION_STATUS_LIFETIME
+          : attributes.status,
+      subscriptionRenewsAt: null,
+    });
+
+    return { matched: true };
   },
 };

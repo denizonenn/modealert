@@ -102,7 +102,10 @@ export const lemonSqueezyWebhookSchema = z.object({
     attributes: z.object({
       status: z.string(),
       customer_id: z.number(),
-      renews_at: z.string().nullable(),
+      // Present (possibly null) on subscription events; absent
+      // entirely on one-time order events (lifetime purchases) —
+      // orders don't renew.
+      renews_at: z.string().nullable().optional(),
     }),
   }),
 });

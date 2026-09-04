@@ -74,7 +74,9 @@ export async function findUserBySubscriptionId(
 interface SubscriptionUpdate {
   plan: Plan;
   lemonSqueezyCustomerId: string;
-  lemonSqueezySubscriptionId: string;
+  // null for a one-time (lifetime) order — Lemon Squeezy orders don't
+  // have a subscription id, there's nothing to renew or cancel.
+  lemonSqueezySubscriptionId: string | null;
   subscriptionStatus: string;
   subscriptionRenewsAt: Date | null;
 }

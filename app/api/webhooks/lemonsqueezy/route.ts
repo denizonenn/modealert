@@ -9,7 +9,7 @@ import { ANALYTICS_EVENTS } from "@/lib/constants/analytics-events";
 import { PLANS } from "@/lib/constants/plan";
 import { logger } from "@/lib/logger/logger";
 
-const HANDLED_EVENTS = new Set([
+const HANDLED_SUBSCRIPTION_EVENTS = new Set([
   "subscription_created",
   "subscription_updated",
   "subscription_cancelled",
@@ -17,6 +17,13 @@ const HANDLED_EVENTS = new Set([
   "subscription_expired",
   "subscription_paused",
   "subscription_unpaused",
+]);
+
+// One-time lifetime purchases — a different Lemon Squeezy object
+// (order, not subscription), see billingService.syncOrderFromWebhook.
+const HANDLED_ORDER_EVENTS = new Set([
+  "order_created",
+  "order_refunded",
 ]);
 
 export const POST = withErrorHandling(async (request: NextRequest) => {
@@ -56,7 +63,11 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
     return NextResponse.json({ received: true });
   }
 
-  if (HANDLED_EVENTS.has(parsed.data.meta.event_name)) {
+  const eventName = parsed.data.meta.event_name;
+  const isSubscriptionEvent = HANDLED_SUBSCRIPTION_EVENTS.has(eventName);
+  const isOrderEvent = HANDLED_ORDER_EVENTS.has(eventName);
+
+  if (isSubscriptionEvent || isOrderEvent) {
     const userId = parsed.data.meta.custom_data?.user_id;
 
     // Tracked by comparing the real plan before/after the sync, not
@@ -74,7 +85,11 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
       ? await billingService.getPlan(userId)
       : null;
 
-    await billingService.syncSubscriptionFromWebhook(parsed.data);
+    if (isSubscriptionEvent) {
+      await billingService.syncSubscriptionFromWebhook(parsed.data);
+    } else {
+      await billingService.syncOrderFromWebhook(parsed.data);
+    }
 
     if (userId) {
       const planAfter = await billingService.getPlan(userId);

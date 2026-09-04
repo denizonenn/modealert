@@ -2032,13 +2032,17 @@ Completed
 
 Blocked on Deniz's action
 
-- **Lemon Squeezy store not created yet** — needs an account +
-  product/variant at lemonsqueezy.com, then
+- **Lemon Squeezy store not created yet** — needs an account + one
+  product with three variants at lemonsqueezy.com (monthly
+  subscription, yearly subscription, one-time lifetime), then
   `LEMONSQUEEZY_API_KEY`/`LEMONSQUEEZY_STORE_SUBDOMAIN`/
-  `LEMONSQUEEZY_VARIANT_ID`/`LEMONSQUEEZY_WEBHOOK_SECRET` in both
-  local `.env` and Vercel production (same pattern as Google OAuth's
-  ADR-005 rollout). Until then `/pricing`'s upgrade button shows
-  "Upgrades aren't live yet" — hidden gracefully, not broken.
+  `LEMONSQUEEZY_VARIANT_ID`/`LEMONSQUEEZY_VARIANT_ID_YEARLY`/
+  `LEMONSQUEEZY_VARIANT_ID_LIFETIME`/`LEMONSQUEEZY_WEBHOOK_SECRET` in
+  both local `.env` and Vercel production (same pattern as Google
+  OAuth's ADR-005 rollout). Each variant is independently optional —
+  e.g. monthly alone works fine if yearly/lifetime aren't set up yet.
+  Until at least monthly exists, `/pricing`'s CTA shows "Upgrades
+  aren't live yet" — hidden gracefully, not broken.
 
 Future
 
@@ -2049,11 +2053,29 @@ Future
   notification channel, so gating just Discord behind Premium would
   be a new, inconsistent rule. Left free by default; revisit only if
   Deniz specifically wants to change that.
-- Yearly/lifetime pricing tiers (deliberately deferred — Deniz chose
-  monthly-only for launch simplicity).
 - First-user acquisition strategy — separate conversation from the
   paywall itself, not yet actioned. See ADR-041's closing note for the
   Reddit/SEO direction discussed.
+
+Done (2026-09-04) — yearly + lifetime tiers
+
+- ~~Yearly/lifetime pricing tiers~~ — Deniz asked for a yearly option
+  at a reasonable price, then for a ~$100 one-time lifetime tier in
+  the same session. Shipped: **$49/year** (genuinely ≥2 months free
+  vs. $4.99/mo) and **$99 lifetime** (one-time Lemon Squeezy order,
+  not a subscription — pays for itself vs. yearly in 2 years). Full
+  design in docs/06_DECISIONS.md ADR-041's "Ek (2026-09-04)" addendum:
+  new `LEMONSQUEEZY_VARIANT_ID_YEARLY`/`_LIFETIME` env vars (each
+  independently optional, same "hidden until configured" pattern as
+  everything else Lemon Squeezy), a 3-tab `PricingToggle` on
+  `/pricing`, and a new `billingService.syncOrderFromWebhook()` path
+  for the one-time purchase's `order_created`/`order_refunded` events
+  (a genuinely different Lemon Squeezy object/status vocabulary than
+  a subscription — handled separately, doesn't touch the existing
+  subscription webhook logic). **Not live-verified** — no store/
+  variants exist yet, same blocker as monthly always had; the order-
+  webhook path is correct at the code level but has never received a
+  real Lemon Squeezy event.
 
 ---
 

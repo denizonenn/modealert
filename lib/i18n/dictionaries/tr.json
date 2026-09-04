@@ -165,7 +165,7 @@
       },
       {
         "question": "ModeAlert ücretsiz mi?",
-        "answer": "Evet — Free plan, e-posta ve Discord uyarılarıyla birlikte 5 etkinliğe kadar takip sağlar, kredi kartı gerekmez. Premium (aylık 4.99$) sınırsız takip edilen etkinlik ve etkinlik başına tahminler ekler."
+        "answer": "Evet — Free plan, e-posta ve Discord uyarılarıyla birlikte 5 etkinliğe kadar takip sağlar, kredi kartı gerekmez. Premium (aylık 4.99$ ya da yıllık 49$) sınırsız takip edilen etkinlik ve etkinlik başına tahminler ekler."
       },
       {
         "question": "Etkinlikleri Riot duyurmadan önce nasıl tespit ediyorsunuz?",
@@ -219,7 +219,14 @@
     "getStarted": "Başla",
     "premiumBadge": "Premium",
     "premiumTitle": "Premium",
+    "billingMonthly": "Aylık",
+    "billingYearly": "Yıllık",
+    "billingLifetime": "Ömür Boyu",
     "perMonth": "/ ay",
+    "perYear": "/ yıl",
+    "oneTime": "tek seferlik",
+    "yearlySavings": "Aylık ödemeye göre 2 ay ücretsiz",
+    "buyLifetime": "Ömür boyu erişim satın al",
     "premiumFeature1": "Sınırsız takip edilen etkinlik",
     "premiumFeature2": "Etkinlik başına tahminler — tahmini bitiş tarihi, ortalama süre, bir modun genelde ne zaman geri döndüğü",
     "premiumFeature3": "Free'deki her şey",
@@ -403,7 +410,7 @@
     "s3Title": "3. Free ve Premium planlar — garanti yok",
     "s3Body": "ModeAlert'in Free planı **olduğu gibi** sunulur, herhangi bir garanti olmadan, ve Premium bunu değiştirmez. Etkinlik tespiti tamamen kontrolümüz dışındaki üçüncü taraf API'lere bağlıdır — bunlar haber vermeden değişebilir, rate-limit uygulayabilir ya da devre dışı kalabilir, bu da bir uyarıyı geciktirebilir ya da engelleyebilir. Veriyi doğru ve zamanında tutmak için elimizden geleni yaparız, ama her etkinlik için uyarı alacağını, ya da bildirimlerin her zaman zamanında olacağını garanti edemeyiz.",
     "s4Title": "4. Premium faturalama",
-    "s4Body": "Premium, iptal edene kadar aylık faturalanan $4.99/ay'dır. Ödemeler, Merchant of Record'umuz **Lemon Squeezy** tarafından işlenir — Lemon Squeezy ödeme bilgilerini doğrudan işler ve kart ekstrende görünen satıcıdır; ModeAlert kart numaranı hiç görmez ya da saklamaz.",
+    "s4Body": "Premium, $4.99/ay ya da $49/yıldır (ikisi de iptal edene kadar seçtiğin döngüde faturalanır). Ödemeler, Merchant of Record'umuz **Lemon Squeezy** tarafından işlenir — Lemon Squeezy ödeme bilgilerini doğrudan işler ve kart ekstrende görünen satıcıdır; ModeAlert kart numaranı hiç görmez ya da saklamaz.",
     "s4Item1": "**Panel → Ayarlar**'dan istediğin zaman iptal edebilirsin — zaten ödediğin dönemin sonuna kadar Premium erişimin devam eder, sonra hesap Free'ye döner (verin silinmez, Free limitinin üstündeki takip sadece duraklar).",
     "s4Item2Pre": "Premium'dan memnun kalmadın mı? Ücretlendirildikten sonraki 7 gün içinde tam iade için e-posta at:",
     "s4Item2Post": ", soru sorulmadan.",
@@ -562,6 +569,7 @@
     "subscriptionDescPremium": "Sınırsız takip edilen etkinlik ve etkinlik başına tahmin.",
     "subscriptionDescFree": "Sınırsız takip edilen etkinlik ve etkinlik başına tahmin için yükselt.",
     "renews": "{date} tarihinde yenilenir",
+    "lifetimeAccess": "ömür boyu erişim, yenileme yok",
     "manageSubscription": "Aboneliği yönet",
     "upgradeToPremium": "Premium'a yükselt",
     "seePlans": "Planları gör",

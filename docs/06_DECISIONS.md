@@ -3326,6 +3326,80 @@ söyledi. Bunu beklerken iki gerçek boşluk fark edildi:
 Her ikisi de mağaza kurulmadan test edilebiliyor (env boşken
 zarifçe no-op) — `tsc --noEmit`, `npm run build` temiz.
 
+## Ek (2026-09-04): Yıllık + ömür boyu plan eklendi
+
+Yukarıdaki "sadece aylık plan" kararı geri alındı — Deniz "reasonable
+price" ile yıllık istedi, ardından aynı oturumda ömür boyu tek seferlik
+bir seçenek de istedi ("~100 dolar falan"). Üç fiyat:
+
+- **$4.99/ay** (değişmedi).
+- **$49/yıl** — $4.99 x 12 = $59.88'e göre gerçekten en az "2 ay
+  ücretsiz" (10 x $4.99 = $49.90, gerçek fiyat bunun bile altında —
+  abartılı bir pazarlama iddiası değil).
+- **$99 ömür boyu, tek seferlik** — yıllığa göre tam 2 yılda kendini
+  amorti ediyor.
+
+Plan modeli değişmedi — Premium hâlâ tek bir `plan` değeri, faturalama
+sıklığı sadece hangi Lemon Squeezy variant'ının/ürününün kullanıldığını
+belirliyor. Ama ömür boyu, aylık/yıllığın aksine bir **subscription
+değil, tek seferlik bir order** — Lemon Squeezy'de tamamen farklı bir
+webhook nesnesi ve event ailesi (`order_created`/`order_refunded`,
+`subscription_*` değil), farklı bir status vocabulary'si (`paid`/
+`refunded`, `active`/`cancelled` değil), ve hiç subscription id'si yok
+(iptal edilecek/yenilenecek bir şey olmadığı için).
+
+- `lib/constants/plan.ts`: `BILLING_INTERVALS`
+  (`monthly`/`yearly`/`lifetime`), üç fiyat sabiti, ve
+  `SUBSCRIPTION_STATUS_LIFETIME` (`User.subscriptionStatus`'a yazılan
+  sentinel değer, Lemon Squeezy'nin kendi subscription status
+  enum'undan ayrı).
+- Yeni `LEMONSQUEEZY_VARIANT_ID_YEARLY`/`LEMONSQUEEZY_VARIANT_ID_LIFETIME`
+  env var'ları. Boşsa ilgili seçenek zarifçe gizli kalıyor (aylık gibi),
+  Deniz mağazayı kurup variant'ları ekleyince otomatik aktif olur —
+  üçü birbirinden bağımsız, biri diğeri olmadan da yayınlanabilir.
+- `lib/billing/lemonsqueezy-client.ts`: `buildCheckoutUrl`/
+  `isCheckoutConfigured` artık bir `interval` parametresi alıyor,
+  doğru variant id'sini seçiyor (ikisi de aynı hosted-checkout
+  `/buy/:variant` deseni, tek seferlik ürünler de Lemon Squeezy'de
+  aynı checkout akışını kullanıyor).
+- `lib/services/billing.service.ts`: yeni `syncOrderFromWebhook()` —
+  `syncSubscriptionFromWebhook()`'un yanına, onu değiştirmeden. `paid`
+  → `PREMIUM` + `subscriptionStatus: "lifetime"` +
+  `lemonSqueezySubscriptionId: null` + `subscriptionRenewsAt: null`;
+  `refunded`/diğer → `FREE`. `custom_data.user_id` yoksa (kendi
+  checkout linkimizin dışında, panelden elle oluşturulmuş bir order)
+  eşleştirilemez ve loglanmadan atlanır — subscription tarafındaki
+  "subscription id'ye göre eşleştir" fallback'i order'lar için
+  anlamsız (kalıcı bir id yok ki sonradan eşleşsin).
+- `POST /api/webhooks/lemonsqueezy`: `HANDLED_SUBSCRIPTION_EVENTS`
+  (eskisi) ve yeni `HANDLED_ORDER_EVENTS`
+  (`order_created`/`order_refunded`) ayrı ayrı, ama aynı
+  before/after-plan-diff analytics mantığından geçiyor — bir
+  `PREMIUM_ACTIVATED`/`PREMIUM_CANCELLED` olayı ömür boyu satın alma
+  için de subscription için olduğu gibi doğru ateşleniyor.
+- `lib/validation/schemas.ts`: `lemonSqueezyWebhookSchema`'daki
+  `renews_at` artık `optional()` da (subscription event'lerinde var,
+  order event'lerinde hiç yok — önceden `nullable()` tek başına
+  "alan var ama null" gerektiriyordu, "alan hiç yok"u kabul etmiyordu).
+- `/pricing`: `PricingToggle` üç sekmeli oldu (Monthly/Yearly/Lifetime),
+  ömür boyu seçili iken "Buy lifetime access" farklı CTA metni
+  gösteriyor (bir aboneliğe "upgrade" değil, tek seferlik bir satın
+  alma). `/dashboard/settings`'in Subscription bölümü artık
+  `subscriptionStatus === "lifetime"` olan kullanıcılara "yenileme
+  yok" gösteriyor, boş bir "Manage subscription" butonu değil (ömür
+  boyu için yönetilecek bir abonelik zaten yok). Aynı sayfanın
+  tek-variant'a bağlı eski "Upgrade to Premium" doğrudan checkout
+  linki kaldırıldı — artık üç planın hepsi için `/pricing`'e
+  yönlendiriyor, tek yerden seçim yapılsın diye.
+- `/terms`'in "4. Premium billing" bölümü ve ana sayfa FAQ'ı ("Is there
+  a free plan?") üç fiyatı da doğru yansıtıyor.
+
+**Doğrulanmadı:** mağaza/variant'lar henüz yok, bu yüzden gerçek bir
+Lemon Squeezy `order_created` webhook'u hiç tetiklenmedi — yol kod
+seviyesinde doğru ama uçtan uca canlı doğrulama, aylık/yıllık
+subscription tarafı gibi, Deniz mağazayı kurana kadar bekliyor.
+`tsc --noEmit`, `npm run lint`, 230 test temiz.
+
 ---
 
 # ADR-042: TFT "Current Set" ve Destiny 2 Xûr — Gerçek Sinyalle İki Yeni Zenginleştirme

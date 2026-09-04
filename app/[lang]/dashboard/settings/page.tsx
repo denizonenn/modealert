@@ -14,11 +14,9 @@ import { Switch } from "@/components/ui/switch"
 import { Skeleton } from "@/components/shared/skeleton"
 
 import { useRequireAuth } from "@/hooks/use-require-auth"
-import { useTrackEvent } from "@/hooks/use-track-event"
 import { useI18n } from "@/components/providers/i18n-provider"
 import { PLAN_LABELS, type Plan } from "@/lib/constants/plan"
 import { LOCALES, LOCALE_LABELS } from "@/lib/i18n/config"
-import { ANALYTICS_EVENTS } from "@/lib/constants/analytics-events"
 import type { Dictionary } from "@/lib/i18n/dictionaries"
 
 const MIN_PASSWORD_LENGTH = 8
@@ -34,7 +32,6 @@ interface Account {
   subscriptionStatus: string | null
   subscriptionRenewsAt: string | null
   manageSubscriptionUrl: string | null
-  checkoutUrl: string | null
 }
 
 function Section({
@@ -85,7 +82,7 @@ function SubscriptionSection({
   locale: string
 }) {
   const isPremium = account.plan === "PREMIUM"
-  const track = useTrackEvent()
+  const isLifetime = account.subscriptionStatus === "lifetime"
   const t = dict.settingsPage
 
   return (
@@ -99,7 +96,10 @@ function SubscriptionSection({
         <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-zinc-300">
           <Sparkles className="h-3.5 w-3.5" />
           {PLAN_LABELS[account.plan]}
-          {isPremium && account.subscriptionRenewsAt && (
+          {isPremium && isLifetime && (
+            <span className="text-zinc-500">· {t.lifetimeAccess}</span>
+          )}
+          {isPremium && !isLifetime && account.subscriptionRenewsAt && (
             <span className="text-zinc-500">
               ·{" "}
               {t.renews.replace(
@@ -127,23 +127,9 @@ function SubscriptionSection({
               </Button>
             </a>
           )
-        ) : account.checkoutUrl ? (
-          <a
-            href={account.checkoutUrl}
-            onClick={() =>
-              track(ANALYTICS_EVENTS.CHECKOUT_CLICKED, "settings")
-            }
-          >
-            <Button className="bg-gradient-brand text-white">
-              {t.upgradeToPremium}
-            </Button>
-          </a>
         ) : (
           <a href={path("/pricing")}>
-            <Button
-              variant="outline"
-              className="border-white/15 bg-white/5 text-white hover:bg-white/10"
-            >
+            <Button className="bg-gradient-brand text-white">
               {t.seePlans}
             </Button>
           </a>
