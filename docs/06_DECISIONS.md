@@ -5124,3 +5124,19 @@ ikisini birlikte bekliyor. `/calendar` (`getAll()` üzerinden) ve
 faydalanıyor.
 
 `tsc --noEmit`, `npm run lint`, `npm run build`, 235 test temiz.
+
+Deploy sonrası tekrar canlı ölçüldü: `/calendar` hâlâ diğer
+sayfalardan yavaş (1.2-4.3s arası, belirgin varyans) — ama artık
+gerçek bir kod-seviyesi waterfall'dan değil, iki bilinçli/bilinen
+sebepten: (1) sayfa site genelindeki **her** limited-time event için
+tahmin hesaplıyor (~100 event), en ağır sayfa olması doğal; (2) sayfa
+zaten `auth()` çağırdığı için `revalidate = 1800` export'u hiç işe
+yaramıyor (Next, `auth()`'u gördüğü an route'u tam dinamik yapıyor,
+ISR'ı devre dışı bırakıyor — bu, koddaki yorum satırında zaten
+belirtilmiş, yeni keşfedilen bir şey değil). Gerçek bir sonraki adım
+(bu oturumda yapılmadı — mimari bir karar, mekanik bir bug fix değil):
+ağır event+tahmin hesaplamasını `unstable_cache` ile auth kontrolünden
+ayrı, kısa bir TTL'le (örn. 30dk, mevcut `revalidate` niyetiyle aynı)
+cache'lemek — proje genelinde henüz hiç kullanılmayan yeni bir
+pattern, staleness/invalidation tradeoff'ları Deniz'le konuşulmadan
+sessizce eklenmedi.
