@@ -5313,3 +5313,79 @@ listeyle karşılanıyor.
 
 `tsc --noEmit`, `npm run lint` (önceden var olan, ilgisiz 1 hata
 dışında), `npm run build`, **265 test** (255 → 265, +10).
+
+---
+
+# ADR-062: `apple-design` skill kuruldu + ilk gerçek denetim
+
+Status: Accepted
+
+Date: 2026-09-05
+
+## Bağlam
+
+Deniz `github.com/dickwu/apple-design-skill`'i "öğren, siteyi audit'le,
+lazımsa yap" dedi. Bu, Apple HIG'den genelleştirilmiş, platform-
+agnostik bir UI/UX inceleme metodolojisi (53 referans dosyası —
+renk, tipografi, layout, erişilebilirlik, geri bildirim, undo/redo
+vb.) — web'e özgü değil ama ilkeleri (kontrast, dokunma hedefi
+boyutu, geri bildirim/onay desenleri) doğrudan uygulanabilir.
+
+## Kurulum
+
+Repo klonlanıp `~/.claude/skills/apple-design/`'a kalıcı olarak
+kuruldu (SKILL.md + 53 referans dosyası) — bu oturuma özel değil,
+gelecekteki oturumlarda da `apple-design` skill'i olarak kullanılabilir.
+
+## Denetim kapsamı ve yöntemi
+
+Tarayıcı bu oturumda bağlı değildi — denetim ekran görüntüsü yerine
+**kaynak koddan** (Tailwind class'ları renk/boyut/durum bilgisini
+doğrudan taşıyor) yapıldı. Bu oturumun daha önceki bir turu zaten
+gerçek bir kontrast + klavye-odağı + skip-link geçişi yapmıştı
+(ADR-058) — bu denetim onun **kapsamadığı** alanlara odaklandı:
+dokunma hedefi boyutları, yıkıcı eylem onayları, geri bildirim/durum
+desenleri, spacing/tipografi tutarlılığı, yazım kuralları.
+
+## Bulgular
+
+**Yüksek — düzeltildi:** `/admin`'in API key "revoke" butonu tek
+tıkla, hiçbir onay olmadan çalışıyordu. Bir key'i iptal etmek, o
+key'e bağlı gerçek bir entegrasyonu (Discord bot, script) anında ve
+geri alınamaz şekilde kırıyor — Design Guideline'ın **Feedback**
+bölümünün "beklenmedik ve geri alınamaz veri kaybına yol açan bir
+eylemi başlatırken uyar" ilkesini ihlal ediyordu. Hesap silmenin
+(`/dashboard/settings`) zaten sahip olduğu iki adımlı onay deseniyle
+aynı mantık, satır-seviyesinde ("Revoke 'X'? Confirm/Cancel") eklendi.
+
+**İncelenip sorun bulunmayan alanlar:**
+- Dokunma/tıklama hedefi boyutları — projenin `Button` component'i
+  (`size-7`/`size-8`/`size-9` = 28-36px) HIG'in masaüstü/web için
+  belgelediği minimum-varsayılan aralığında (20-28pt minimum,
+  28pt+ varsayılan); mobilin 44pt varsayılanının altında ama bu web
+  bir SaaS, native mobil değil — floor'un altına düşen yok.
+  Watchlist/oyun takibi bırakma gibi düşük-sonuçlu, kolayca geri
+  alınabilir eylemler bilinçli olarak onaysız (Feedback ilkesi:
+  "beklenen sonuç olduğunda uyarma") — bu zaten doğru.
+- Yükleniyor/durum geri bildirimi — `Skeleton` component'leri, disabled
+  buton + "Creating…"/"Saving…" metin durumları zaten yaygın ve
+  tutarlı kullanılıyor.
+- Yazım — büyük harf (`uppercase tracking-wide`) sadece kısa "eyebrow"
+  etiketlerinde (1-3 kelime), gövde metninde değil — HIG'in okunabilirlik
+  endişesi burada geçerli değil, standart bir web deseni.
+
+## Yapılmayan
+
+- Tam bir ekran-görüntüsü denetimi yapılamadı (Chrome uzantısı bağlı
+  değildi) — bu, koddan görülemeyen (gerçek render'daki hizalama,
+  boşluk algısı gibi) sorunları kaçırmış olabilir. Deniz canlıda
+  gezerken bir şey fark ederse ayrı bir tur gerekir.
+- Tipografi ölçeği/spacing tutarlılığının tam bir taraması yapılmadı
+  — kod incelemesinde belirgin bir tutarsızlık göze çarpmadı (Tailwind'in
+  sabit `text-xs/sm/base/lg/xl` ölçeği zaten tutarlı kullanılıyor),
+  ama bu sistematik değil, göz taraması.
+
+## Doğrulama
+
+`tsc --noEmit`, `npm run lint` (önceden var olan, ilgisiz 1 hata
+dışında), `npm run build`, 265 test hepsi temiz.

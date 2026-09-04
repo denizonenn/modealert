@@ -34,6 +34,13 @@ export function ApiKeysPanel() {
   const [isCreating, setIsCreating] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
   const [revealedKey, setRevealedKey] = useState<string | null>(null)
+  // Revoking breaks any real integration using this key immediately,
+  // with no undo — an unexpected, irreversible action, so it gets a
+  // confirm step (same reasoning as account deletion in
+  // /dashboard/settings, just row-scoped instead of a modal).
+  const [confirmingRevokeId, setConfirmingRevokeId] = useState<
+    string | null
+  >(null)
 
   async function createKey() {
     setIsCreating(true)
@@ -65,6 +72,7 @@ export function ApiKeysPanel() {
   }
 
   async function revoke(id: string) {
+    setConfirmingRevokeId(null)
     await fetch("/api/admin/api-keys", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -193,17 +201,38 @@ export function ApiKeysPanel() {
                     : `${key.usage.used}/${key.usage.limit} this hour`}
                 </Badge>
 
-                {!isRevoked && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => revoke(key.id)}
-                    title="Revoke key"
-                    aria-label={`Revoke key ${key.name}`}
-                  >
-                    <Trash2 className="h-4 w-4 text-red-400" />
-                  </Button>
-                )}
+                {!isRevoked &&
+                  (confirmingRevokeId === key.id ? (
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs text-red-400">
+                        Revoke &ldquo;{key.name}&rdquo;?
+                      </span>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => revoke(key.id)}
+                      >
+                        Confirm
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setConfirmingRevokeId(null)}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setConfirmingRevokeId(key.id)}
+                      title="Revoke key"
+                      aria-label={`Revoke key ${key.name}`}
+                    >
+                      <Trash2 className="h-4 w-4 text-red-400" />
+                    </Button>
+                  ))}
               </div>
             </div>
           )
