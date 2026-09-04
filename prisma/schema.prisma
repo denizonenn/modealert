@@ -271,10 +271,18 @@ model AnonymousFunnelEvent {
 }
 
 model Watchlist {
-  id        String   @id @default(cuid())
+  id            String   @id @default(cuid())
 
-  userId    String
-  eventId   String
+  userId        String
+  eventId       String
+
+  // Per-item channel preference — independent of the account-wide
+  // User.emailOptOut/discordWebhookUrl master switches, which stay in
+  // effect too (a channel only fires when both the account-wide
+  // switch AND this per-item flag allow it). Defaults to true so
+  // every existing row keeps today's behavior unchanged.
+  emailEnabled   Boolean  @default(true)
+  discordEnabled Boolean  @default(true)
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   event     Event    @relation(fields: [eventId], references: [id])
@@ -291,6 +299,9 @@ model GameWatchlist {
 
   userId    String
   gameId    String
+
+  emailEnabled   Boolean  @default(true)
+  discordEnabled Boolean  @default(true)
 
   createdAt DateTime @default(now())
 

@@ -43,3 +43,14 @@ export async function deleteGameWatchlist(
     where: { userId_gameId: { userId, gameId } },
   });
 }
+
+export async function updateGameWatchlistChannels(
+  userId: string,
+  gameId: string,
+  data: { emailEnabled?: boolean; discordEnabled?: boolean }
+) {
+  return prisma.gameWatchlist.update({
+    where: { userId_gameId: { userId, gameId } },
+    data,
+  });
+}

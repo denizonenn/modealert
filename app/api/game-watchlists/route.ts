@@ -10,7 +10,10 @@ import {
 } from "@/lib/services/game-watchlist.service";
 import { withErrorHandling } from "@/lib/api/with-error-handling";
 import { parseJsonBody } from "@/lib/validation/parse-body";
-import { gameWatchlistSchema } from "@/lib/validation/schemas";
+import {
+  gameWatchlistSchema,
+  gameWatchlistChannelsSchema,
+} from "@/lib/validation/schemas";
 
 export const GET = withErrorHandling(async () => {
   const session = await auth();
@@ -71,6 +74,33 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
 
     throw error;
   }
+});
+
+export const PATCH = withErrorHandling(async (request: NextRequest) => {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
+  }
+
+  const parsed = await parseJsonBody(request, gameWatchlistChannelsSchema);
+
+  if (parsed.error) {
+    return parsed.error;
+  }
+
+  const { gameId, ...channels } = parsed.data;
+
+  const gameWatchlist = await gameWatchlistService.updateChannels(
+    session.user.id,
+    gameId,
+    channels
+  );
+
+  return NextResponse.json(gameWatchlist);
 });
 
 export const DELETE = withErrorHandling(async (request: NextRequest) => {

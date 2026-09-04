@@ -64,6 +64,31 @@ export const gameWatchlistSchema = z.object({
   gameId: z.string().min(1),
 });
 
+// At least one of the two channel flags must be present — an empty
+// {eventId} PATCH would silently no-op, which almost always means the
+// caller forgot a field rather than meant it.
+export const watchlistChannelsSchema = z
+  .object({
+    eventId: z.string().min(1),
+    emailEnabled: z.boolean().optional(),
+    discordEnabled: z.boolean().optional(),
+  })
+  .refine(
+    (data) => data.emailEnabled !== undefined || data.discordEnabled !== undefined,
+    { message: "At least one of emailEnabled or discordEnabled is required." }
+  );
+
+export const gameWatchlistChannelsSchema = z
+  .object({
+    gameId: z.string().min(1),
+    emailEnabled: z.boolean().optional(),
+    discordEnabled: z.boolean().optional(),
+  })
+  .refine(
+    (data) => data.emailEnabled !== undefined || data.discordEnabled !== undefined,
+    { message: "At least one of emailEnabled or discordEnabled is required." }
+  );
+
 export const analyticsEventSchema = z.object({
   name: z.enum(
     Object.values(ANALYTICS_EVENTS) as [string, ...string[]]

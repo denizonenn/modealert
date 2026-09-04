@@ -37,13 +37,26 @@ export async function getWatchlistsByEvent(
   });
 }
 
+export interface EventRecipient {
+  user: Prisma.UserGetPayload<object>;
+  // Per-item channel preference, OR'd across every watchlist row that
+  // makes this user a recipient — following the same event directly
+  // AND its whole game with different preferences means "either one
+  // wanting it" wins, not "both must agree." Still gated by the
+  // account-wide User.emailOptOut/discordWebhookUrl switches in
+  // notification-trigger.service.ts — this is an additional, more
+  // specific layer, not a replacement for them.
+  emailEnabled: boolean;
+  discordEnabled: boolean;
+}
+
 // Notification recipients for one event: direct per-event followers
 // plus anyone following the event's whole game (GameWatchlist — see
 // ADR-051), deduped so a user following both only gets one send.
 export async function getRecipientsForEvent(
   eventId: string,
   gameId: string
-) {
+): Promise<EventRecipient[]> {
   const [eventWatchers, gameWatchers] = await Promise.all([
     prisma.watchlist.findMany({
       where: { eventId },
@@ -55,13 +68,17 @@ export async function getRecipientsForEvent(
     }),
   ]);
 
-  const byUserId = new Map<
-    string,
-    (typeof eventWatchers)[number]["user"]
-  >();
+  const byUserId = new Map<string, EventRecipient>();
 
   for (const row of [...eventWatchers, ...gameWatchers]) {
-    byUserId.set(row.user.id, row.user);
+    const existing = byUserId.get(row.user.id);
+
+    byUserId.set(row.user.id, {
+      user: row.user,
+      emailEnabled: (existing?.emailEnabled ?? false) || row.emailEnabled,
+      discordEnabled:
+        (existing?.discordEnabled ?? false) || row.discordEnabled,
+    });
   }
 
   return [...byUserId.values()];
@@ -210,5 +227,21 @@ export async function deleteWatchlist(
         eventId,
       },
     },
+  });
+}
+
+export async function updateWatchlistChannels(
+  userId: string,
+  eventId: string,
+  data: { emailEnabled?: boolean; discordEnabled?: boolean }
+) {
+  return prisma.watchlist.update({
+    where: {
+      userId_eventId: {
+        userId,
+        eventId,
+      },
+    },
+    data,
   });
 }

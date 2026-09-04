@@ -11,20 +11,28 @@ const sent: Array<{ email: string; title: string; message: string }> = [];
 vi.mock("@/lib/repositories/watchlist.repository", () => ({
   getRecipientsForEvent: async () => [
     {
-      id: "u-tr",
-      email: "tr@example.com",
-      discordWebhookUrl: null,
-      emailOptOut: false,
-      locale: "tr",
+      user: {
+        id: "u-tr",
+        email: "tr@example.com",
+        discordWebhookUrl: null,
+        emailOptOut: false,
+        locale: "tr",
+      },
+      emailEnabled: true,
+      discordEnabled: true,
     },
     // null locale = never chose one; must fall back to the default,
     // not crash or inherit the other user's language.
     {
-      id: "u-en",
-      email: "en@example.com",
-      discordWebhookUrl: null,
-      emailOptOut: false,
-      locale: null,
+      user: {
+        id: "u-en",
+        email: "en@example.com",
+        discordWebhookUrl: null,
+        emailOptOut: false,
+        locale: null,
+      },
+      emailEnabled: true,
+      discordEnabled: true,
     },
   ],
 }));
@@ -64,9 +72,8 @@ vi.mock("@/lib/repositories/notification-failure.repository", () => ({
   createNotificationFailure: async () => {},
 }));
 
-const { notificationTriggerService } = await import(
-  "@/lib/services/notification-trigger.service"
-);
+const { notificationTriggerService, isChannelEnabledForRecipient } =
+  await import("@/lib/services/notification-trigger.service");
 
 function event(): ProviderEvent {
   return {
@@ -98,5 +105,50 @@ describe("notificationTriggerService locale routing", () => {
     // both, only the surrounding copy differs.
     expect(tr.title).toContain("Arcane Anniversary");
     expect(en.title).toContain("Arcane Anniversary");
+  });
+});
+
+describe("isChannelEnabledForRecipient", () => {
+  const baseUser = { emailOptOut: false, discordWebhookUrl: "https://discord.example/webhook" };
+  const allEnabled = { emailEnabled: true, discordEnabled: true };
+
+  it("allows email when both the account-wide switch and the item preference are on", () => {
+    expect(isChannelEnabledForRecipient("email", baseUser, allEnabled)).toBe(true);
+  });
+
+  it("blocks email when the account-wide switch is opted out, even if the item preference is on", () => {
+    expect(
+      isChannelEnabledForRecipient("email", { ...baseUser, emailOptOut: true }, allEnabled)
+    ).toBe(false);
+  });
+
+  it("blocks email when the item preference is off, even if the account-wide switch is on", () => {
+    expect(
+      isChannelEnabledForRecipient("email", baseUser, {
+        ...allEnabled,
+        emailEnabled: false,
+      })
+    ).toBe(false);
+  });
+
+  it("allows discord only when a webhook is configured AND the item preference is on", () => {
+    expect(isChannelEnabledForRecipient("discord", baseUser, allEnabled)).toBe(true);
+    expect(
+      isChannelEnabledForRecipient(
+        "discord",
+        { ...baseUser, discordWebhookUrl: null },
+        allEnabled
+      )
+    ).toBe(false);
+    expect(
+      isChannelEnabledForRecipient("discord", baseUser, {
+        ...allEnabled,
+        discordEnabled: false,
+      })
+    ).toBe(false);
+  });
+
+  it("allows any other channel id unconditionally (no per-item gating defined for it)", () => {
+    expect(isChannelEnabledForRecipient("console", baseUser, allEnabled)).toBe(true);
   });
 });

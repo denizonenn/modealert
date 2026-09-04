@@ -9,6 +9,8 @@ interface WatchlistEntry {
   id: string
   userId: string
   eventId: string
+  emailEnabled?: boolean
+  discordEnabled?: boolean
 }
 
 const fetcher = async (
@@ -35,6 +37,15 @@ export function useWatchlist() {
   const entries = data ?? []
   const watchlistedIds = new Set(
     entries.map((entry) => entry.eventId)
+  )
+  const channelsByEventId = new Map(
+    entries.map((entry) => [
+      entry.eventId,
+      {
+        emailEnabled: entry.emailEnabled ?? true,
+        discordEnabled: entry.discordEnabled ?? true,
+      },
+    ])
   )
 
   const [limitReached, setLimitReached] = useState(false)
@@ -96,11 +107,39 @@ export function useWatchlist() {
     )
   }
 
+  async function setChannels(
+    eventId: string,
+    channels: { emailEnabled?: boolean; discordEnabled?: boolean }
+  ) {
+    const optimistic = entries.map((entry) =>
+      entry.eventId === eventId ? { ...entry, ...channels } : entry
+    )
+
+    await mutate(
+      async () => {
+        await fetch("/api/watchlists", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ eventId, ...channels }),
+        })
+
+        return fetcher("/api/watchlists")
+      },
+      {
+        optimisticData: optimistic,
+        rollbackOnError: true,
+        revalidate: false,
+      }
+    )
+  }
+
   return {
     watchlistedIds,
+    channelsByEventId,
     isLoading,
     error,
     limitReached,
     toggle,
+    setChannels,
   }
 }

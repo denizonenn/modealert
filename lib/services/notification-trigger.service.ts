@@ -35,6 +35,27 @@ import { DEFAULT_LOCALE, isLocale } from "@/lib/i18n/config";
 const RETRY_ATTEMPTS = 3;
 const RETRY_DELAY_MS = 500;
 
+// A channel fires only when both the account-wide switch (emailOptOut/
+// discordWebhookUrl presence) AND the per-item preference (this
+// recipient's Watchlist/GameWatchlist row) allow it — either one
+// saying no is enough to skip. Pulled out as a pure function so this
+// gating logic is directly unit-testable without mocking the DB layer.
+export function isChannelEnabledForRecipient(
+  providerId: string,
+  user: { emailOptOut: boolean; discordWebhookUrl: string | null },
+  channels: { emailEnabled: boolean; discordEnabled: boolean }
+): boolean {
+  if (providerId === "email") {
+    return !user.emailOptOut && channels.emailEnabled;
+  }
+
+  if (providerId === "discord") {
+    return Boolean(user.discordWebhookUrl) && channels.discordEnabled;
+  }
+
+  return true;
+}
+
 export const notificationTriggerService = {
   async trigger(
     event: ProviderEvent,
@@ -55,7 +76,7 @@ export const notificationTriggerService = {
 
     await Promise.all(
       recipients.map(
-        async (user) => {
+        async ({ user, emailEnabled, discordEnabled }) => {
           // Per recipient, not once per event: two users watching the
           // same event can have different languages, so the copy has
           // to be built inside this loop.
@@ -86,15 +107,10 @@ export const notificationTriggerService = {
 
           for (const provider of providers) {
             if (
-              provider.id === "email" &&
-              user.emailOptOut
-            ) {
-              continue;
-            }
-
-            if (
-              provider.id === "discord" &&
-              !user.discordWebhookUrl
+              !isChannelEnabledForRecipient(provider.id, user, {
+                emailEnabled,
+                discordEnabled,
+              })
             ) {
               continue;
             }

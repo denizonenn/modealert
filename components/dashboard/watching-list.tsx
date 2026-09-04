@@ -17,6 +17,7 @@ import { collapseSeriesToLatest } from "@/lib/utils/event-series"
 
 import type { EventWithGame } from "@/lib/repositories/event.repository"
 import type { EventStatus } from "@/types/status"
+import { ChannelToggle, type Channels } from "@/components/shared/channel-toggle"
 
 import { CategoryFilterBar } from "@/components/shared/category-filter-bar"
 import { RotationFilterBar } from "@/components/shared/rotation-filter-bar"
@@ -119,11 +120,18 @@ function EventSections({
   watchlistedIds,
   onToggleWatch,
   emptyMessage,
+  channelsByEventId,
+  onChannelsChange,
 }: {
   events: EventWithGame[]
   watchlistedIds: Set<string>
   onToggleWatch: (eventId: string) => Promise<void>
   emptyMessage: string
+  channelsByEventId?: Map<string, Channels>
+  onChannelsChange?: (
+    eventId: string,
+    channels: Partial<Channels>
+  ) => void
 }) {
   const { dict, locale } = useI18n()
 
@@ -183,6 +191,12 @@ function EventSections({
                   onToggleWatch={() =>
                     onToggleWatch(event.id)
                   }
+                  channels={channelsByEventId?.get(event.id)}
+                  onChannelsChange={
+                    onChannelsChange
+                      ? (channels) => onChannelsChange(event.id, channels)
+                      : undefined
+                  }
                 />
               ))}
             </div>
@@ -204,14 +218,18 @@ export default function WatchingList() {
 
   const {
     watchlistedIds,
+    channelsByEventId,
     isLoading: watchlistLoading,
     limitReached,
     toggle,
+    setChannels,
   } = useWatchlist()
 
   const {
     followedGameIds,
+    channelsByGameId,
     toggle: toggleGame,
+    setChannels: setGameChannels,
   } = useGameWatchlist()
 
   const [selectedGameId, setSelectedGameId] =
@@ -373,24 +391,40 @@ export default function WatchingList() {
 
             <div className="flex flex-wrap gap-2">
               {followedGames.map((game) => (
-                <button
+                <div
                   key={game.id}
-                  type="button"
-                  onClick={() => toggleGame(game.id)}
-                  title={dict.dashboardPage.stopFollowingAllOf.replace(
-                    "{game}",
-                    game.name
-                  )}
-                  className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 py-1 pr-4 pl-1.5 text-sm font-medium text-white hover:border-white/30"
+                  className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 py-1 pr-2 pl-1.5"
                 >
-                  <GameIcon
-                    gameId={game.id}
-                    logo={game.logo}
-                    color={game.color}
-                    size="sm"
+                  <button
+                    type="button"
+                    onClick={() => toggleGame(game.id)}
+                    title={dict.dashboardPage.stopFollowingAllOf.replace(
+                      "{game}",
+                      game.name
+                    )}
+                    className="flex items-center gap-2 text-sm font-medium text-white"
+                  >
+                    <GameIcon
+                      gameId={game.id}
+                      logo={game.logo}
+                      color={game.color}
+                      size="sm"
+                    />
+                    {game.name}
+                  </button>
+
+                  <ChannelToggle
+                    channels={
+                      channelsByGameId.get(game.id) ?? {
+                        emailEnabled: true,
+                        discordEnabled: true,
+                      }
+                    }
+                    onChange={(channels) =>
+                      setGameChannels(game.id, channels)
+                    }
                   />
-                  {game.name}
-                </button>
+                </div>
               ))}
             </div>
           </div>
@@ -422,6 +456,8 @@ export default function WatchingList() {
             events={watchedEvents}
             watchlistedIds={watchlistedIds}
             onToggleWatch={toggle}
+            channelsByEventId={channelsByEventId}
+            onChannelsChange={setChannels}
             emptyMessage={
               selectedGameId
                 ? dict.dashboardPage.notWatchingGame

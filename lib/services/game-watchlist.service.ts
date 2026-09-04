@@ -2,6 +2,7 @@ import {
   createGameWatchlist,
   deleteGameWatchlist,
   getGameWatchlistsByUser,
+  updateGameWatchlistChannels,
 } from "@/lib/repositories/game-watchlist.repository";
 import { getUserPlan } from "@/lib/repositories/user.repository";
 import { PLANS } from "@/lib/constants/plan";
@@ -35,5 +36,13 @@ export const gameWatchlistService = {
 
   async unfollow(userId: string, gameId: string) {
     return deleteGameWatchlist(userId, gameId);
+  },
+
+  async updateChannels(
+    userId: string,
+    gameId: string,
+    channels: { emailEnabled?: boolean; discordEnabled?: boolean }
+  ) {
+    return updateGameWatchlistChannels(userId, gameId, channels);
   },
 };

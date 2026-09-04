@@ -1981,14 +1981,26 @@ Future
   infra in the app (OAuth-provided avatars are just a URL Google/
   Discord already host), and adding one would be new infrastructure,
   not "finishing" this item.
-- Preferences
-- ~~Notification settings~~ — basic version already live via
-  `/dashboard/settings`'s email-notifications toggle (`emailOptOut`).
-  The separate, richer `notification-settings.tsx` component this note
-  used to point to was actually an empty 0-line stub, deleted
-  2026-08-05 (see Bugs section) — this note just never got corrected.
-  Per-channel granularity (once Discord/Telegram exist) would be a new
-  build, not "finishing" an old component.
+- ~~Preferences~~ / ~~Notification settings~~ — basic version already
+  live via `/dashboard/settings`'s email-notifications toggle
+  (`emailOptOut`). The separate, richer `notification-settings.tsx`
+  component this note used to point to was actually an empty 0-line
+  stub, deleted 2026-08-05 (see Bugs section) — this note just never
+  got corrected. **Per-channel granularity — done (2026-09-04).** Now
+  that Discord exists, added *per-item* email/Discord toggles (not
+  account-wide) on each watched event (dashboard "Your Watchlist")
+  and each followed game ("Following (whole game)" strip) — new
+  `Watchlist.emailEnabled`/`discordEnabled` and
+  `GameWatchlist.emailEnabled`/`discordEnabled` columns (additive
+  migration, `@default(true)` so every existing row keeps today's
+  behavior), `PATCH /api/watchlists`/`/api/game-watchlists`,
+  `notification-trigger.service.ts`'s `isChannelEnabledForRecipient()`
+  (new, unit-tested) ANDs this per-item flag with the existing
+  account-wide `emailOptOut`/`discordWebhookUrl` switches — either one
+  saying no is enough to skip that channel for that item. A user
+  following the same event both directly and via its whole game with
+  different preferences gets the more permissive of the two (OR'd in
+  `getRecipientsForEvent`), not "both must agree."
 - ~~Deniz still needs to create the Google OAuth Client...~~ — Google
   done and live (2026-08-05). Discord deferred: Discord is currently
   blocked from Deniz's location without a VPN, so Discord Developer

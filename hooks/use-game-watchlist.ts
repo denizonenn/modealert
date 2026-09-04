@@ -6,6 +6,8 @@ interface GameWatchlistEntry {
   id: string
   userId: string
   gameId: string
+  emailEnabled?: boolean
+  discordEnabled?: boolean
 }
 
 const fetcher = async (url: string): Promise<GameWatchlistEntry[]> => {
@@ -29,6 +31,15 @@ export function useGameWatchlist() {
 
   const entries = data ?? []
   const followedGameIds = new Set(entries.map((entry) => entry.gameId))
+  const channelsByGameId = new Map(
+    entries.map((entry) => [
+      entry.gameId,
+      {
+        emailEnabled: entry.emailEnabled ?? true,
+        discordEnabled: entry.discordEnabled ?? true,
+      },
+    ])
+  )
 
   const [premiumRequired, setPremiumRequired] = useState(false)
 
@@ -67,11 +78,39 @@ export function useGameWatchlist() {
     void globalMutate("/api/dashboard")
   }
 
+  async function setChannels(
+    gameId: string,
+    channels: { emailEnabled?: boolean; discordEnabled?: boolean }
+  ) {
+    const optimistic = entries.map((entry) =>
+      entry.gameId === gameId ? { ...entry, ...channels } : entry
+    )
+
+    await mutate(
+      async () => {
+        await fetch("/api/game-watchlists", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ gameId, ...channels }),
+        })
+
+        return fetcher("/api/game-watchlists")
+      },
+      {
+        optimisticData: optimistic,
+        rollbackOnError: true,
+        revalidate: false,
+      }
+    )
+  }
+
   return {
     followedGameIds,
+    channelsByGameId,
     isLoading,
     error,
     premiumRequired,
     toggle,
+    setChannels,
   }
 }

@@ -16,6 +16,7 @@ import {
 } from "@/lib/constants/event-category"
 
 import { RotationBadge } from "@/components/shared/rotation-badge"
+import { ChannelToggle, type Channels } from "@/components/shared/channel-toggle"
 import { useI18n } from "@/components/providers/i18n-provider"
 
 import type { EventStatus } from "@/types/status"
@@ -37,6 +38,8 @@ interface Props {
   index?: number
   isWatched?: boolean
   onToggleWatch?: () => Promise<void> | void
+  channels?: Channels
+  onChannelsChange?: (channels: Partial<Channels>) => void
 }
 
 export default function EventStatusCard({
@@ -51,6 +54,8 @@ export default function EventStatusCard({
   index = 0,
   isWatched,
   onToggleWatch,
+  channels,
+  onChannelsChange,
 }: Props) {
   const { dict, locale, path } = useI18n()
   const [pending, setPending] = useState(false)
@@ -132,6 +137,10 @@ export default function EventStatusCard({
         </span>
 
         <EventStatusBadge status={status} />
+
+        {isWatched && channels && onChannelsChange && (
+          <ChannelToggle channels={channels} onChange={onChannelsChange} />
+        )}
 
         {onToggleWatch && (
           <button

@@ -4854,3 +4854,81 @@ you're signed out" cümlesi kaldırıldı — artık doğru değildi.
 - Giriş yapmış kullanıcıların landing/signup sayfasını tekrar
   ziyaretini hariç tutmak — basitlik için dahil edildi, sayıyı hafif
   şişirir ama yön/trend okumasını bozmaz.
+
+---
+
+# ADR-057: Kanal bazlı bildirim tercihi (event/oyun başına email/Discord)
+
+Status: Accepted
+
+Date: 2026-09-04
+
+## Bağlam
+
+Bildirimler bugüne kadar sadece hesap-geneli iki anahtarla
+kontrol ediliyordu: `User.emailOptOut` (tümden aç/kapa) ve
+`User.discordWebhookUrl`'ün var/yok olması (Discord webhook'u
+silmeden Discord'u susturmanın yolu yoktu). Deniz "bu event için
+sadece Discord istiyorum, şunun için email de olsun" gibi
+event/oyun bazında bir tercih istedi.
+
+## Karar
+
+Her `Watchlist` (event-bazlı takip) ve `GameWatchlist` (oyun-bazlı
+takip, Premium) satırına iki yeni sütun: `emailEnabled`/
+`discordEnabled`, ikisi de `@default(true)` — additive migration
+(`prisma/migrations/20260904140000_add_watchlist_channel_prefs`),
+elle yazıldı (CLAUDE.md kuralı), deploy öncesi/sonrası satır sayıları
+(6 user/102 event/34 watchlist/0 gameWatchlist/84 history) birebir
+doğrulandı, hiçbir mevcut satırın davranışı değişmedi (`true` default
+= bugünkü "hepsi açık" davranışı).
+
+Bir kanal ancak **hem hesap-geneli anahtar hem de bu öğenin tercihi**
+izin veriyorsa ateşleniyor — ikisi de "evet" demeli.
+`notification-trigger.service.ts`'e yeni, saf bir
+`isChannelEnabledForRecipient(providerId, user, channels)` fonksiyonu
+eklendi (DB mock'lamadan doğrudan unit test edilebilsin diye —
+önceki modül-mock tabanlı test denemesi kırılgan çıktı, saf fonksiyona
+çevrilince 5 basit test yeterli oldu). Bir kullanıcı hem event'i
+doğrudan hem de o event'in oyununu (`GameWatchlist`) takip ediyorsa ve
+ikisinin tercihi farklıysa, `getRecipientsForEvent`'te **OR**'lanıyor
+(ikisinden biri "evet" diyorsa yeterli) — "ikisi de aynı fikirde
+olmalı" değil, çünkü bir kullanıcı için en izin verici tercih
+kazanmalı.
+
+## Uygulama
+
+- `prisma/schema.prisma`: iki tabloya da `emailEnabled`/
+  `discordEnabled Boolean @default(true)`.
+- `lib/repositories/watchlist.repository.ts`: `getRecipientsForEvent`
+  artık `{ user, emailEnabled, discordEnabled }[]` döndürüyor (önceden
+  düz `User[]`), OR mantığıyla dedupe ederken. Yeni
+  `updateWatchlistChannels()`. Aynısı `game-watchlist.repository.ts`'e.
+- `lib/services/watchlist.service.ts`/`game-watchlist.service.ts`:
+  `updateChannels()`.
+- `PATCH /api/watchlists`/`/api/game-watchlists` (yeni, zod
+  `watchlistChannelsSchema`/`gameWatchlistChannelsSchema` — en az bir
+  alan zorunlu, boş bir `{eventId}` PATCH'i sessizce no-op olmasın
+  diye).
+- `hooks/use-watchlist.ts`/`use-game-watchlist.ts`: `channelsByEventId`/
+  `channelsByGameId` + optimistic `setChannels()`.
+- Yeni paylaşılan `components/shared/channel-toggle.tsx` — iki küçük
+  ikon (Mail/Discord), dashboard'ın hem "Your Watchlist" hem
+  "Following (whole game)" şeritlerinde kullanılıyor. Sadece zaten
+  takip edilen öğelerde gösteriliyor (henüz eklenmemiş bir event'in
+  kanal tercihini değiştirmenin bir anlamı yok).
+- `notification-trigger.service.test.ts`: yeni
+  `isChannelEnabledForRecipient` test grubu (5 test) + mevcut locale
+  testinin mock şekli yeni `{user, emailEnabled, discordEnabled}`
+  dönüş tipine güncellendi.
+
+## Doğrulama
+
+- Migration prod DB'ye (Neon, local `.env` ile aynı) deploy edildi,
+  satır sayıları öncesi/sonrası eşleşti.
+- `tsc --noEmit`, `npm run lint` (önceden var olan, ilgisiz 1 hata
+  dışında), `npm run build`, 235 test (230 → 235, +5) hepsi temiz.
+- Uçtan uca gerçek bir bildirim gönderimiyle canlı doğrulanmadı (bu
+  oturumda yeni bir event/game değişikliği tetiklenmedi) — mantık
+  birim testleriyle doğrulandı, bir sonraki gerçek bildirim
+  gönderiminde davranışı gözlemlemek faydalı olur.

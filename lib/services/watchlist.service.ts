@@ -3,6 +3,7 @@ import {
   deleteWatchlist,
   getWatchlistsByEvent,
   getWatchlistsByUser,
+  updateWatchlistChannels,
 } from "@/lib/repositories/watchlist.repository";
 import { FREE_WATCHLIST_LIMIT } from "@/lib/constants/plan";
 
@@ -52,5 +53,13 @@ export const watchlistService = {
       userId,
       eventId
     );
+  },
+
+  async updateChannels(
+    userId: string,
+    eventId: string,
+    channels: { emailEnabled?: boolean; discordEnabled?: boolean }
+  ) {
+    return updateWatchlistChannels(userId, eventId, channels);
   },
 };

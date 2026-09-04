@@ -10,7 +10,10 @@ import {
 } from "@/lib/services/watchlist.service";
 import { withErrorHandling } from "@/lib/api/with-error-handling";
 import { parseJsonBody } from "@/lib/validation/parse-body";
-import { watchlistEventSchema } from "@/lib/validation/schemas";
+import {
+  watchlistEventSchema,
+  watchlistChannelsSchema,
+} from "@/lib/validation/schemas";
 
 export const GET = withErrorHandling(async () => {
   const session = await auth();
@@ -71,6 +74,33 @@ export const POST = withErrorHandling(async (request: NextRequest) => {
 
     throw error;
   }
+});
+
+export const PATCH = withErrorHandling(async (request: NextRequest) => {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return NextResponse.json(
+      { error: "Unauthorized" },
+      { status: 401 }
+    );
+  }
+
+  const parsed = await parseJsonBody(request, watchlistChannelsSchema);
+
+  if (parsed.error) {
+    return parsed.error;
+  }
+
+  const { eventId, ...channels } = parsed.data;
+
+  const watchlist = await watchlistService.updateChannels(
+    session.user.id,
+    eventId,
+    channels
+  );
+
+  return NextResponse.json(watchlist);
 });
 
 export const DELETE = withErrorHandling(async (request: NextRequest) => {
