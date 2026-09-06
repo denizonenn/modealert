@@ -5,6 +5,7 @@ import { Footer } from "@/components/layout/footer"
 import { SectionEyebrow } from "@/components/shared/section-eyebrow"
 import { getLocale } from "@/lib/i18n/dictionaries"
 import { localeAlternates } from "@/lib/i18n/alternates"
+import { SITE_URL } from "@/lib/constants/site"
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()
@@ -89,7 +90,7 @@ export default async function DevelopersPage() {
             Pass your key as a bearer token on every request:
           </p>
           <div className="mt-3">
-            <CodeBlock>{`curl https://modealert.vercel.app/api/v1/events \\
+            <CodeBlock>{`curl ${SITE_URL}/api/v1/events \\
   -H "Authorization: Bearer mdlrt_live_..."`}</CodeBlock>
           </div>
           <p className="mt-3 text-sm text-zinc-500">
@@ -132,7 +133,7 @@ export default async function DevelopersPage() {
         <div>
           <h2 className="text-xl font-semibold">Example</h2>
           <div className="mt-3">
-            <CodeBlock>{`curl "https://modealert.vercel.app/api/v1/events?game=league-of-legends&limitedTime=true" \\
+            <CodeBlock>{`curl "${SITE_URL}/api/v1/events?game=league-of-legends&limitedTime=true" \\
   -H "Authorization: Bearer mdlrt_live_..."`}</CodeBlock>
           </div>
         </div>

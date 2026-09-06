@@ -5389,3 +5389,62 @@ aynı mantık, satır-seviyesinde ("Revoke 'X'? Confirm/Cancel") eklendi.
 
 `tsc --noEmit`, `npm run lint` (önceden var olan, ilgisiz 1 hata
 dışında), `npm run build`, 265 test hepsi temiz.
+
+---
+
+# ADR-063: Gerçek Domain — `modealert.app` (Lemon Squeezy Reddi Sonrası)
+
+Status: Accepted
+
+Date: 2026-09-06
+
+## Bağlam
+
+Lemon Squeezy mağaza başvurusu reddedildi (jenerik bir gerekçeyle —
+"totality of data", Stripe/PayPal/kart ağı kısıtları). Kod/site
+incelemesinde öne çıkan en olası sebep: production hâlâ paylaşımlı bir
+Vercel subdomain'inde (`modealert.vercel.app`) çalışıyordu, e-posta da
+Resend'in varsayılan `onboarding@resend.dev` adresinden gidiyordu —
+ikisi de bir ödeme sağlayıcısının risk skorlamasında "geçici/kurumsal
+olmayan proje" izlenimi veriyor.
+
+## Karar
+
+Deniz GoDaddy'den `modealert.app` domain'ini 1 yıllığına satın aldı
+(otomatik yenileme açık). `.app` seçildi çünkü: gerçek bir gTLD (Google
+işletiyor), HTTPS zorunlu (SSL otomatik dahil, `.xyz`/`.site`/`.online`
+gibi düşük-güven TLD'lerden ayrışıyor), ve fiyatlandırması öngörülebilir
+(`.io`'nun aksine "0,01 TL ilk yıl → yenilemede 5 kat" tuzağı yok).
+GoDaddy'nin üç upsell'i (Tam Alan Adı Koruması, Titan kurumsal e-posta,
+Airo AI site builder) bilinçli olarak alınmadı — hiçbiri gerekli değil,
+ilki zaten ücretsiz temel korumaya ek getirmiyor, ikincisi Resend zaten
+karşılıyor, üçüncüsü tamamen alakasız bir ürün.
+
+**DNS/Vercel kurulumu:** Vercel'in verdiği `A` kaydı (`@` → `216.198.79.1`)
+ve `CNAME` kaydı (`www` → `e7628553a4c69092.vercel-dns-017.com`) GoDaddy
+DNS panelinden eklendi — `www` kaydı GoDaddy'nin varsayılan kaydıyla
+çakıştığı için yeni eklemek yerine mevcut kayıt düzenlendi. Vercel
+`www.modealert.app`'i Production, apex `modealert.app`'i ona 308
+yönlendirmesi olarak ayarladı (Vercel'in iki domain eklendiğindeki
+varsayılanı). Let's Encrypt sertifikası otomatik sağlandı, canlı
+doğrulandı (`openssl s_client` ile gerçek sertifika: `CN=modealert.app`,
+issuer Let's Encrypt). Eski `modealert.vercel.app` Vercel'de otomatik
+alias olarak çalışmaya devam ediyor — Riot production key başvurusunun
+`riot.txt` doğrulaması o domain'e bağlıydı, bozulmadı.
+
+**Kod tarafı güncellemesi:** `lib/constants/site.ts`'teki `SITE_URL`
+`https://www.modealert.app`'e çevrildi — bu tek sabit e-posta linklerini
+(bildirim, digest, hoş geldin, magic-link), Discord embed linklerini,
+ve `/developers` sayfasındaki örnek `curl` komutlarını otomatik
+günceller. Ayrıca `/terms`, `/privacy` sayfalarındaki hardcoded site
+linki ve `public/.well-known/security.txt`'in `Canonical` alanı elle
+güncellendi (bunlar `SITE_URL`'i import etmiyor, düz metin).
+
+## Sıradaki adımlar (Deniz'in aksiyonu + kod)
+
+- Resend'de `modealert.app` domain doğrulaması (yeni DNS TXT/DKIM
+  kayıtları) → `EMAIL_FROM`'u Vercel'de `ModeAlert <notifications@modealert.app>`
+  yap.
+- Google OAuth redirect URI'sine yeni domain eklenmeli (Google Cloud
+  Console).
+- Domain birkaç gün "yaşadıktan" sonra Lemon Squeezy'e yeniden başvur.

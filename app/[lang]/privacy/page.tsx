@@ -44,10 +44,10 @@ export default async function PrivacyPage() {
           <p className="leading-relaxed">
             {t.whoWeAreBodyPre}
             <a
-              href="https://modealert.vercel.app"
+              href="https://www.modealert.app"
               className="text-white underline underline-offset-4 hover:text-zinc-300"
             >
-              modealert.vercel.app
+              modealert.app
             </a>
             {t.whoWeAreBodyPost}
           </p>

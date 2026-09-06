@@ -89,9 +89,11 @@ kadar.**
 
 - Asıl geliştirme `feature/landing-page-v2` branch'inde yapılıyor.
   `main` branch'i hâlâ sadece create-next-app iskeleti.
-- **Canlıda:** https://modealert.vercel.app — Vercel'e bağlı, her push
-  otomatik deploy ediyor (Settings → Environments → Production →
-  Branch Tracking = `feature/landing-page-v2`).
+- **Canlıda:** https://www.modealert.app (2026-09-06'dan itibaren gerçek
+  domain — GoDaddy'den alındı, Vercel'e DNS ile bağlandı; eski
+  `modealert.vercel.app` hâlâ çalışıyor, Vercel otomatik alias olarak
+  tutuyor). Vercel'e bağlı, her push otomatik deploy ediyor (Settings →
+  Environments → Production → Branch Tracking = `feature/landing-page-v2`).
 - **Veritabanı:** Neon Postgres (Vercel Storage Marketplace üzerinden).
   Artık SQLite değil — `DATABASE_URL` (pooled) + `DATABASE_URL_UNPOOLED`
   (migration'lar için) kullanılıyor.
