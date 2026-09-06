@@ -35,7 +35,9 @@
     "live": "CANLI",
     "upcoming": "YAKLAŞAN",
     "tracking": "İZLENİYOR",
-    "ended": "BİTTİ"
+    "ended": "BİTTİ",
+    "share": "Paylaş",
+    "linkCopied": "Kopyalandı!"
   },
   "feedback": {
     "trigger": "Geri bildirim gönder",

@@ -10,6 +10,7 @@ import { EventStatusBadge } from "@/components/shared/event-status-badge"
 import { SectionEyebrow } from "@/components/shared/section-eyebrow"
 import { PremiumTeaser } from "@/components/shared/premium-teaser"
 import { ExternalResourceLinks } from "@/components/shared/external-resource-links"
+import { ShareButton } from "@/components/shared/share-button"
 import { EventHistoryChart } from "@/components/events/event-history-chart"
 import { Badge } from "@/components/ui/badge"
 
@@ -29,6 +30,7 @@ import {
   type EventCategory,
 } from "@/lib/constants/event-category"
 import { externalResourcesForEvent } from "@/lib/constants/external-resources"
+import { SITE_URL } from "@/lib/constants/site"
 import { getDictionary, getLocale } from "@/lib/i18n/dictionaries"
 import type { Dictionary } from "@/lib/i18n/dictionaries"
 import { resolveEventDescription } from "@/lib/i18n/event-descriptions"
@@ -249,6 +251,11 @@ export default async function EventDetailPage({ params }: Props) {
               ).replace("{count}", String(event.trackedUsers))}
             </Badge>
           )}
+          <ShareButton
+            url={`${SITE_URL}/${locale}/events/${slug}`}
+            title={`${event.title} — ${event.game.name}`}
+            labels={{ share: dict.common.share, copied: dict.common.linkCopied }}
+          />
         </div>
 
         {description && (

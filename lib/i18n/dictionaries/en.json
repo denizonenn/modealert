@@ -35,7 +35,9 @@
     "live": "LIVE",
     "upcoming": "UPCOMING",
     "tracking": "TRACKING",
-    "ended": "ENDED"
+    "ended": "ENDED",
+    "share": "Share",
+    "linkCopied": "Copied!"
   },
   "feedback": {
     "trigger": "Send feedback",
