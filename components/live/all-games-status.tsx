@@ -102,7 +102,7 @@ export function AllGamesStatus() {
                 key={event.id}
                 className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-black/30 px-3 py-2"
               >
-                <p className="truncate text-sm text-zinc-300">
+                <p className="truncate text-sm text-zinc-300" title={event.title}>
                   {event.title}
                 </p>
 

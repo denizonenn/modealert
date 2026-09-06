@@ -717,7 +717,7 @@ export default function SettingsPage() {
     if (authStatus !== "authenticated") return
 
     fetch("/api/account")
-      .then((res) => res.json())
+      .then((res) => (res.ok ? res.json() : null))
       .then((data) => setAccount(data))
       .finally(() => setLoading(false))
   }, [authStatus])
