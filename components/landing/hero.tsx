@@ -1,7 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button"
-import { Zap } from "lucide-react";
 import { DashboardPreview, type PreviewEvent } from "./dashboard-preview"
 import { StatsBar } from "./stats-bar"
 import Link from "next/link"
@@ -88,19 +86,14 @@ export async function Hero() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_50%_35%_at_50%_15%,rgba(0,0,0,0.4),transparent_70%)]" />
 
       <div className="relative mx-auto flex max-w-7xl flex-col items-center px-6 py-24 text-center md:py-32">
-        <div className="mb-5 flex items-center gap-2 rounded-full border border-white/10 bg-black/40 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.2em] text-zinc-400 backdrop-blur-sm">
+        <div className="mb-6 flex items-center gap-2 rounded-full border border-white/10 bg-black/40 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.2em] text-zinc-400 backdrop-blur-sm">
           <span className="relative flex h-1.5 w-1.5">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
           </span>
-          {dict.home.liveBadge
-            .replace("{games}", String(gameCount))
-            .replace("{events}", String(monitoredCount))}
+          {dict.home.liveBadge}
         </div>
 
-        <Badge className="mb-6 border border-white/10 bg-white/10 text-white hover:bg-white/15">
-          <Zap className="mr-2 h-3 w-3" /> {dict.home.dailyDetection}
-        </Badge>
         <ModeRotator />
 
         <h1 className="max-w-4xl text-5xl font-bold tracking-tight md:text-7xl">
@@ -137,7 +130,7 @@ export async function Hero() {
           eventsLabel={dict.home.eventsMonitored}
         />
 
-        <div className="relative w-full max-w-6xl">
+        <div className="relative mt-20 w-full max-w-6xl">
           <span className="absolute -top-2 -left-2 h-6 w-6 border-t-2 border-l-2 border-white/25" />
           <span className="absolute -top-2 -right-2 h-6 w-6 border-t-2 border-r-2 border-white/25" />
           <span className="absolute -bottom-2 -left-2 h-6 w-6 border-b-2 border-l-2 border-white/25" />

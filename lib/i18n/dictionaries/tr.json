@@ -94,10 +94,9 @@
     "carouselNoEvents": "Bu oyun için şu anda takip edilen bir etkinlik yok."
   },
   "home": {
-    "liveBadge": "Canlı — {games} oyun / {events} etkinlik takip ediliyor",
-    "dailyDetection": "Günlük mod tespiti",
-    "modeRotatorNeverAsk": "Bir daha",
-    "modeRotatorIsBack": "geri geldi mi diye sorma",
+    "liveBadge": "Canlı — her oyun, günlük kontrol ediliyor",
+    "modeRotatorNeverAsk": "Merak ediyor musun,",
+    "modeRotatorIsBack": "geri geldi mi?",
     "heroTitlePre": "En sevdiğin",
     "heroTitleHighlight": "oyun modlarını",
     "heroTitlePost": "asla kaçırma.",

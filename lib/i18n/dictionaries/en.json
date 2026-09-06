@@ -94,9 +94,8 @@
     "carouselNoEvents": "No tracked events for this game right now."
   },
   "home": {
-    "liveBadge": "Live — {games} games / {events} events tracked",
-    "dailyDetection": "Daily mode detection",
-    "modeRotatorNeverAsk": "Never ask",
+    "liveBadge": "Live — every game, checked daily",
+    "modeRotatorNeverAsk": "Wondering if",
     "modeRotatorIsBack": "is back?",
     "heroTitlePre": "Never miss your",
     "heroTitleHighlight": "favorite game modes",

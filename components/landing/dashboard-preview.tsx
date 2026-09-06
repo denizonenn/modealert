@@ -45,7 +45,7 @@ export function DashboardPreview({ events, monitoredCount }: Props) {
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       viewport={{ once: true }}
-      className="mt-20 w-full max-w-6xl rounded-3xl border border-white/10 bg-zinc-950 shadow-2xl"
+      className="w-full max-w-6xl rounded-3xl border border-white/10 bg-zinc-950 shadow-2xl"
     >
       <div className="border-b border-white/10 px-8 py-5">
         <div className="flex items-center gap-3">

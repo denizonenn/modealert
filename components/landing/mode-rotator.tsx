@@ -5,14 +5,20 @@ import { useEffect, useState } from "react";
 
 import { useI18n } from "@/components/providers/i18n-provider";
 
+// Real, currently-tracked rotating modes only — every game/event pair
+// here has a live ModeAlert provider (see docs/09_BACKLOG.md "P2 —
+// Multi Game Support"). Never add a game ModeAlert doesn't actually
+// support just because it fits the rotation — this text is the first
+// thing a visitor reads, and it must not promise coverage that isn't
+// real.
 const modes = [
   { game: "League of Legends", event: "URF" },
   { game: "League of Legends", event: "Arena" },
   { game: "Valorant", event: "Night Market" },
   { game: "Destiny 2", event: "Iron Banner" },
-  { game: "Apex Legends", event: "Shadow Royale" },
-  { game: "Overwatch 2", event: "Archives" },
-  { game: "TFT", event: "Set Revival" },
+  { game: "Destiny 2", event: "Trials of Osiris" },
+  { game: "Destiny 2", event: "Xûr" },
+  { game: "Warframe", event: "Void Trader" },
 ];
 
 export function ModeRotator() {
