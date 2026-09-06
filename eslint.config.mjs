@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Local dev aid, not part of ModeAlert — same exclusion as tsconfig.json.
+    "graphify/**",
   ]),
 ]);
 
