@@ -428,6 +428,8 @@ export function HeroCarousel({
                 src={item.image}
                 alt=""
                 draggable={false}
+                loading={Math.abs(i - index) <= 1 ? "eager" : "lazy"}
+                decoding="async"
                 className="h-full w-full object-cover"
                 style={{ objectPosition: "50% 26%" }}
               />
