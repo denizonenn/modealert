@@ -5573,3 +5573,92 @@ SaaS** olarak, otomatik fulfillment vurgusuyla tanımlamak gerekiyor
 ("users create an account, pick which game events to track, and the app
 sends automated email/Discord alerts — fulfillment is fully automated
 via the account"), "a notification service" gibi bir ifadeyle değil.
+
+---
+
+# ADR-065: Reddin Gerçek Sebebi Kimlik Doğrulaması — ADR-063'ün Teşhisi Yanlıştı
+
+Status: Accepted
+
+Date: 2026-09-12
+
+## Bağlam
+
+ADR-063, Lemon Squeezy reddini siteye bağlamıştı: paylaşımlı
+`.vercel.app` subdomain'i ve `onboarding@resend.dev` gönderici adresi.
+ADR-064 de bu varsayımın üzerine ürün/IP uyum turunu inşa etti. Bugün
+Lemon Squeezy paneli tarayıcıdan incelendiğinde bu teşhisin **yanlış**
+olduğu ortaya çıktı.
+
+**Settings → General → Store activation** bölümünde tek bir aktivasyon
+kalemi var ve durumu şu:
+
+> Identity verification — *Add your details to verify your identity* →
+> `Verify your identity` **Rejected**
+
+Yani reddedilen şey ürün, site, alan adı ya da e-posta değil —
+**Deniz'in kişisel kimlik doğrulaması (KYC)**. Ayrıca `Verify your
+identity` butonu **devre dışı**: DOM'dan doğrulandı (`disabled: true`,
+`cursor: not-allowed`, `opacity: 0.5`). Yani arayüzden yeniden deneme
+yolu kapalı, self-servis çözümü yok.
+
+Not: erişilebilirlik ağacını sorgulayan `find` aracı butonu normal bir
+buton olarak gösterdi ve devre dışı olduğunu yakalamadı; bu yüzden ilk
+teşhis "aktif, tıklayabilirsin" oldu ve yanlıştı. **Buton durumu
+gerektiğinde hesaplanmış stil/`disabled` özelliği üzerinden
+doğrulanmalı**, erişilebilirlik ağacına güvenilmemeli.
+
+## Karar
+
+ADR-063 ve ADR-064 **geri alınmıyor** — yaptıkları iş hâlâ geçerli ve
+gerekliydi:
+
+- Lisanssız yayıncı görselleri gerçekten LS'in yasaklı ürün listesine
+  takılıyordu; kaldırılması ürün bazlı bir ret gerekçesini ortadan
+  kaldırdı (ve Riot dev şartları açısından da doğruydu).
+- `support@modealert.app` artık store'un **Contact email** alanında
+  kayıtlı; kişisel Gmail orada duruyor olsaydı KYB açısından zayıf
+  kalırdı.
+- Gerçek domain ve doğrulanmış gönderici adresi zaten doğru adımlardı.
+
+Ama **aktivasyonun önündeki tek gerçek engel kimlik doğrulaması** ve o
+yalnızca Lemon Squeezy destek ekibi tarafından yeniden açılabilir.
+Deniz 2026-09-12'de desteğe yazdı.
+
+## Bu oturumda panelden teyit edilen diğer durumlar
+
+- **Store subdomain:** `modealert` → `LEMONSQUEEZY_STORE_SUBDOMAIN`
+  değeri bu. Test/live arasında değişmez.
+- **Ürün oluşturuldu:** `ModeAlert Premium`, üç variant — 1 Month
+  ($4.99/ay), 1 Year ($49/yıl), Lifetime ($99 tek seferlik). Sitedeki
+  `/pricing` üç kademeyi de gösteriyor (önceki notlarda Lifetime
+  atlanmıştı).
+- **Lifetime abonelik checkout'unda görünmüyor.** LS aynı checkout'ta
+  aboneliği ve tek seferlik ödemeyi karıştırmıyor, Lifetime variant'ı
+  listeden düşüyor. Çözüm: Lifetime'ı ayrı bir `Single payment` ürünü
+  yapmak. Kod buna hazır (`LEMONSQUEEZY_VARIANT_ID_LIFETIME` ayrı
+  değişken, webhook `order_created`/`order_refunded` dinliyor).
+- **Checkout URL formatı doğrulandı:** kodun ürettiği
+  `/buy/<variantId>` ile panelin verdiği `/checkout/buy/<variantId>`
+  birebir aynı davranıyor (ikisi de aynı hedefe 302). Yani
+  `lemonsqueezy-client.ts`'i değiştirmeye gerek yok.
+- **Store aktif olmadığı için public checkout kapalı:** storefront kökü
+  403, `/checkout` 404. Bu beklenen durum, bozukluk değil.
+- **Ödeme/vergi:** banka hesabı bağlı (TRY, `**** 0805`). W-8 formu
+  2026-09-12'de gönderildi — `Missing W-8/W-9 certification` kutusu
+  panelden kalktı. Payouts sayfasındaki `[Action Required]` bandı
+  gecikmeli temizleniyor.
+- **`EMAIL_FROM` production'da doğru:** canlı magic-link e-postasının
+  göndericisi `notifications@modealert.app` olarak teyit edildi. Yani
+  ADR-063'ün bu adımı fiilen kapandı.
+
+## Onay geldiğinde yapılacaklar
+
+Test mode variant ID'leri live mode'da geçersiz — onaydan önce Vercel'e
+hiçbir `LEMONSQUEEZY_*` değeri girilmemeli, yoksa checkout kırılır.
+Onay sonrası sırayla: ürünü **Copy to Live Mode**, webhook'u
+`https://www.modealert.app/api/webhooks/lemonsqueezy` adresine 9 olayla
+kur, ve beş değişkeni (`STORE_SUBDOMAIN`, `VARIANT_ID`,
+`VARIANT_ID_YEARLY`, `API_KEY`, `WEBHOOK_SECRET`) Production'a ekle.
+Variant ID'leri elle kopyalamak yerine API key girildikten sonra LS
+API'sinden çekmek karıştırma riskini ortadan kaldırır.

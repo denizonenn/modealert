@@ -177,14 +177,22 @@ kadar.**
   ($4.99/ay — sınırsız watchlist + per-event prediction/statistics)
   paywall'ı kod tarafında tam; ödeme sağlayıcısı **Lemon Squeezy**
   (Stripe DEĞİL — Stripe Türkiye merkezli satıcıları desteklemiyor,
-  bkz. ADR-041). **İlk mağaza başvurusu REDDEDİLDİ** (jenerik gerekçe:
-  "totality of data") — bkz. ADR-063, muhtemel sebep paylaşımlı
-  `.vercel.app` subdomain'i + `onboarding@resend.dev` gönderici
-  adresiydi; ikisi de düzeltildi. **Yeniden başvuru öncesi uyum turu
-  2026-09-12'de yapıldı (ADR-064):** LS'in yasaklı ürün listesi satır
-  satır denetlendi, lisanssız yayıncı key-art'ları kaldırıldı, destek
-  adresi `support@modealert.app`'e taşındı, footer'a Refunds/Contact
-  eklendi. `LEMONSQUEEZY_API_KEY`/`LEMONSQUEEZY_STORE_SUBDOMAIN`/
+  bkz. ADR-041). **İlk mağaza başvurusu REDDEDİLDİ.** ADR-063 sebebi
+  paylaşımlı `.vercel.app` subdomain'i + `onboarding@resend.dev`
+  gönderici adresi sandı ve ikisi de düzeltildi; **ama bu teşhis
+  yanlıştı — bkz. ADR-065.** LS panelinde reddin asıl yeri
+  `Settings → General → Store activation → Identity verification:
+  **Rejected**`, yani Deniz'in kişisel KYC'si. `Verify your identity`
+  butonu da devre dışı (DOM'dan doğrulandı), yani arayüzden yeniden
+  denenemiyor — **sadece LS desteği açabilir**, 2026-09-12'de yazıldı.
+  **Uyum turu yine de yapıldı ve geçerli (ADR-064):** LS'in yasaklı
+  ürün listesi satır satır denetlendi, lisanssız yayıncı key-art'ları
+  kaldırıldı, destek adresi `support@modealert.app`'e taşındı (store'un
+  Contact email alanına da işlendi), footer'a Refunds/Contact eklendi.
+  Store subdomain `modealert`; ürün üç variant'la oluşturuldu
+  (1 Month $4.99 / 1 Year $49 / Lifetime $99) — Lifetime abonelik
+  checkout'unda görünmüyor, ayrı `Single payment` ürünü olmalı. W-8
+  vergi formu gönderildi, banka hesabı bağlı. `LEMONSQUEEZY_API_KEY`/`LEMONSQUEEZY_STORE_SUBDOMAIN`/
   `LEMONSQUEEZY_VARIANT_ID`/`LEMONSQUEEZY_WEBHOOK_SECRET` set
   edilene kadar `/pricing`'deki "Upgrade" butonu zarifçe "Upgrades
   aren't live yet" gösteriyor, sistem kırılmıyor (Google OAuth'un
