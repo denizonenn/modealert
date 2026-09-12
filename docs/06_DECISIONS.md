@@ -5527,6 +5527,45 @@ zaten Terms §4'te vardı ama yalnızca gömülü hâldeydi; artık footer'dan
   faydası da yok. Bu yüzden fallback bir güvenlik ağı olarak olduğu
   gibi bırakıldı.
 
+## Ek: `support@modealert.app` nasıl çalışıyor (2026-09-12)
+
+Adres bir posta kutusu değil, **ImprovMX** ücretsiz yönlendirmesi —
+gelen postayı `denizate@gmail.com`'a iletiyor. GoDaddy'nin ücretsiz
+"E-posta Yönlendirme" ürünü hesapta yok (GoDaddy bunu kaldırıp ücretli
+Professional Email'e geçirdi; DNS panelinde karşılaşılan "E-posta
+gizliliği" ekranı WHOIS vekil adresiyle ilgili, alakasız).
+
+GoDaddy DNS'ine **kökte** (`@`) eklenen üç kayıt:
+
+| Tür | Ad | Değer | Öncelik |
+|---|---|---|---|
+| MX | `@` | `mx1.improvmx.com` | 10 |
+| MX | `@` | `mx2.improvmx.com` | 20 |
+| TXT | `@` | `v=spf1 include:spf.improvmx.com ~all` | — |
+
+**Bu kayıtlar Resend'i bozmuyor** çünkü Resend'in kök-domain
+doğrulaması posta *almayı* değil *göndermeyi* kuruyor ve dönüş yolunu
+`send.modealert.app` alt alan adına koyuyor: `MX send` →
+`feedback-smtp.ap-northeast-1.amazonses.com`, `TXT
+dc-fd741b8612._spfm.send`, DKIM ise kökte `TXT resend._domainkey`.
+Kökte daha önce hiç MX ve hiç SPF yoktu, o yüzden çakışma olmadı.
+**İleride kök MX/SPF kayıtlarına dokunan biri `support@` adresini
+kırar; `send`/`_domainkey` kayıtlarına dokunan biri tüm bildirim
+e-postalarını kırar.**
+
+Teslim uçtan uca doğrulandı: Resend üzerinden
+`notifications@modealert.app` → `support@modealert.app` gönderimi
+Gmail gelen kutusuna spam uyarısı olmadan düştü. (Aynı Gmail
+hesabından kendine test atmak yanıltıcı — Google döngü korumasını
+tetikliyor, ImprovMX Message-ID'yi yeniden yazmak zorunda kalıyor ve
+mail DMARC uyumsuzluğundan spam'e düşüyor. Test her zaman farklı bir
+gönderici adresinden yapılmalı.)
+
+Bilinen sınır: ücretsiz ImprovMX planı postayı sadece **alır**. Bu
+adresten *cevap yazmak* için Gmail'e "farklı adresten gönder" ayarı +
+bir SMTP sunucusu gerekiyor; Resend SMTP zaten mevcut altyapıyla bunu
+ek ücretsiz karşılayabilir, henüz kurulmadı.
+
 ## Başvuru anketi için not
 
 LS'in en sık reddettiği kalıp "service". Ankette ürünü **abonelikli
