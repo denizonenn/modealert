@@ -66,3 +66,7 @@ test.ps1
 
 # graphify generated knowledge graph (local dev aid, not part of ModeAlert)
 /graphify-out
+
+# Claude Code personal/local state (not team-shared)
+/.claude/settings.local.json
+/.claude/scheduled_tasks.lock
