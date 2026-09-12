@@ -155,9 +155,11 @@ kadar.**
 - **Cron:** `/api/cron/sync` günde 1 kez (Vercel Hobby plan limiti —
   Pro'ya geçilirse saatliğe çekilebilir).
 - **Bildirimler:** Email (Resend) canlı, per-recipient gönderim,
-  gerçek `Notification` DB kaydı. Discord/Telegram bilinçli olarak
-  en sona bırakıldı (Deniz'in isteği — Türkiye'de Discord erişim
-  sorunu).
+  gerçek `Notification` DB kaydı. **Discord da canlı** —
+  `lib/notifications/discord/discord.provider.ts`, `enabled: true`,
+  kullanıcının kendi oluşturduğu webhook URL'iyle çalışıyor (bot
+  değil, bu yüzden Türkiye'deki Discord erişim sorunu engel
+  olmuyor). Telegram hâlâ yapılmadı.
 - **Frontend tamamlanan akışlar:** Landing page (Hero/Features/HowItWorks/
   FAQ/CTA — gradient marka sistemi + gerçek fontlar), `/dashboard`
   (gerçek watchlist ekle/çıkar), `/live` (CommunityDragon canlı kontrol),
@@ -175,13 +177,19 @@ kadar.**
   ($4.99/ay — sınırsız watchlist + per-event prediction/statistics)
   paywall'ı kod tarafında tam; ödeme sağlayıcısı **Lemon Squeezy**
   (Stripe DEĞİL — Stripe Türkiye merkezli satıcıları desteklemiyor,
-  bkz. ADR-041). Deniz henüz lemonsqueezy.com'da mağaza açmadı —
-  `LEMONSQUEEZY_API_KEY`/`LEMONSQUEEZY_STORE_SUBDOMAIN`/
+  bkz. ADR-041). **İlk mağaza başvurusu REDDEDİLDİ** (jenerik gerekçe:
+  "totality of data") — bkz. ADR-063, muhtemel sebep paylaşımlı
+  `.vercel.app` subdomain'i + `onboarding@resend.dev` gönderici
+  adresiydi; ikisi de düzeltildi. **Yeniden başvuru öncesi uyum turu
+  2026-09-12'de yapıldı (ADR-064):** LS'in yasaklı ürün listesi satır
+  satır denetlendi, lisanssız yayıncı key-art'ları kaldırıldı, destek
+  adresi `support@modealert.app`'e taşındı, footer'a Refunds/Contact
+  eklendi. `LEMONSQUEEZY_API_KEY`/`LEMONSQUEEZY_STORE_SUBDOMAIN`/
   `LEMONSQUEEZY_VARIANT_ID`/`LEMONSQUEEZY_WEBHOOK_SECRET` set
   edilene kadar `/pricing`'deki "Upgrade" butonu zarifçe "Upgrades
   aren't live yet" gösteriyor, sistem kırılmıyor (Google OAuth'un
   ADR-005'teki rollout'uyla aynı desen). Detay: docs/06_DECISIONS.md
-  ADR-041.
+  ADR-041, ADR-063, ADR-064.
 - **Production hardening pass tamamlandı (2026-08-13, ADR-045).**
   Her API route'ta `zod` validasyonu + tutarlı hata yönetimi, register/
   login'de IP bazlı rate limiting (Postgres-backed, yeni

@@ -5,7 +5,7 @@ import { Footer } from "@/components/layout/footer"
 import { SectionEyebrow } from "@/components/shared/section-eyebrow"
 import { getLocale } from "@/lib/i18n/dictionaries"
 import { localeAlternates } from "@/lib/i18n/alternates"
-import { SITE_URL } from "@/lib/constants/site"
+import { SITE_URL, SUPPORT_EMAIL } from "@/lib/constants/site"
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()
@@ -75,10 +75,10 @@ export default async function DevelopersPage() {
             The API is currently invite-only while pricing is finalized.
             Email{" "}
             <a
-              href="mailto:denizate@gmail.com?subject=ModeAlert%20API%20access"
+              href={`mailto:${SUPPORT_EMAIL}?subject=ModeAlert%20API%20access`}
               className="text-white underline underline-offset-4"
             >
-              denizate@gmail.com
+              {SUPPORT_EMAIL}
             </a>{" "}
             with what you&apos;re building and you&apos;ll get a key manually.
           </p>

@@ -3,6 +3,7 @@
 import Link from "next/link"
 
 import { useI18n } from "@/components/providers/i18n-provider"
+import { SUPPORT_EMAIL } from "@/lib/constants/site"
 
 export function Footer() {
   const { dict, path } = useI18n()
@@ -16,6 +17,7 @@ export function Footer() {
     { href: "/feed.xml", label: dict.footer.rss },
     { href: path("/privacy"), label: dict.footer.privacy },
     { href: path("/terms"), label: dict.footer.terms },
+    { href: `${path("/terms")}#refunds`, label: dict.footer.refunds },
   ]
 
   return (
@@ -28,6 +30,12 @@ export function Footer() {
               {link.label}
             </Link>
           ))}
+          <a
+            href={`mailto:${SUPPORT_EMAIL}`}
+            className="hover:text-white"
+          >
+            {dict.footer.contact}
+          </a>
           <a
             href="https://github.com/denizonenn/modealert"
             target="_blank"

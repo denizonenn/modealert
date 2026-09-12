@@ -6,6 +6,7 @@ import { SectionEyebrow } from "@/components/shared/section-eyebrow"
 import { getDictionary, getLocale } from "@/lib/i18n/dictionaries"
 import { withBold } from "@/lib/i18n/rich-text"
 import { localeAlternates } from "@/lib/i18n/alternates"
+import { SUPPORT_EMAIL } from "@/lib/constants/site"
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()
@@ -61,7 +62,7 @@ export default async function TermsPage() {
           <p className="leading-relaxed">{withBold(t.s3Body)}</p>
         </div>
 
-        <div className="space-y-3">
+        <div id="refunds" className="scroll-mt-24 space-y-3">
           <h2 className="text-xl font-semibold text-white">{t.s4Title}</h2>
           <p className="leading-relaxed">{withBold(t.s4Body)}</p>
           <ul className="list-disc space-y-2 pl-6 leading-relaxed">
@@ -69,10 +70,10 @@ export default async function TermsPage() {
             <li>
               {t.s4Item2Pre}{" "}
               <a
-                href="mailto:denizate@gmail.com"
+                href={`mailto:${SUPPORT_EMAIL}`}
                 className="text-white underline underline-offset-4 hover:text-zinc-300"
               >
-                denizate@gmail.com
+                {SUPPORT_EMAIL}
               </a>{" "}
               {t.s4Item2Post}
             </li>
@@ -108,10 +109,10 @@ export default async function TermsPage() {
           <p className="leading-relaxed">
             {t.s9BodyPre}{" "}
             <a
-              href="mailto:denizate@gmail.com"
+              href={`mailto:${SUPPORT_EMAIL}`}
               className="text-white underline underline-offset-4 hover:text-zinc-300"
             >
-              denizate@gmail.com
+              {SUPPORT_EMAIL}
             </a>
             {t.s9BodyPost}
           </p>

@@ -5448,3 +5448,89 @@ güncellendi (bunlar `SITE_URL`'i import etmiyor, düz metin).
 - Google OAuth redirect URI'sine yeni domain eklenmeli (Google Cloud
   Console).
 - Domain birkaç gün "yaşadıktan" sonra Lemon Squeezy'e yeniden başvur.
+
+---
+
+# ADR-064: Lemon Squeezy Yeniden Başvurusu — Yasaklı Ürün Listesine Uyum
+
+Status: Accepted
+
+Date: 2026-09-12
+
+## Bağlam
+
+ADR-063'teki reddin ardından yeniden başvuru öncesi Lemon Squeezy'nin
+resmi `prohibited-products` ve `activate-your-store` dokümanları satır
+satır projeye karşı denetlendi (dokümanlar Cloudflare yüzünden normal
+fetch'e 403 veriyor, tarayıcı `User-Agent`'ı ile `curl` gerekiyor).
+
+Denetimin sonucu: **yasaklı kategorilerin hiçbirine girmiyoruz.** Türkiye
+banka-ödemesi destekli ülkeler listesinde; ürün tipi ("Software & SaaS")
+açıkça kabul edilen kategoride; LS'in kendi ifadesiyle "abonelikle
+fulfillment yöneten SaaS" istisnası bizi "services of any kind"
+yasağının dışında tutuyor. `/terms`, `/privacy`, 7 günlük iade
+politikası, MoR beyanı ve yayıncı-bağlantısızlık beyanı zaten mevcuttu.
+
+Ancak listede birebir eşleşen bir madde bulundu: *"Products or content
+for which you do not hold a proper license or intellectual property
+rights."*
+
+## Karar
+
+**1. Yayıncı key-art'ları kaldırıldı.** `public/games/key-art/` altındaki
+12 görsel (Riot, Bungie, EA, Square Enix, KRAFTON, Digital Extremes,
+Grinding Gear Games, Arrowhead, Siege Camp) silindi. Ücretli bir plan
+satan bir sitede lisanssız yayıncı görseli hem yukarıdaki LS maddesini
+hem de Riot'un geliştirici şartlarını ihlal ediyor (aynı risk ADR-063'te
+bahsi geçen production key başvurusu için de geçerli). Kod değişikliği
+gerekmedi: `lib/constants/game-key-art.ts`'teki `findGameKeyArt()` dosya
+bulamayınca zaten `placeholderGameArt()`'a düşüyor — oyunun marka
+rengiyle üretilen, hiçbir dış varlığa dayanmayan SVG. `/games`
+carousel'i canlı doğrulandı (28 üretilmiş placeholder, 0 kırık referans).
+`findGameKeyArt()` üzerindeki yorum, ileride yeniden lisanssız görsel
+eklenmesini önlemek için gerekçesiyle güncellendi.
+
+**2. Destek adresi domain'e taşındı.** Yeni `SUPPORT_EMAIL` sabiti
+(`lib/constants/site.ts`) → `support@modealert.app`. Önceden `/terms`
+(×2), `/privacy`, `/developers` ve `security.txt` kişisel bir Gmail
+adresini hardcode ediyordu; KYB incelemesinde domain adresi belirgin
+şekilde daha kurumsal duruyor. `helldivers2`/`poe` provider'larının
+giden `User-Agent` iletişim başlıkları bilinçli olarak Gmail'de bırakıldı
+— bunlar inceleme uzmanının görmediği, teslimin garanti olması gereken
+operasyonel adresler.
+
+**3. Footer'a "Refunds" ve "Contact" linkleri eklendi.** İade politikası
+zaten Terms §4'te vardı ama yalnızca gömülü hâldeydi; artık footer'dan
+`/terms#refunds` anchor'ına doğrudan erişiliyor (§4 bloğuna `id="refunds"`
++ `scroll-mt-24` verildi). İki dilde çeviri anahtarları eklendi
+(`footer.refunds`, `footer.contact`).
+
+## Bilinçli olarak yapılmayanlar
+
+- **"Prediction" metinleri değiştirilmedi.** `gambling`/`sweepstakes`
+  yasağı akla gelebilir diye incelendi; `event-prediction.service.ts`
+  tamamen istatistiksel takvim tahmini (ortalama süre, tekrar aralığı) ve
+  `/pricing` metni bunu zaten açıkça yazıyor ("estimated end date,
+  average duration, when a mode typically comes back"). Bahisle ilgisi
+  yok, metin değişikliği gerekmedi.
+- **`env.EMAIL_FROM` fallback'i (`onboarding@resend.dev`) korundu.**
+  ADR-063 bu adresi reddin muhtemel sebeplerinden biri olarak
+  işaretlediği için özellikle denetlendi. Bulgular: local `.env`
+  `@modealert.app` kullanıyor **ve** `EMAIL_FROM` Vercel production'da
+  da set edilmiş durumda (2026-09-06'da, yani ADR-063'ün hemen
+  ardından) — ADR-063'ün bu adımı fiilen tamamlanmış. Değerin kendisi
+  doğrulanamadı çünkü Vercel'de "Secret" tipinde (CLI `[SENSITIVE]`
+  placeholder yazıyor) ve local Resend key'i sadece-gönderim yetkili
+  olduğu için `/domains` API'si 401 dönüyor. Kod fallback'ini domain'e
+  çevirmek, Resend domain doğrulaması eksikse tüm prod e-postalarını
+  kırardı; set edilmiş bir değişkenin üstüne yazacak bir değişikliğin
+  faydası da yok. Bu yüzden fallback bir güvenlik ağı olarak olduğu
+  gibi bırakıldı.
+
+## Başvuru anketi için not
+
+LS'in en sık reddettiği kalıp "service". Ankette ürünü **abonelikli
+SaaS** olarak, otomatik fulfillment vurgusuyla tanımlamak gerekiyor
+("users create an account, pick which game events to track, and the app
+sends automated email/Discord alerts — fulfillment is fully automated
+via the account"), "a notification service" gibi bir ifadeyle değil.

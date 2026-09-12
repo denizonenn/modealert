@@ -1,9 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
 
-// Real key art, once Deniz adds it, lives here — one file per game slug.
-// Drop e.g. `public/games/key-art/lol.jpg` (any of the extensions below)
-// and it's picked up automatically, no code change needed.
+// Licensed key art lives here — one file per game slug. Drop e.g.
+// `public/games/key-art/lol.jpg` (any of the extensions below) and it's
+// picked up automatically, no code change needed. Only add art we hold
+// rights to: publisher key art was removed here because selling a paid
+// plan alongside it breaks Lemon Squeezy's IP rule and Riot's dev terms.
 const KEY_ART_DIR = path.join(process.cwd(), "public", "games", "key-art");
 const KEY_ART_EXTENSIONS = ["jpg", "jpeg", "png", "webp"] as const;
 

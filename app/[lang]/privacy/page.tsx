@@ -6,6 +6,7 @@ import { SectionEyebrow } from "@/components/shared/section-eyebrow"
 import { getDictionary, getLocale } from "@/lib/i18n/dictionaries"
 import { withBold } from "@/lib/i18n/rich-text"
 import { localeAlternates } from "@/lib/i18n/alternates"
+import { SUPPORT_EMAIL } from "@/lib/constants/site"
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()
@@ -107,10 +108,10 @@ export default async function PrivacyPage() {
           <p className="leading-relaxed">
             {t.contactBodyPre}{" "}
             <a
-              href="mailto:denizate@gmail.com"
+              href={`mailto:${SUPPORT_EMAIL}`}
               className="text-white underline underline-offset-4 hover:text-zinc-300"
             >
-              denizate@gmail.com
+              {SUPPORT_EMAIL}
             </a>
             {t.contactBodyPost}
           </p>
