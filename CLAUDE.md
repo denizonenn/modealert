@@ -34,8 +34,13 @@ biliyor. Buna göre:
   döner. Yazma işini sync service'ler yapar.
 - lib/repositories/ sadece veritabanı erişimi yapar, iş kuralı içermez,
   provider çağırmaz.
-- Her provider BaseProvider'ı implement eder: fetch(), normalize(),
-  health(), name, priority. Bağımsız ve değiştirilebilir olmalı.
+- Her provider `lib/providers/core/provider.ts`'teki `EventProvider`
+  arayüzünü implement eder: `id`, `name`, `enabled`, `getEvents()`.
+  Bağımsız ve değiştirilebilir olmalı. Yeni provider
+  `lib/providers/core/registry.ts`'e eklenmezse sessizce hiç çalışmaz.
+  Klasör deseni: `client.ts`, `types.ts`, `constants.ts`,
+  `event-mapper.ts`/`normalizer.ts` (+ `.test.ts`), `provider.ts`,
+  `service.ts`.
 - Prisma sadece repository katmanı içinden kullanılır.
 
 ## ⚠️ ŞEMA DEĞİŞİKLİĞİ KURALI — `prisma migrate dev` YASAK, `--shadow-database-url` de YASAK
@@ -97,7 +102,10 @@ kadar.**
 - **Veritabanı:** Neon Postgres (Vercel Storage Marketplace üzerinden).
   Artık SQLite değil — `DATABASE_URL` (pooled) + `DATABASE_URL_UNPOOLED`
   (migration'lar için) kullanılıyor.
-- **Aktif provider'lar (13, hepsi gerçek veriyle doğrulandı):** Riot API
+- **Aktif provider'lar — güncel liste her zaman
+  `lib/providers/core/registry.ts` (2026-09-12 itibarıyla 19 kayıtlı;
+  aşağıdaki 13'ün üstüne TFT Set, rotating-modes, Steam Sales, FFXIV ve
+  EA FC eklendi):** Riot API
   (platform status + champion rotation), CommunityDragon (event-hub,
   live+pbe patchline), Valorant (platform status + act/episode),
   **Destiny 2** (Bungie API — platform status + haftalık aktif
