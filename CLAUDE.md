@@ -200,12 +200,20 @@ kadar.**
   Store subdomain `modealert`; ürün üç variant'la oluşturuldu
   (1 Month $4.99 / 1 Year $49 / Lifetime $99) — Lifetime abonelik
   checkout'unda görünmüyor, ayrı `Single payment` ürünü olmalı. W-8
-  vergi formu gönderildi, banka hesabı bağlı. `LEMONSQUEEZY_API_KEY`/`LEMONSQUEEZY_STORE_SUBDOMAIN`/
-  `LEMONSQUEEZY_VARIANT_ID`/`LEMONSQUEEZY_WEBHOOK_SECRET` set
+  vergi formu gönderildi, banka hesabı bağlı.
+  **⚠️ 2026-09-13 GÜNCELLEME — Lemon Squeezy KESİN reddetti, ödeme
+  sağlayıcısı artık PADDLE (ADR-066).** Yukarıdaki LS notları sadece
+  tarihçe. Kod tamamen Paddle'a taşındı: `lib/billing/paddle-client.ts`,
+  `app/api/webhooks/paddle/route.ts`, `/pricing`'de Paddle.js overlay
+  checkout. Sandbox kurulu (ürün + 3 fiyat + client token, ID'ler local
+  `.env`'de). Claude Code'a `paddle-sandbox-local` MCP sunucusu
+  bağlı (local scope). Live hesabın kimlik doğrulaması Deniz'de bekliyor.
+  Webhook'lar gerçek Paddle teslimatıyla henüz test edilmedi. DB
+  sütunları migration olmadan `billingCustomerId`/`billingSubscriptionId`
+  olarak `@map` ile yeniden adlandırıldı. `PADDLE_*` env değişkenleri set
   edilene kadar `/pricing`'deki "Upgrade" butonu zarifçe "Upgrades
-  aren't live yet" gösteriyor, sistem kırılmıyor (Google OAuth'un
-  ADR-005'teki rollout'uyla aynı desen). Detay: docs/06_DECISIONS.md
-  ADR-041, ADR-063, ADR-064.
+  aren't live yet" gösteriyor (Vercel production'da henüz yok). Detay:
+  docs/06_DECISIONS.md ADR-041, ADR-063–066, docs/09_BACKLOG.md.
 - **Production hardening pass tamamlandı (2026-08-13, ADR-045).**
   Her API route'ta `zod` validasyonu + tutarlı hata yönetimi, register/
   login'de IP bazlı rate limiting (Postgres-backed, yeni

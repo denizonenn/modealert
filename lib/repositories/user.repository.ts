@@ -25,8 +25,8 @@ export async function getUserBilling(userId: string) {
     select: {
       email: true,
       plan: true,
-      lemonSqueezyCustomerId: true,
-      lemonSqueezySubscriptionId: true,
+      billingCustomerId: true,
+      billingSubscriptionId: true,
       subscriptionStatus: true,
       subscriptionRenewsAt: true,
     },
@@ -66,17 +66,17 @@ export async function findUserBySubscriptionId(
   subscriptionId: string
 ) {
   return prisma.user.findUnique({
-    where: { lemonSqueezySubscriptionId: subscriptionId },
+    where: { billingSubscriptionId: subscriptionId },
     select: { id: true },
   });
 }
 
 interface SubscriptionUpdate {
   plan: Plan;
-  lemonSqueezyCustomerId: string;
-  // null for a one-time (lifetime) order — Lemon Squeezy orders don't
-  // have a subscription id, there's nothing to renew or cancel.
-  lemonSqueezySubscriptionId: string | null;
+  billingCustomerId: string;
+  // null for a one-time (lifetime) purchase — there's nothing to renew
+  // or cancel.
+  billingSubscriptionId: string | null;
   subscriptionStatus: string;
   subscriptionRenewsAt: Date | null;
 }
@@ -93,10 +93,10 @@ export async function setUserSubscriptionByUserId(
 
 export async function setUserSubscriptionBySubscriptionId(
   subscriptionId: string,
-  data: Omit<SubscriptionUpdate, "lemonSqueezySubscriptionId">
+  data: Omit<SubscriptionUpdate, "billingSubscriptionId">
 ) {
   return prisma.user.updateMany({
-    where: { lemonSqueezySubscriptionId: subscriptionId },
+    where: { billingSubscriptionId: subscriptionId },
     data,
   });
 }

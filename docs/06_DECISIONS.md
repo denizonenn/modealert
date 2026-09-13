@@ -5662,3 +5662,121 @@ kur, ve beş değişkeni (`STORE_SUBDOMAIN`, `VARIANT_ID`,
 `VARIANT_ID_YEARLY`, `API_KEY`, `WEBHOOK_SECRET`) Production'a ekle.
 Variant ID'leri elle kopyalamak yerine API key girildikten sonra LS
 API'sinden çekmek karıştırma riskini ortadan kaldırır.
+
+---
+
+# ADR-066: Ödeme Sağlayıcısı Lemon Squeezy'den Paddle'a Taşındı
+
+Status: Accepted
+
+Date: 2026-09-13
+
+## Bağlam
+
+ADR-065'te tek engelin kimlik doğrulaması olduğu belirlenip Lemon
+Squeezy desteğine yazılmıştı. 2026-09-13'te gelen cevap kesin bir ret:
+başvurular "verilerin bütününe" ve Stripe/PayPal'ın dayattığı risk
+kurallarına göre değerlendiriliyor, "we can't take on your store at
+this point". Yani yeniden başvuru yolu yok. Lemon Squeezy Stripe'ın
+sahipliğinde olduğu için karar pratikte Stripe'ın risk
+değerlendirmesi. ADR-041'deki "Stripe Türkiye'yi desteklemiyor"
+duvarının aynısı.
+
+## Karar
+
+Ödeme sağlayıcısı **Paddle Billing** (merchant of record) oldu.
+Gerekçe: kendi acquiring altyapısı var, Stripe'a bağlı değil. SaaS
+abonelikleri ana işi. Türkiye merkezli satıcı kabul ediyor. Stripe
+altyapısı kullanan alternatifler (Polar, Creem) aynı risk sinyaline
+takılabileceği için yedek bırakıldı.
+
+**Paddle hesabı durumu (2026-09-13):** sandbox kuruldu ve bağlı. Live
+hesabın kimlik doğrulaması (Paddle onboarding "Verify your account"
+adımı) Deniz'e ait ve henüz yapılmadı. İsim pasaportta yazdığı gibi
+girilecek.
+
+## Uygulama
+
+- **Katalog (sandbox):** tek ürün `ModeAlert Premium` (`saas` vergi
+  kategorisi), üç fiyat: Monthly $4.99 / Yearly $49 (abonelik) /
+  Lifetime $99 (**tek seferlik, aynı ürünün içinde**). LS'teki
+  "Lifetime abonelik checkout'unda görünmüyor" sorunu (ADR-065) Paddle'da
+  yok, ayrı ürüne gerek kalmadı. Deneme süresi yok. Live katalog
+  doğrulama geçince aynı şekilde oluşturulacak (ID'ler farklı olacak).
+- **Checkout:** `/pricing`'deki `PricingToggle`, `@paddle/paddle-js` ile
+  **overlay, one-page** checkout açıyor. `customData.user_id` checkout'a
+  ekleniyor. Paddle bunu transaction ve subscription'a kopyalıyor,
+  webhook hangi kullanıcıya Premium verileceğini böyle anlıyor.
+  `successUrl` sadece UX (`/[lang]/dashboard/settings?upgraded=1`).
+  **Premium'u asla redirect değil, webhook verir.** Paddle.js sadece
+  giriş yapmış, Premium olmayan ziyaretçi için yükleniyor.
+- **Webhook:** `app/api/webhooks/paddle/route.ts`. Ham gövde +
+  `Paddle-Signature` başlığı `paddle.webhooks.unmarshal()` ile
+  doğrulanıyor. **Her hata non-2xx** (imza hatası 401, işleme hatası
+  500), çünkü Paddle yalnızca 2xx'i "teslim edildi" sayıyor ve gerisini
+  tekrar deniyor. Route ince, iş mantığı `billingService.handleWebhookEvent`
+  içinde:
+  - `subscription.*` (created/updated/activated/canceled/past_due/paused/
+    resumed/trialing) → abonelikteki son durum yazılıyor (idempotent).
+  - `transaction.completed` → sadece abonelik dışı **lifetime** fiyatı
+    içeriyorsa Premium + `subscriptionStatus = "lifetime"`.
+  - `adjustment.created/updated` → onaylı **tam** iade/chargeback
+    lifetime satın alımına aitse Premium geri alınıyor
+    (`subscriptionStatus = "refunded"`). Adjustment custom_data
+    taşımadığı için orijinal transaction API'den çekiliyor.
+  - Lifetime sahibinin eski bir aboneliği bitince Premium'u **düşmüyor**.
+  - Analytics (PREMIUM_ACTIVATED/CANCELLED) event adına göre değil, gerçek
+    plan geçişine göre sayılıyor. Retry'da çift sayım olmuyor (ADR-046
+    ile aynı prensip).
+- **Durum sözlüğü değişti:** Paddle'da iptal edilen abonelik dönem
+  sonuna kadar `active` kalıyor (scheduled change ile) ve sonra
+  `canceled` oluyor. Bu yüzden `ACTIVE_SUBSCRIPTION_STATUSES` =
+  `active`, `trialing`, `past_due`. LS'teki gibi `cancelled` erişim
+  vermiyor.
+- **Veritabanı: migration YOK.** `lemonSqueezyCustomerId`/
+  `lemonSqueezySubscriptionId` sütunları hiç dolmamıştı (0 kayıt,
+  2026-09-13'te sadece-okuma sorgusuyla doğrulandı). Prisma'da
+  `billingCustomerId`/`billingSubscriptionId` olarak
+  `@map("lemonSqueezy…")` ile yeniden adlandırıldı. DB sütun adları
+  aynı kaldı, `prisma migrate` hiç çalıştırılmadı.
+- **Müşteri portalı / hesap silme:** "Manage subscription" linki
+  `customerPortalSessions.create` ile her görüntülemede taze oluşturuluyor.
+  Hesap silinirken abonelik `effectiveFrom: next_billing_period` ile
+  iptal ediliyor (best-effort).
+- **CSP:** tarayıcının doğrudan konuştuğu tek 3. taraf Paddle.
+  `script-src`/`style-src` `https://cdn.paddle.com`, `frame-src`
+  `https://buy.paddle.com https://sandbox-buy.paddle.com`,
+  `connect-src`/`img-src` `https://*.paddle.com`. Resmi bir Paddle CSP
+  sayfası bulunamadı, bu liste gerçek checkout testinde konsoldan
+  doğrulanmalı.
+- **Env değişkenleri** (hepsi opsiyonel, set edilene kadar "Upgrades
+  aren't live yet"): `PADDLE_ENVIRONMENT` (`sandbox`|`production`,
+  **asla varsayılmıyor**, geçersizse hata fırlatır), `PADDLE_API_KEY`
+  (sadece sunucu), `PADDLE_CLIENT_TOKEN` (`test_`/`live_`, istemciye prop
+  olarak geçiyor, `NEXT_PUBLIC_` değil, böylece Vercel env değişince
+  rebuild gerekmez), `PADDLE_PRICE_ID_MONTHLY`/`_YEARLY`/`_LIFETIME`,
+  `PADDLE_WEBHOOK_SECRET` (notification destination secret'ı,
+  `pdl_ntfset_…`, API key değil).
+
+## Bilinçli olarak yapılmayanlar
+
+- **Paddle.PricePreview ile ülkeye göre yerel fiyat gösterimi.**
+  Paddle'ın örnek prompt'u bunu öneriyor. `/pricing` hâlâ sabit USD
+  gösteriyor. Checkout'un kendisi ödeme anında vergiyi/para birimini
+  doğru hesaplıyor. Sonraya bırakıldı (backlog).
+- **Olay-ID defteri (processed_webhooks tablosu).** Tüm handler'lar
+  "son durumu yaz" şeklinde ve idempotent. Bildirim/e-posta gibi
+  idempotent olmayan yan etki yok, bu yüzden gerekmedi.
+
+## Açık kalanlar
+
+- **Webhook'lar gerçek Paddle teslimatıyla uçtan uca test edilmedi.**
+  Paddle'ın localhost'a ulaşması için tünel gerekiyordu. Tünel açma
+  oturumda izin verilmediği için yapılmadı. Sandbox notification
+  destination henüz oluşturulmadı.
+- Sandbox'ta "Default payment link" sadece Paddle panelinden
+  ayarlanabiliyor (Checkout → Checkout settings). Live'da gerçek,
+  onaylı domain olmalı.
+- Live: kimlik doğrulama → live katalog → live client token + API key +
+  notification destination (`https://www.modealert.app/api/webhooks/paddle`)
+  → Vercel production env.

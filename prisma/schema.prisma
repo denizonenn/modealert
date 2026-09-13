@@ -34,8 +34,12 @@ model User {
   onboardedAt         DateTime?
 
   plan                       String    @default("FREE")
-  lemonSqueezyCustomerId     String?
-  lemonSqueezySubscriptionId String?   @unique
+  // Provider-neutral names mapped onto the original Lemon Squeezy
+  // columns — the columns were never populated (the LS store was never
+  // activated), so the switch to Paddle needed no migration, only a
+  // rename on the Prisma side. See docs/06_DECISIONS.md ADR-066.
+  billingCustomerId          String?   @map("lemonSqueezyCustomerId")
+  billingSubscriptionId      String?   @unique @map("lemonSqueezySubscriptionId")
   subscriptionStatus         String?
   subscriptionRenewsAt       DateTime?
 

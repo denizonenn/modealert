@@ -2044,17 +2044,31 @@ Completed
 
 Blocked on Deniz's action
 
-- **Lemon Squeezy store not created yet** — needs an account + one
-  product with three variants at lemonsqueezy.com (monthly
-  subscription, yearly subscription, one-time lifetime), then
-  `LEMONSQUEEZY_API_KEY`/`LEMONSQUEEZY_STORE_SUBDOMAIN`/
-  `LEMONSQUEEZY_VARIANT_ID`/`LEMONSQUEEZY_VARIANT_ID_YEARLY`/
-  `LEMONSQUEEZY_VARIANT_ID_LIFETIME`/`LEMONSQUEEZY_WEBHOOK_SECRET` in
-  both local `.env` and Vercel production (same pattern as Google
-  OAuth's ADR-005 rollout). Each variant is independently optional —
-  e.g. monthly alone works fine if yearly/lifetime aren't set up yet.
-  Until at least monthly exists, `/pricing`'s CTA shows "Upgrades
-  aren't live yet" — hidden gracefully, not broken.
+- **Payment provider is now Paddle (2026-09-13, ADR-066)** — Lemon
+  Squeezy definitively declined the store. Sandbox is set up (catalog:
+  one product, monthly/yearly/lifetime prices; client token; code
+  migrated). Remaining, in order:
+  1. Deniz: Paddle live account verification ("Verify your account").
+  2. Sandbox end-to-end test: sign in on localhost, buy with test card
+     `4242 4242 4242 4242`; create a sandbox notification destination
+     (needs a public URL — a tunnel, or a Vercel preview deployment
+     with sandbox env) and confirm `subscription.created` /
+     `transaction.completed` flip the user to Premium. Confirm the CSP
+     allowlist from the browser console.
+  3. Sandbox dashboard: Checkout → Checkout settings → Default payment
+     link.
+  4. After verification: live catalog, live client token + API key,
+     live notification destination
+     `https://www.modealert.app/api/webhooks/paddle`, then
+     `PADDLE_ENVIRONMENT`/`PADDLE_API_KEY`/`PADDLE_CLIENT_TOKEN`/
+     `PADDLE_PRICE_ID_MONTHLY`/`_YEARLY`/`_LIFETIME`/
+     `PADDLE_WEBHOOK_SECRET` in Vercel production.
+  5. Rotate the sandbox API key (it was pasted into a chat session).
+  Until the token and at least the monthly price are set, `/pricing`'s
+  CTA shows "Upgrades aren't live yet" — hidden gracefully, not broken.
+- **Localized prices on `/pricing`** (nice-to-have): show
+  `Paddle.PricePreview()` totals per visitor country instead of fixed
+  USD constants.
 
 Future
 

@@ -1,33 +1,90 @@
 import {
+  EventName,
+  type AdjustmentCreatedEvent,
+  type EventEntity,
+  type SubscriptionCreatedEvent,
+  type TransactionCompletedEvent,
+} from "@paddle/paddle-node-sdk";
+
+import { analyticsService } from "@/lib/services/analytics.service";
+import { ANALYTICS_EVENTS } from "@/lib/constants/analytics-events";
+import {
   getUserPlan,
   getUserBilling,
   setUserSubscriptionByUserId,
   setUserSubscriptionBySubscriptionId,
 } from "@/lib/repositories/user.repository";
 import {
-  buildCheckoutUrl,
   cancelSubscription,
+  getClientCheckoutSettings,
   getCustomerPortalUrl,
-} from "@/lib/billing/lemonsqueezy-client";
+  getTransaction,
+  isCheckoutConfigured,
+  isLifetimePriceId,
+  priceIdFor,
+} from "@/lib/billing/paddle-client";
 import {
   ACTIVE_SUBSCRIPTION_STATUSES,
   BILLING_INTERVALS,
   PLANS,
   SUBSCRIPTION_STATUS_LIFETIME,
+  SUBSCRIPTION_STATUS_REFUNDED,
   type BillingInterval,
   type Plan,
 } from "@/lib/constants/plan";
-import type { z } from "zod";
-import type { lemonSqueezyWebhookSchema } from "@/lib/validation/schemas";
+import { paddleCustomDataSchema } from "@/lib/validation/schemas";
 
-type LemonSqueezyWebhookPayload = z.infer<
-  typeof lemonSqueezyWebhookSchema
+// Every subscription.* event carries the same subscription shape, and
+// both adjustment.created/updated the same adjustment shape.
+type PaddleSubscription = SubscriptionCreatedEvent["data"];
+type PaddleTransaction = TransactionCompletedEvent["data"];
+type PaddleAdjustment = AdjustmentCreatedEvent["data"];
+
+// Which ModeAlert user a Paddle resource belongs to — set by our
+// checkout as custom_data.user_id and copied by Paddle onto the
+// transaction and subscription it creates.
+function userIdFrom(customData: unknown): string | null {
+  return paddleCustomDataSchema.parse(customData)?.user_id ?? null;
+}
+
+// Only a full refund or a chargeback takes back a lifetime purchase —
+// a partial refund (goodwill credit) leaves access in place.
+const REVOKING_ADJUSTMENT_ACTIONS = new Set(["refund", "chargeback"]);
+
+const SUBSCRIPTION_EVENTS = new Set<string>([
+  EventName.SubscriptionCreated,
+  EventName.SubscriptionUpdated,
+  EventName.SubscriptionActivated,
+  EventName.SubscriptionCanceled,
+  EventName.SubscriptionPastDue,
+  EventName.SubscriptionPaused,
+  EventName.SubscriptionResumed,
+  EventName.SubscriptionTrialing,
+]);
+
+// Tracked by comparing the real plan before/after a write, not by
+// event name — Paddle redelivers on retry, and counting by event name
+// would double-count a conversion or cancellation every time.
+// Comparing state transitions is naturally idempotent: re-processing
+// the same event sees the same plan before and after, so nothing fires.
+async function recordPlanTransition(
+  userId: string,
+  planBefore: Plan
+) {
+  const planAfter = await getUserPlan(userId);
+
+  if (planBefore === PLANS.FREE && planAfter === PLANS.PREMIUM) {
+    await analyticsService.record(userId, ANALYTICS_EVENTS.PREMIUM_ACTIVATED);
+  }
+
+  if (planBefore === PLANS.PREMIUM && planAfter === PLANS.FREE) {
+    await analyticsService.record(userId, ANALYTICS_EVENTS.PREMIUM_CANCELLED);
+  }
+}
+
+export type CheckoutOptions = NonNullable<
+  ReturnType<typeof billingService.getCheckoutOptions>
 >;
-
-// Lemon Squeezy's order status vocabulary — distinct from a
-// subscription's. "paid" is the only status that should ever grant
-// access; a refund/void on a lifetime purchase revokes it.
-const PAID_ORDER_STATUSES = new Set(["paid"]);
 
 export const billingService = {
   async getPlan(
@@ -47,21 +104,40 @@ export const billingService = {
       return null;
     }
 
-    const manageUrl = billing.lemonSqueezySubscriptionId
+    const manageUrl = billing.billingCustomerId
       ? await getCustomerPortalUrl(
-          billing.lemonSqueezySubscriptionId
+          billing.billingCustomerId,
+          billing.billingSubscriptionId
         )
       : null;
 
     return { ...billing, manageUrl };
   },
 
-  getCheckoutUrl(
-    userId: string,
-    email: string,
-    interval: BillingInterval = BILLING_INTERVALS.MONTHLY
-  ) {
-    return buildCheckoutUrl(userId, email, interval);
+  // Everything the pricing page's client component needs to open
+  // Paddle's overlay checkout. null when checkout isn't configured at
+  // all — the page then shows "Upgrades aren't live yet". A single
+  // interval without a price id comes back as null and stays hidden.
+  getCheckoutOptions(userId: string, email: string) {
+    if (!isCheckoutConfigured(BILLING_INTERVALS.MONTHLY)) {
+      return null;
+    }
+
+    const intervals = Object.values(BILLING_INTERVALS);
+
+    const priceIds = Object.fromEntries(
+      intervals.map((interval) => [
+        interval,
+        isCheckoutConfigured(interval) ? priceIdFor(interval) : null,
+      ])
+    ) as Record<BillingInterval, string | null>;
+
+    return {
+      ...getClientCheckoutSettings(),
+      userId,
+      email,
+      priceIds,
+    };
   },
 
   // Best-effort — called right before account deletion so a Premium
@@ -70,91 +146,157 @@ export const billingService = {
   async cancelSubscriptionForUser(userId: string) {
     const billing = await getUserBilling(userId);
 
-    if (!billing?.lemonSqueezySubscriptionId) {
+    if (!billing?.billingSubscriptionId) {
       return;
     }
 
-    await cancelSubscription(billing.lemonSqueezySubscriptionId);
+    await cancelSubscription(billing.billingSubscriptionId);
   },
 
-  // Called by the webhook route after signature verification. Maps a
-  // Lemon Squeezy subscription event onto our own plan/status fields —
-  // see docs/06_DECISIONS.md ADR-041 for the status → plan mapping.
-  async syncSubscriptionFromWebhook(
-    payload: LemonSqueezyWebhookPayload
-  ) {
-    const { attributes } = payload.data;
-    const subscriptionId = payload.data.id;
-    const userId = payload.meta.custom_data?.user_id;
+  // Entry point for the webhook route, called with an already
+  // signature-verified event. Throws on a DB/API failure so the route
+  // can answer non-2xx and Paddle retries.
+  async handleWebhookEvent(event: EventEntity) {
+    if (SUBSCRIPTION_EVENTS.has(event.eventType)) {
+      await this.syncSubscription(event.data as PaddleSubscription);
+      return;
+    }
+
+    switch (event.eventType) {
+      case EventName.TransactionCompleted:
+        await this.syncLifetimePurchase(event.data);
+        return;
+      case EventName.AdjustmentCreated:
+      case EventName.AdjustmentUpdated:
+        await this.revokeLifetimeOnRefund(event.data);
+        return;
+      default:
+        // Subscribed to something we don't act on — ack, don't throw.
+        return;
+    }
+  },
+
+  // subscription.created / updated / activated / canceled / past_due /
+  // paused / resumed / trialing. Every event carries the full current
+  // subscription, so this just writes the latest state — idempotent
+  // under Paddle's at-least-once, unordered delivery.
+  async syncSubscription(subscription: PaddleSubscription) {
+    const userId = userIdFrom(subscription.customData);
 
     const plan: Plan = ACTIVE_SUBSCRIPTION_STATUSES.has(
-      attributes.status
+      subscription.status
     )
       ? PLANS.PREMIUM
       : PLANS.FREE;
 
-    const subscriptionRenewsAt = attributes.renews_at
-      ? new Date(attributes.renews_at)
+    const subscriptionRenewsAt = subscription.nextBilledAt
+      ? new Date(subscription.nextBilledAt)
       : null;
 
     if (userId) {
+      // A lifetime owner who also once had a subscription must not
+      // lose Premium when that old subscription ends.
+      const current = await getUserBilling(userId);
+
+      if (
+        !current ||
+        (plan === PLANS.FREE &&
+          current.subscriptionStatus === SUBSCRIPTION_STATUS_LIFETIME)
+      ) {
+        return;
+      }
+
       await setUserSubscriptionByUserId(userId, {
         plan,
-        lemonSqueezyCustomerId: String(
-          attributes.customer_id
-        ),
-        lemonSqueezySubscriptionId: subscriptionId,
-        subscriptionStatus: attributes.status,
+        billingCustomerId: subscription.customerId,
+        billingSubscriptionId: subscription.id,
+        subscriptionStatus: subscription.status,
         subscriptionRenewsAt,
       });
+
+      await recordPlanTransition(userId, current.plan as Plan);
       return;
     }
 
-    // Fallback for events without custom_data (checkout always sets
-    // it, but e.g. a subscription created directly in the Lemon
-    // Squeezy dashboard wouldn't have it) — match by subscription id
-    // instead, which only works for events after the first one.
-    await setUserSubscriptionBySubscriptionId(subscriptionId, {
+    // Fallback for a subscription without custom_data (our checkout
+    // always sets it, but one created in the Paddle dashboard wouldn't)
+    // — match by subscription id, which only works once it's stored.
+    await setUserSubscriptionBySubscriptionId(subscription.id, {
       plan,
-      lemonSqueezyCustomerId: String(attributes.customer_id),
-      subscriptionStatus: attributes.status,
+      billingCustomerId: subscription.customerId,
+      subscriptionStatus: subscription.status,
       subscriptionRenewsAt,
     });
   },
 
-  // Called by the webhook route for order_created/order_refunded — a
-  // one-time lifetime purchase, not a subscription. No renewal, no
-  // subscription id to store or later cancel (setting it null is
-  // deliberate — see SubscriptionUpdate). Requires custom_data.user_id
-  // (always present on checkouts built by buildCheckoutUrl, since we
-  // control that URL); an order created directly in the Lemon Squeezy
-  // dashboard without it can't be matched to a ModeAlert account and
-  // is logged, not silently dropped.
-  async syncOrderFromWebhook(
-    payload: LemonSqueezyWebhookPayload
-  ): Promise<{ matched: boolean }> {
-    const { attributes } = payload.data;
-    const userId = payload.meta.custom_data?.user_id;
+  // transaction.completed — only acts on a one-time lifetime purchase.
+  // Subscription payments also complete transactions, but their access
+  // is driven by the subscription.* events above, so they're skipped.
+  async syncLifetimePurchase(transaction: PaddleTransaction) {
+    const isLifetime =
+      transaction.subscriptionId === null &&
+      transaction.items.some((item) => isLifetimePriceId(item.price?.id));
 
-    if (!userId) {
-      return { matched: false };
+    const userId = userIdFrom(transaction.customData);
+
+    if (!isLifetime || !userId || !transaction.customerId) {
+      return;
     }
 
-    const plan: Plan = PAID_ORDER_STATUSES.has(attributes.status)
-      ? PLANS.PREMIUM
-      : PLANS.FREE;
+    const planBefore = await getUserPlan(userId);
 
     await setUserSubscriptionByUserId(userId, {
-      plan,
-      lemonSqueezyCustomerId: String(attributes.customer_id),
-      lemonSqueezySubscriptionId: null,
-      subscriptionStatus:
-        plan === PLANS.PREMIUM
-          ? SUBSCRIPTION_STATUS_LIFETIME
-          : attributes.status,
+      plan: PLANS.PREMIUM,
+      billingCustomerId: transaction.customerId,
+      billingSubscriptionId: null,
+      subscriptionStatus: SUBSCRIPTION_STATUS_LIFETIME,
       subscriptionRenewsAt: null,
     });
 
-    return { matched: true };
+    await recordPlanTransition(userId, planBefore);
+  },
+
+  // adjustment.created / updated — revokes a lifetime purchase once a
+  // full refund or chargeback is approved. The adjustment doesn't carry
+  // our custom_data or the price, so the original transaction is
+  // fetched (a single, fast API call — fine inside the 5s budget).
+  async revokeLifetimeOnRefund(adjustment: PaddleAdjustment) {
+    if (
+      adjustment.status !== "approved" ||
+      adjustment.type !== "full" ||
+      adjustment.subscriptionId !== null ||
+      !REVOKING_ADJUSTMENT_ACTIONS.has(adjustment.action)
+    ) {
+      return;
+    }
+
+    const transaction = await getTransaction(adjustment.transactionId);
+    const userId = userIdFrom(transaction.customData);
+
+    const isLifetime = transaction.items.some((item) =>
+      isLifetimePriceId(item.price?.id)
+    );
+
+    if (!isLifetime || !userId) {
+      return;
+    }
+
+    const current = await getUserBilling(userId);
+
+    // Only a user still holding that lifetime purchase is downgraded —
+    // not one who has since moved to a paid subscription.
+    if (current?.subscriptionStatus !== SUBSCRIPTION_STATUS_LIFETIME) {
+      return;
+    }
+
+    await setUserSubscriptionByUserId(userId, {
+      plan: PLANS.FREE,
+      billingCustomerId: adjustment.customerId,
+      billingSubscriptionId: null,
+      subscriptionStatus: SUBSCRIPTION_STATUS_REFUNDED,
+      subscriptionRenewsAt: null,
+    });
+
+    await recordPlanTransition(userId, current.plan as Plan);
   },
 };

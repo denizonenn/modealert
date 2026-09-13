@@ -115,22 +115,10 @@ export const revokeApiKeySchema = z.object({
   id: z.string().trim().min(1),
 });
 
-export const lemonSqueezyWebhookSchema = z.object({
-  meta: z.object({
-    event_name: z.string(),
-    custom_data: z
-      .object({ user_id: z.string().optional() })
-      .optional(),
-  }),
-  data: z.object({
-    id: z.string(),
-    attributes: z.object({
-      status: z.string(),
-      customer_id: z.number(),
-      // Present (possibly null) on subscription events; absent
-      // entirely on one-time order events (lifetime purchases) —
-      // orders don't renew.
-      renews_at: z.string().nullable().optional(),
-    }),
-  }),
-});
+// The only untyped part of a (signature-verified) Paddle webhook: the
+// custom_data our checkout attaches. Paddle copies it from the
+// checkout onto the resulting transaction and subscription.
+export const paddleCustomDataSchema = z
+  .object({ user_id: z.string().min(1).optional() })
+  .nullable()
+  .catch(null);

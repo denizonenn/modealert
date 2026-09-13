@@ -10,7 +10,7 @@ import { PricingToggle } from "@/components/pricing/pricing-toggle"
 
 import { auth } from "@/auth"
 import { billingService } from "@/lib/services/billing.service"
-import { PLANS, BILLING_INTERVALS, FREE_WATCHLIST_LIMIT } from "@/lib/constants/plan"
+import { PLANS, FREE_WATCHLIST_LIMIT } from "@/lib/constants/plan"
 import { getDictionary, getLocale } from "@/lib/i18n/dictionaries"
 import { localeAlternates } from "@/lib/i18n/alternates"
 
@@ -39,32 +39,10 @@ export default async function PricingPage() {
     ? await billingService.getBillingInfo(userId)
     : null
 
-  const checkoutUrls = {
-    [BILLING_INTERVALS.MONTHLY]:
-      userId && billing
-        ? billingService.getCheckoutUrl(
-            userId,
-            billing.email,
-            BILLING_INTERVALS.MONTHLY
-          )
-        : null,
-    [BILLING_INTERVALS.YEARLY]:
-      userId && billing
-        ? billingService.getCheckoutUrl(
-            userId,
-            billing.email,
-            BILLING_INTERVALS.YEARLY
-          )
-        : null,
-    [BILLING_INTERVALS.LIFETIME]:
-      userId && billing
-        ? billingService.getCheckoutUrl(
-            userId,
-            billing.email,
-            BILLING_INTERVALS.LIFETIME
-          )
-        : null,
-  }
+  const checkout =
+    userId && billing
+      ? billingService.getCheckoutOptions(userId, billing.email)
+      : null
 
   const FREE_FEATURES = [
     dict.pricingPage.freeFeature1.replace(
@@ -114,16 +92,20 @@ export default async function PricingPage() {
               ))}
             </ul>
 
-            {!session && (
-              <Link href={`/${locale}/onboarding`}>
-                <Button
-                  variant="outline"
-                  className="mt-8 w-full border-white/15 bg-white/5 text-white hover:bg-white/10"
-                >
-                  {dict.pricingPage.getStarted}
-                </Button>
-              </Link>
-            )}
+            <Button
+              variant="outline"
+              nativeButton={false}
+              render={
+                <Link
+                  href={
+                    session ? `/${locale}/dashboard` : `/${locale}/onboarding`
+                  }
+                />
+              }
+              className="mt-8 w-full border-white/15 bg-white/5 text-white hover:bg-white/10"
+            >
+              {session ? dict.cta.viewDashboard : dict.pricingPage.getStarted}
+            </Button>
           </div>
 
           <div className="relative rounded-2xl border border-white/20 bg-gradient-to-b from-white/10 to-white/5 p-8">
@@ -139,7 +121,9 @@ export default async function PricingPage() {
                 signInHref={
                   !session ? `/${locale}/signin?callbackUrl=/pricing` : null
                 }
-                checkoutUrls={checkoutUrls}
+                checkout={checkout}
+                successPath={`/${locale}/dashboard/settings?upgraded=1`}
+                locale={locale}
                 labels={{
                   monthly: dict.pricingPage.billingMonthly,
                   yearly: dict.pricingPage.billingYearly,
@@ -153,6 +137,8 @@ export default async function PricingPage() {
                   upgradeToPremium: dict.pricingPage.upgradeToPremium,
                   buyLifetime: dict.pricingPage.buyLifetime,
                   upgradesNotLive: dict.pricingPage.upgradesNotLive,
+                  upgradesNotLiveHint: dict.pricingPage.upgradesNotLiveHint,
+                  billingIntervalLabel: dict.pricingPage.billingIntervalLabel,
                 }}
               />
             </div>

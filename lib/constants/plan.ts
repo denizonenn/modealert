@@ -22,20 +22,23 @@ export type BillingInterval =
 // $49/year vs. $4.99 x 12 = $59.88/year — genuinely at least "2 months
 // free" (10 x $4.99 = $49.90, and the actual price is even a cent
 // under that), not a rounded-up marketing claim. Lifetime ($99) is a
-// one-time Lemon Squeezy order, not a subscription — pays for itself
+// one-time Paddle transaction, not a subscription — pays for itself
 // vs. yearly in exactly 2 years. See docs/06_DECISIONS.md ADR-041
-// (yearly/lifetime addendum).
+// (yearly/lifetime addendum) and ADR-066. Must match the price
+// entities in the Paddle catalog.
 export const PREMIUM_MONTHLY_PRICE_USD = 4.99;
 export const PREMIUM_YEARLY_PRICE_USD = 49;
 export const PREMIUM_LIFETIME_PRICE_USD = 99;
 
 // Sentinel stored in User.subscriptionStatus for a lifetime purchase —
 // distinct from ACTIVE_SUBSCRIPTION_STATUSES (below), which is
-// Lemon Squeezy's own *subscription* status vocabulary. A one-time
-// lifetime order uses a different status vocabulary entirely ("paid",
-// "refunded", …), handled separately in billing.service.ts's
-// order-webhook path.
+// Paddle's own *subscription* status vocabulary. A lifetime purchase
+// is a one-time transaction (revoked by a refund adjustment), handled
+// separately in billing.service.ts.
 export const SUBSCRIPTION_STATUS_LIFETIME = "lifetime";
+
+// Stored when a lifetime purchase is refunded or charged back.
+export const SUBSCRIPTION_STATUS_REFUNDED = "refunded";
 
 export const PLAN_LABELS: Record<Plan, string> = {
   FREE: "Free",
@@ -43,12 +46,14 @@ export const PLAN_LABELS: Record<Plan, string> = {
 };
 
 // Subscription statuses that still mean "has Premium access" — mirrors
-// Lemon Squeezy's subscription status enum. `cancelled` keeps access
-// until the paid period actually ends (Lemon Squeezy still reports it
-// as `cancelled` during that window, then moves it to `expired`).
+// Paddle's subscription status enum (active | trialing | past_due |
+// paused | canceled). Unlike Lemon Squeezy, a Paddle subscription that
+// the customer cancels stays `active` (with a scheduled change) until
+// the paid period ends, and only then becomes `canceled` — so
+// `canceled` correctly means "no access". `past_due` keeps access
+// while Paddle retries the card.
 export const ACTIVE_SUBSCRIPTION_STATUSES = new Set([
-  "on_trial",
   "active",
+  "trialing",
   "past_due",
-  "cancelled",
 ]);

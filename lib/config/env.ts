@@ -58,27 +58,38 @@ export const env = {
   ADMIN_EMAILS:
     process.env.ADMIN_EMAILS ?? "",
 
-  LEMONSQUEEZY_API_KEY:
-    process.env.LEMONSQUEEZY_API_KEY ?? "",
+  // Paddle Billing — see docs/06_DECISIONS.md ADR-066. All optional:
+  // until they're set, checkout stays hidden ("Upgrades aren't live
+  // yet"), not broken — same rollout pattern as Resend/Google OAuth.
+  // PADDLE_ENVIRONMENT is the exception once anything else is set: it
+  // is never defaulted, so the app can't silently talk to the wrong
+  // Paddle account (see lib/billing/paddle-client.ts).
+  PADDLE_ENVIRONMENT:
+    process.env.PADDLE_ENVIRONMENT ?? "",
 
-  LEMONSQUEEZY_STORE_SUBDOMAIN:
-    process.env.LEMONSQUEEZY_STORE_SUBDOMAIN ?? "",
+  // Server-side only — never passed to a client component.
+  PADDLE_API_KEY:
+    process.env.PADDLE_API_KEY ?? "",
 
-  LEMONSQUEEZY_VARIANT_ID:
-    process.env.LEMONSQUEEZY_VARIANT_ID ?? "",
+  // Client-side token (`test_…` sandbox / `live_…` production). Safe
+  // to expose; handed to the pricing page's client component as a prop
+  // so a Vercel env change doesn't need a rebuild to take effect.
+  PADDLE_CLIENT_TOKEN:
+    process.env.PADDLE_CLIENT_TOKEN ?? "",
 
-  // Separate variant for the yearly plan — same product, a second
-  // price/variant in the Lemon Squeezy dashboard. Optional: yearly
-  // checkout stays hidden (not broken) until this is set, same
-  // pattern as every other LEMONSQUEEZY_* var.
-  LEMONSQUEEZY_VARIANT_ID_YEARLY:
-    process.env.LEMONSQUEEZY_VARIANT_ID_YEARLY ?? "",
+  PADDLE_PRICE_ID_MONTHLY:
+    process.env.PADDLE_PRICE_ID_MONTHLY ?? "",
 
-  // A one-time "Single Payment" product/variant in Lemon Squeezy, not
-  // a subscription — see the order-webhook path in billing.service.ts.
-  LEMONSQUEEZY_VARIANT_ID_LIFETIME:
-    process.env.LEMONSQUEEZY_VARIANT_ID_LIFETIME ?? "",
+  PADDLE_PRICE_ID_YEARLY:
+    process.env.PADDLE_PRICE_ID_YEARLY ?? "",
 
-  LEMONSQUEEZY_WEBHOOK_SECRET:
-    process.env.LEMONSQUEEZY_WEBHOOK_SECRET ?? "",
+  // A one-time price on the same product, not a subscription — see
+  // the transaction/adjustment webhook path in billing.service.ts.
+  PADDLE_PRICE_ID_LIFETIME:
+    process.env.PADDLE_PRICE_ID_LIFETIME ?? "",
+
+  // Secret of the notification destination (`pdl_ntfset_…`) — not the
+  // API key. Sandbox and production destinations each have their own.
+  PADDLE_WEBHOOK_SECRET:
+    process.env.PADDLE_WEBHOOK_SECRET ?? "",
 } as const;

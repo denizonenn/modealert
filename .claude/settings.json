@@ -21,12 +21,15 @@
             "command": "node .claude/hooks/typecheck-on-edit.js",
             "shell": "bash",
             "timeout": 100,
+            "statusMessage": "Type-checking...",
             "async": true,
-            "asyncRewake": true,
-            "statusMessage": "Type-checking..."
+            "asyncRewake": true
           }
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "paddle@claude-community": true
   }
 }
