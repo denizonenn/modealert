@@ -2050,11 +2050,15 @@ Blocked on Deniz's action
   migrated). Remaining, in order:
   1. Deniz: Paddle live account verification ("Verify your account").
   2. Sandbox end-to-end test: sign in on localhost, buy with test card
-     `4242 4242 4242 4242`; create a sandbox notification destination
-     (needs a public URL — a tunnel, or a Vercel preview deployment
-     with sandbox env) and confirm `subscription.created` /
-     `transaction.completed` flip the user to Premium. Confirm the CSP
-     allowlist from the browser console.
+     `4242 4242 4242 4242` (and decline with `4000 0000 0000 0002`).
+     The sandbox notification destination exists
+     (`ntfset_01m2dtvzpw75xjzec04jfwdze0`, currently pointed at
+     production) — repoint it at a public URL that runs sandbox env (a
+     tunnel or a Vercel preview) and confirm `subscription.created` /
+     `transaction.completed` flip the user to Premium; then run the MCP
+     lifecycle checks (upgrade with `do_not_bill`, scheduled cancel
+     keeps access, immediate cancel revokes). Confirm the CSP allowlist
+     from the browser console.
   3. Sandbox dashboard: Checkout → Checkout settings → Default payment
      link.
   4. After verification: live catalog, live client token + API key,

@@ -60,6 +60,7 @@ test.ps1
 *.log
 .vercel
 .env*
+!.env.example
 
 # external tool, nested repo (not part of ModeAlert)
 /graphify

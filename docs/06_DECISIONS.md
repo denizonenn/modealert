@@ -5780,3 +5780,59 @@ girilecek.
 - Live: kimlik doğrulama → live katalog → live client token + API key +
   notification destination (`https://www.modealert.app/api/webhooks/paddle`)
   → Vercel production env.
+
+## Ek (2026-09-13, aynı gün): fulfillment sertleştirme + canlıya hazırlık denetimi
+
+- **Erişim kuralları saf fonksiyonlara çıkarıldı:**
+  `lib/services/billing-rules.ts` (+ 17 birim testi).
+  `planForSubscriptionStatus` sadece `status`'a bakar, `scheduled_change`'e
+  asla bakmaz. Planlanmış iptal/duraklatma, dönem bitene kadar erişimi
+  kesmez. Buna ek olarak `isLifetimePurchase`, `shouldRevokeLifetime`,
+  `isAllowedWebhookIp` da burada.
+- **Webhook IP allowlist:** Paddle'ın `/ips` uç noktasından (sandbox:
+  `sandbox-api.paddle.com/ips`, live: `api.paddle.com/ips`) çekiliyor,
+  1 saat önbellekte tutuluyor, koda gömülmüyor. Listede olmayan IP → 403.
+  Liste çekilemezse → 503 (Paddle tekrar dener). İstemci IP'si
+  `x-forwarded-for`'un ilk girdisinden okunuyor (Vercel bu başlığı
+  kendisi yazıyor). Sadece production build'de uygulanıyor. Localhost ve
+  tünel isteklerinde atlanıyor. Asıl koruma imza doğrulaması, bu ek katman.
+- **Müşteri portalı:** portal oturumu artık her sayfa açılışında değil,
+  sadece tıklanınca `GET /api/billing/portal` ile oluşturuluyor (303
+  yönlendirme). Önceden `/pricing` ve ayarlar sayfası her açılışta bir
+  Paddle API çağrısı yapıyordu. Paddle müşteri ID'si oturumdaki
+  kullanıcının kendi satırından okunuyor, istemciden hiçbir şey alınmıyor.
+- **Ayrı `customers`/`subscriptions` tabloları oluşturulmadı.** Paddle'ın
+  örnek prompt'u bunları öneriyor. Mevcut konvansiyon (ADR-041) faturalama
+  durumunu `User` satırında tutmak, ve tek bir Premium katmanı olduğu için
+  erişim kararı fiyat/ürün ID'sine bağlı değil. `customer.created/updated`
+  bilinçli olarak no-op: müşteri zaten subscription/transaction olaylarıyla
+  `billingCustomerId` üzerinden kullanıcıya bağlanıyor, e-posta da kendi
+  `User` satırımızda. Birden fazla ücretli katman gelirse fiyat/ürün
+  aynası için additive bir migration gerekecek.
+- **Sandbox notification destination oluşturuldu:**
+  `ntfset_01m2dtvzpw75xjzec04jfwdze0`, hedef
+  `https://www.modealert.app/api/webhooks/paddle`, `traffic_source: all`.
+  Abone olunan olaylar: `subscription.*` (8), `transaction.completed`,
+  `adjustment.created/updated`, `customer.created/updated`. Signing secret
+  sadece local `.env`'de. **Kalıcı altyapı, silinmez.** Canlı sitede
+  sandbox env olmadığı için bu hedefe giden teslimatlar şimdilik 503 alıyor
+  (zararsız). Uçtan uca test için URL geçici olarak bir tünele ya da
+  preview'a çevrilecek, secret aynı kalacak.
+- **Yasal metinler Paddle'a güncellendi (EN+TR):** gizlilik politikasında
+  alt işlemci listesi ve saklanan ID'ler, şartlar §4'te Paddle'ın önerdiği
+  "online reseller / Merchant of Record" ifadesi ve eksik $99 Lifetime
+  fiyatı. İki sayfanın da tarihi 13 Eylül 2026.
+- **`.env.example` eklendi** (sadece değişken adları). `.gitignore`'a
+  `!.env.example` istisnası konuldu.
+
+### Canlıya hazırlık denetimi (www.modealert.app, 2026-09-13)
+
+| Kontrol | Durum |
+|---|---|
+| Terms `/en/terms`, `/tr/terms` | ✅ 200 |
+| Privacy `/en/privacy`, `/tr/privacy` | ✅ 200 |
+| Refund policy | ⚠️ Ayrı sayfa yok, `/terms#refunds` bölümünde (7 gün tam iade). Footer'da "Refunds" linki var. Paddle ayrı sayfa isterse `/refunds` eklenmeli. |
+| Ürün açıklaması | ✅ ana sayfa + `/features` + şartlar §1 |
+| İletişim ≤2 tık | ✅ footer'da `mailto:support@modealert.app` (1 tık). `/contact` sayfası yok (404). |
+| Fiyatlar ↔ katalog | ✅ $4.99 / $49 / $99 sandbox kataloğuyla aynı. Live katalog henüz yok. |
+| Domain | ✅ www.modealert.app gerçek ürünü sunuyor. Live "Website approval" Paddle panelinde yapılmalı. |

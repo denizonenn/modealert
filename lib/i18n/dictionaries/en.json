@@ -340,7 +340,7 @@
   "privacyPage": {
     "eyebrow": "Legal",
     "title": "Privacy Policy",
-    "lastUpdated": "Last updated: August 28, 2026",
+    "lastUpdated": "Last updated: September 13, 2026",
     "whoWeAreTitle": "Who we are",
     "whoWeAreBodyPre": "ModeAlert (",
     "whoWeAreBodyPost": ") is an independent, early-access project built and operated by Deniz Önen. This policy explains what data ModeAlert collects, why, and how you can remove it.",
@@ -369,7 +369,7 @@
       },
       {
         "label": "Subscription status",
-        "body": "if you upgrade to Premium, we store your plan, subscription status, and Lemon Squeezy's customer/subscription IDs (opaque references, not your card details) so we can grant access and let you manage billing."
+        "body": "if you upgrade to Premium, we store your plan, subscription status, and Paddle's customer/subscription IDs (opaque references, not your card details) so we can grant access and let you manage billing."
       },
       {
         "label": "Product usage",
@@ -388,7 +388,7 @@
       "**Resend** — delivers the email alerts you sign up for.",
       "**Discord** — only if you add a webhook URL in Settings, we send your event alerts directly to that URL. That's a channel you control on your own server, not a service we otherwise integrate with.",
       "**Google** — only if you choose \"Sign in with Google\", to authenticate you.",
-      "**Lemon Squeezy** — only if you upgrade to Premium. They're our payment processor and Merchant of Record, so they handle your payment details directly (card number, billing address) — ModeAlert never sees or stores them. They notify us only of your subscription status."
+      "**Paddle** (Paddle.com) — only if you upgrade to Premium. Paddle is our online reseller and Merchant of Record, so they handle your payment details directly (card number, billing address) — ModeAlert never sees or stores them. They notify us only of your subscription status."
     ],
     "publicApisNote": "ModeAlert also calls public game-data APIs (Riot Games, Bungie, and others) to detect events, but no information about you personally is ever sent to them.",
     "yourControlsTitle": "Your controls",
@@ -407,7 +407,7 @@
   "termsPage": {
     "eyebrow": "Legal",
     "title": "Terms of Service",
-    "lastUpdated": "Last updated: August 19, 2026",
+    "lastUpdated": "Last updated: September 13, 2026",
     "s1Title": "1. What ModeAlert is",
     "s1BodyPre": "ModeAlert (",
     "s1BodyPost": ") is an independent, early-access project, built and operated by Deniz Önen, that watches public data from game publishers and alerts you by email or Discord when a game mode or event you're tracking changes. By creating an account or using the site, you agree to these terms.",
@@ -416,7 +416,7 @@
     "s3Title": "3. Free and Premium plans — no guarantees",
     "s3Body": "ModeAlert's Free plan is provided **as-is**, without warranty of any kind, and Premium doesn't change that. Event detection depends entirely on third-party APIs we don't control — they can change, rate-limit, or go offline without notice, which can delay or prevent an alert. We do our best to keep data accurate and timely, but we can't guarantee you'll be notified of every event, or that notifications will always be on time.",
     "s4Title": "4. Premium billing",
-    "s4Body": "Premium is $4.99/month or $49/year (both billed on that cadence until you cancel). Payments are processed by **Lemon Squeezy**, our Merchant of Record — Lemon Squeezy handles your payment details directly and is the merchant on your card statement; ModeAlert never sees or stores your card number.",
+    "s4Body": "Premium is $4.99/month or $49/year (both billed on that cadence until you cancel), or $99 once for lifetime access. Our order process is conducted by our online reseller **Paddle.com**, which is the Merchant of Record for all our orders — Paddle handles your payment details, billing inquiries and returns directly, and is the merchant on your card statement; ModeAlert never sees or stores your card number.",
     "s4Item1": "You can cancel anytime from **Dashboard → Settings** — you keep Premium access until the end of the period you already paid for, then the account reverts to Free (your data isn't deleted, tracking above the Free limit just pauses).",
     "s4Item2Pre": "Not happy with Premium? Email",
     "s4Item2Post": "within 7 days of being charged for a full refund, no questions asked.",

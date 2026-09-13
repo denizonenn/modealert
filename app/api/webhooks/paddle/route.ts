@@ -6,6 +6,7 @@ import {
   unmarshalWebhook,
 } from "@/lib/billing/paddle-client";
 import { billingService } from "@/lib/services/billing.service";
+import { getClientIp } from "@/lib/security/rate-limit";
 import { logger } from "@/lib/logger/logger";
 
 // Paddle only treats a 2xx as delivered and retries everything else
@@ -21,6 +22,25 @@ export async function POST(request: NextRequest) {
       { error: "Webhooks not configured" },
       { status: 503 }
     );
+  }
+
+  let trustedSource: boolean;
+
+  try {
+    trustedSource = await billingService.isTrustedWebhookSource(
+      getClientIp(request)
+    );
+  } catch {
+    // Couldn't load Paddle's IP list — not the sender's fault, so a
+    // retryable 503 rather than a rejection.
+    return NextResponse.json(
+      { error: "Webhook source check unavailable" },
+      { status: 503 }
+    );
+  }
+
+  if (!trustedSource) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   // Signature is computed over the exact raw bytes Paddle sent — must

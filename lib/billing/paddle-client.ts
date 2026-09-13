@@ -37,13 +37,6 @@ export function priceIdFor(interval: BillingInterval): string {
   }
 }
 
-export function isLifetimePriceId(priceId: string | undefined): boolean {
-  return (
-    env.PADDLE_PRICE_ID_LIFETIME !== "" &&
-    priceId === env.PADDLE_PRICE_ID_LIFETIME
-  );
-}
-
 // No token/price configured yet — same "disabled until Deniz provides
 // real credentials" pattern as Resend/Google OAuth (see
 // docs/06_DECISIONS.md ADR-003/ADR-005). Checkout stays hidden, not
@@ -101,6 +94,54 @@ export function unmarshalWebhook(
     env.PADDLE_WEBHOOK_SECRET,
     signature
   );
+}
+
+const IP_LIST_TTL_MS = 60 * 60 * 1000;
+
+let ipListCache: { cidrs: string[]; fetchedAt: number } | null = null;
+
+// The addresses Paddle sends webhooks from, as /32 CIDRs. Never
+// hard-coded: Paddle's /ips endpoint is the source of truth and can
+// change (sandbox and live have different lists). Cached for an hour
+// so a webhook burst doesn't mean a burst of lookups. Throws if Paddle
+// can't be reached and there's no cached copy — the route then answers
+// non-2xx and Paddle retries later.
+export async function getWebhookIpCidrs(): Promise<string[]> {
+  if (ipListCache && Date.now() - ipListCache.fetchedAt < IP_LIST_TTL_MS) {
+    return ipListCache.cidrs;
+  }
+
+  const host =
+    paddleEnvironment() === "production"
+      ? "https://api.paddle.com"
+      : "https://sandbox-api.paddle.com";
+
+  try {
+    const response = await fetch(`${host}/ips`, { cache: "no-store" });
+
+    if (!response.ok) {
+      throw new Error(`Paddle /ips returned ${response.status}`);
+    }
+
+    const body = (await response.json()) as {
+      data?: { ipv4_cidrs?: unknown };
+    };
+    const cidrs = body.data?.ipv4_cidrs;
+
+    if (!Array.isArray(cidrs) || cidrs.length === 0) {
+      throw new Error("Paddle /ips returned no addresses");
+    }
+
+    ipListCache = { cidrs: cidrs.map(String), fetchedAt: Date.now() };
+    return ipListCache.cidrs;
+  } catch (error) {
+    // A stale list beats rejecting every delivery during a blip.
+    if (ipListCache) {
+      return ipListCache.cidrs;
+    }
+
+    throw error;
+  }
 }
 
 // Needed to revoke a lifetime purchase on refund: an adjustment event

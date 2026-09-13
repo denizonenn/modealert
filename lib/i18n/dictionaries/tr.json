@@ -340,7 +340,7 @@
   "privacyPage": {
     "eyebrow": "Hukuki",
     "title": "Gizlilik Politikası",
-    "lastUpdated": "Son güncelleme: 28 Ağustos 2026",
+    "lastUpdated": "Son güncelleme: 13 Eylül 2026",
     "whoWeAreTitle": "Biz kimiz",
     "whoWeAreBodyPre": "ModeAlert (",
     "whoWeAreBodyPost": "), Deniz Önen tarafından geliştirilip işletilen, bağımsız bir erken erişim projesidir. Bu politika, ModeAlert'in hangi veriyi topladığını, neden topladığını ve nasıl silebileceğini anlatır.",
@@ -369,7 +369,7 @@
       },
       {
         "label": "Abonelik durumu",
-        "body": "Premium'a yükseltirsen, planını, abonelik durumunu ve Lemon Squeezy'nin müşteri/abonelik ID'lerini (kart bilgin değil, opak referanslar) saklarız, erişim verip faturalamayı yönetmene izin vermek için."
+        "body": "Premium'a yükseltirsen, planını, abonelik durumunu ve Paddle'ın müşteri/abonelik ID'lerini (kart bilgin değil, opak referanslar) saklarız, erişim verip faturalamayı yönetmene izin vermek için."
       },
       {
         "label": "Ürün kullanımı",
@@ -388,7 +388,7 @@
       "**Resend** — abone olduğun e-posta uyarılarını gönderir.",
       "**Discord** — sadece Ayarlar'da bir webhook URL'i eklersen, etkinlik uyarılarını doğrudan o URL'e göndeririz. Bu, kendi sunucunda kontrol ettiğin bir kanal, entegre olduğumuz başka bir servis değil.",
       "**Google** — sadece \"Google ile giriş yap\"ı seçersen, seni doğrulamak için.",
-      "**Lemon Squeezy** — sadece Premium'a yükseltirsen. Ödeme işlemcimiz ve Merchant of Record'umuz, yani ödeme bilgilerini (kart numarası, fatura adresi) doğrudan onlar işler — ModeAlert bunları hiç görmez ya da saklamaz. Bize sadece abonelik durumunu bildirirler."
+      "**Paddle** (Paddle.com) — sadece Premium'a yükseltirsen. Çevrimiçi satıcımız ve Merchant of Record'umuz, yani ödeme bilgilerini (kart numarası, fatura adresi) doğrudan onlar işler — ModeAlert bunları hiç görmez ya da saklamaz. Bize sadece abonelik durumunu bildirirler."
     ],
     "publicApisNote": "ModeAlert ayrıca etkinlikleri tespit etmek için public oyun-verisi API'lerini (Riot Games, Bungie, ve diğerleri) çağırır, ama onlara senin hakkında kişisel hiçbir bilgi gönderilmez.",
     "yourControlsTitle": "Senin kontrollerin",
@@ -407,7 +407,7 @@
   "termsPage": {
     "eyebrow": "Hukuki",
     "title": "Kullanım Koşulları",
-    "lastUpdated": "Son güncelleme: 19 Ağustos 2026",
+    "lastUpdated": "Son güncelleme: 13 Eylül 2026",
     "s1Title": "1. ModeAlert nedir",
     "s1BodyPre": "ModeAlert (",
     "s1BodyPost": "), Deniz Önen tarafından geliştirilip işletilen, oyun yayıncılarının public verisini izleyen ve takip ettiğin bir oyun modu ya da etkinlik değiştiğinde seni e-posta veya Discord ile uyaran, bağımsız bir erken erişim projesidir. Bir hesap oluşturarak ya da siteyi kullanarak bu koşulları kabul etmiş olursun.",
@@ -416,7 +416,7 @@
     "s3Title": "3. Free ve Premium planlar — garanti yok",
     "s3Body": "ModeAlert'in Free planı **olduğu gibi** sunulur, herhangi bir garanti olmadan, ve Premium bunu değiştirmez. Etkinlik tespiti tamamen kontrolümüz dışındaki üçüncü taraf API'lere bağlıdır — bunlar haber vermeden değişebilir, rate-limit uygulayabilir ya da devre dışı kalabilir, bu da bir uyarıyı geciktirebilir ya da engelleyebilir. Veriyi doğru ve zamanında tutmak için elimizden geleni yaparız, ama her etkinlik için uyarı alacağını, ya da bildirimlerin her zaman zamanında olacağını garanti edemeyiz.",
     "s4Title": "4. Premium faturalama",
-    "s4Body": "Premium, $4.99/ay ya da $49/yıldır (ikisi de iptal edene kadar seçtiğin döngüde faturalanır). Ödemeler, Merchant of Record'umuz **Lemon Squeezy** tarafından işlenir — Lemon Squeezy ödeme bilgilerini doğrudan işler ve kart ekstrende görünen satıcıdır; ModeAlert kart numaranı hiç görmez ya da saklamaz.",
+    "s4Body": "Premium, $4.99/ay ya da $49/yıldır (ikisi de iptal edene kadar seçtiğin döngüde faturalanır) ya da ömür boyu erişim için tek seferlik $99. Sipariş sürecimiz, tüm siparişlerimizin Merchant of Record'u olan çevrimiçi satıcımız **Paddle.com** tarafından yürütülür — Paddle ödeme bilgilerini, fatura sorularını ve iadeleri doğrudan işler ve kart ekstrende görünen satıcıdır; ModeAlert kart numaranı hiç görmez ya da saklamaz.",
     "s4Item1": "**Panel → Ayarlar**'dan istediğin zaman iptal edebilirsin — zaten ödediğin dönemin sonuna kadar Premium erişimin devam eder, sonra hesap Free'ye döner (verin silinmez, Free limitinin üstündeki takip sadece duraklar).",
     "s4Item2Pre": "Premium'dan memnun kalmadın mı? Ücretlendirildikten sonraki 7 gün içinde tam iade için e-posta at:",
     "s4Item2Post": ", soru sorulmadan.",

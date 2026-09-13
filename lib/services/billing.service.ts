@@ -19,12 +19,11 @@ import {
   getClientCheckoutSettings,
   getCustomerPortalUrl,
   getTransaction,
+  getWebhookIpCidrs,
   isCheckoutConfigured,
-  isLifetimePriceId,
   priceIdFor,
 } from "@/lib/billing/paddle-client";
 import {
-  ACTIVE_SUBSCRIPTION_STATUSES,
   BILLING_INTERVALS,
   PLANS,
   SUBSCRIPTION_STATUS_LIFETIME,
@@ -32,6 +31,12 @@ import {
   type BillingInterval,
   type Plan,
 } from "@/lib/constants/plan";
+import {
+  isAllowedWebhookIp,
+  isLifetimePurchase,
+  planForSubscriptionStatus,
+  shouldRevokeLifetime,
+} from "@/lib/services/billing-rules";
 import { paddleCustomDataSchema } from "@/lib/validation/schemas";
 
 // Every subscription.* event carries the same subscription shape, and
@@ -46,10 +51,6 @@ type PaddleAdjustment = AdjustmentCreatedEvent["data"];
 function userIdFrom(customData: unknown): string | null {
   return paddleCustomDataSchema.parse(customData)?.user_id ?? null;
 }
-
-// Only a full refund or a chargeback takes back a lifetime purchase —
-// a partial refund (goodwill credit) leaves access in place.
-const REVOKING_ADJUSTMENT_ACTIONS = new Set(["refund", "chargeback"]);
 
 const SUBSCRIPTION_EVENTS = new Set<string>([
   EventName.SubscriptionCreated,
@@ -97,6 +98,9 @@ export const billingService = {
     return getUserPlan(userId);
   },
 
+  // Plain DB read — no Paddle call. `canManage` says whether the
+  // "Manage subscription" link should show; the portal session itself
+  // is only minted when the link is clicked (getPortalUrl below).
   async getBillingInfo(userId: string) {
     const billing = await getUserBilling(userId);
 
@@ -104,14 +108,23 @@ export const billingService = {
       return null;
     }
 
-    const manageUrl = billing.billingCustomerId
-      ? await getCustomerPortalUrl(
-          billing.billingCustomerId,
-          billing.billingSubscriptionId
-        )
-      : null;
+    return { ...billing, canManage: billing.billingCustomerId !== null };
+  },
 
-    return { ...billing, manageUrl };
+  // The Paddle customer id always comes from the signed-in user's own
+  // row — never from the client — so one user can't open another's
+  // portal. Sessions are short-lived, hence minted per click.
+  async getPortalUrl(userId: string): Promise<string | null> {
+    const billing = await getUserBilling(userId);
+
+    if (!billing?.billingCustomerId) {
+      return null;
+    }
+
+    return getCustomerPortalUrl(
+      billing.billingCustomerId,
+      billing.billingSubscriptionId
+    );
   },
 
   // Everything the pricing page's client component needs to open
@@ -153,6 +166,18 @@ export const billingService = {
     await cancelSubscription(billing.billingSubscriptionId);
   },
 
+  // Webhooks are only accepted from Paddle's published addresses. The
+  // signature check is the real protection; this is defense in depth.
+  // Skipped outside production builds, where requests come from
+  // localhost or a dev tunnel, not from Paddle's IPs directly.
+  async isTrustedWebhookSource(ip: string | null): Promise<boolean> {
+    if (process.env.NODE_ENV !== "production") {
+      return true;
+    }
+
+    return isAllowedWebhookIp(ip, await getWebhookIpCidrs());
+  },
+
   // Entry point for the webhook route, called with an already
   // signature-verified event. Throws on a DB/API failure so the route
   // can answer non-2xx and Paddle retries.
@@ -171,7 +196,11 @@ export const billingService = {
         await this.revokeLifetimeOnRefund(event.data);
         return;
       default:
-        // Subscribed to something we don't act on — ack, don't throw.
+        // Includes customer.created/updated: a Paddle customer is
+        // already tied to the ModeAlert user through the subscription/
+        // transaction events above (billingCustomerId), and the email
+        // lives on our own User row, so there's nothing extra to mirror.
+        // Anything else we're subscribed to is acked without action.
         return;
     }
   },
@@ -182,22 +211,17 @@ export const billingService = {
   // under Paddle's at-least-once, unordered delivery.
   async syncSubscription(subscription: PaddleSubscription) {
     const userId = userIdFrom(subscription.customData);
-
-    const plan: Plan = ACTIVE_SUBSCRIPTION_STATUSES.has(
-      subscription.status
-    )
-      ? PLANS.PREMIUM
-      : PLANS.FREE;
+    const plan = planForSubscriptionStatus(subscription.status);
 
     const subscriptionRenewsAt = subscription.nextBilledAt
       ? new Date(subscription.nextBilledAt)
       : null;
 
     if (userId) {
-      // A lifetime owner who also once had a subscription must not
-      // lose Premium when that old subscription ends.
       const current = await getUserBilling(userId);
 
+      // A lifetime owner who also once had a subscription must not
+      // lose Premium when that old subscription ends.
       if (
         !current ||
         (plan === PLANS.FREE &&
@@ -233,13 +257,13 @@ export const billingService = {
   // Subscription payments also complete transactions, but their access
   // is driven by the subscription.* events above, so they're skipped.
   async syncLifetimePurchase(transaction: PaddleTransaction) {
-    const isLifetime =
-      transaction.subscriptionId === null &&
-      transaction.items.some((item) => isLifetimePriceId(item.price?.id));
-
     const userId = userIdFrom(transaction.customData);
 
-    if (!isLifetime || !userId || !transaction.customerId) {
+    if (
+      !isLifetimePurchase(transaction, priceIdFor(BILLING_INTERVALS.LIFETIME)) ||
+      !userId ||
+      !transaction.customerId
+    ) {
       return;
     }
 
@@ -261,23 +285,17 @@ export const billingService = {
   // our custom_data or the price, so the original transaction is
   // fetched (a single, fast API call — fine inside the 5s budget).
   async revokeLifetimeOnRefund(adjustment: PaddleAdjustment) {
-    if (
-      adjustment.status !== "approved" ||
-      adjustment.type !== "full" ||
-      adjustment.subscriptionId !== null ||
-      !REVOKING_ADJUSTMENT_ACTIONS.has(adjustment.action)
-    ) {
+    if (!shouldRevokeLifetime(adjustment)) {
       return;
     }
 
     const transaction = await getTransaction(adjustment.transactionId);
     const userId = userIdFrom(transaction.customData);
 
-    const isLifetime = transaction.items.some((item) =>
-      isLifetimePriceId(item.price?.id)
-    );
-
-    if (!isLifetime || !userId) {
+    if (
+      !isLifetimePurchase(transaction, priceIdFor(BILLING_INTERVALS.LIFETIME)) ||
+      !userId
+    ) {
       return;
     }
 

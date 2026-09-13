@@ -49,7 +49,9 @@ export const GET = withErrorHandling(async () => {
     plan: billing?.plan ?? "FREE",
     subscriptionStatus: billing?.subscriptionStatus ?? null,
     subscriptionRenewsAt: billing?.subscriptionRenewsAt ?? null,
-    manageSubscriptionUrl: billing?.manageUrl ?? null,
+    // A same-origin route that mints the Paddle portal session only when
+    // clicked — see app/api/billing/portal/route.ts.
+    manageSubscriptionUrl: billing?.canManage ? "/api/billing/portal" : null,
   });
 });
 
@@ -87,7 +89,7 @@ export const DELETE = withErrorHandling(async () => {
     );
   }
 
-  // Best-effort — a Lemon Squeezy hiccup shouldn't block account
+  // Best-effort — a Paddle hiccup shouldn't block account
   // deletion, but skipping this would leave a Premium subscription
   // billing an account that no longer exists.
   await billingService.cancelSubscriptionForUser(session.user.id);
