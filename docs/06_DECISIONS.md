@@ -5836,3 +5836,51 @@ girilecek.
 | İletişim ≤2 tık | ✅ footer'da `mailto:support@modealert.app` (1 tık). `/contact` sayfası yok (404). |
 | Fiyatlar ↔ katalog | ✅ $4.99 / $49 / $99 sandbox kataloğuyla aynı. Live katalog henüz yok. |
 | Domain | ✅ www.modealert.app gerçek ürünü sunuyor. Live "Website approval" Paddle panelinde yapılmalı. |
+
+## Ek (2026-09-13, aynı gün): live hesap kataloğu ve kimlik bilgileri oluşturuldu
+
+Paddle'ın "Set up your live account" adımı (doğrulamadan bağımsız,
+önceden yapılabilen kod/katalog hazırlığı) tamamlandı:
+
+- **Live `paddle-live` MCP bağlantısı kuruldu** (OAuth, tarayıcıdan
+  onaylandı, sonra tüm kategorilerde yazma izni verildi —
+  `vendors.paddle.com/mcps`).
+- **Live katalog sandbox'ın birebir aynısı oluşturuldu:**
+  `ModeAlert Premium` (`pro_01m2dzbwbpxse5hkdhyj7nbam5`, `saas`), üç
+  fiyat: Monthly $4.99 (`pri_01m2dzbwemwhw8gc7wanrqk5ew`), Yearly $49
+  (`pri_01m2dzbwhvx8mfwjsshxxbyhqg`), Lifetime $99 tek seferlik
+  (`pri_01m2dzbwnbwtyg3pgf18c7qdbe`). Doğrulandı, hepsi `active`.
+- **Live client token oluşturuldu:** `live_d4305b689995081e9c29a3483de`.
+- **Live webhook hedefi oluşturuldu:**
+  `ntfset_01m2dzbwya7n9s57w2gsr5z3hm`, hedef
+  `https://www.modealert.app/api/webhooks/paddle`, aynı olay listesi
+  sandbox'takiyle birebir aynı (8 subscription olayı + transaction.completed
+  + adjustment.created/updated + customer.created/updated). Secret
+  değerleri sadece Deniz'e iletildi, dosyaya yazılmadı — Vercel
+  production env'ine elle eklenmesi gerekiyor.
+- **Kod tarafında hiçbir değişiklik gerekmedi** — ADR-066'da
+  `PADDLE_ENVIRONMENT`'a göre sandbox/live'ı otomatik seçen tasarım
+  sayesinde (`lib/billing/paddle-client.ts`), live'a geçiş sadece
+  Vercel production'a yeni env değerleri girmekten ibaret.
+- **Live API key MCP'den oluşturulamıyor** (Paddle bunu bilerek sadece
+  dashboard'dan yaptırıyor) — Deniz'in `vendors.paddle.com →
+  Developer tools → Authentication`'dan oluşturması gerekiyor.
+
+### Hâlâ Deniz'i bekleyenler (dashboard-only, API'den yapılamıyor)
+
+- Live API key oluşturma.
+- Checkout → Checkout settings → Payment methods (hangi ödeme
+  yöntemlerinin açık olacağı).
+- Checkout → Checkout settings → Default payment link →
+  `https://www.modealert.app/`.
+- Checkout → Request domain approval → `modealert.app` /
+  `www.modealert.app` (sandbox'ta otomatik onaylanıyordu, live'da
+  manuel onay gerekiyor — sonuç beklenirken diğer adımlar sürebilir).
+- Business account → Payouts → banka bilgisi.
+- **Kimlik doğrulaması** ("Verify your account") — ayrı, en kritik
+  adım, henüz tamamlanmadı.
+
+### Bilinçli olarak yapılmayan
+
+- **Paddle Retain (`pwCustomer`)** kurulmadı — churn-önleme özelliği,
+  opsiyonel, hiç konuşulmadı. İstenirse ayrı bir iş olarak eklenir.
