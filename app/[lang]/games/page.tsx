@@ -120,21 +120,20 @@ export default async function GamesPage() {
         </p>
 
         <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <Link href={`/${locale}/onboarding`}>
-            <Button
-              size="lg"
-              className="h-12 rounded-full bg-gradient-brand px-8 text-white shadow-[0_0_30px_rgba(168,85,247,0.35)] transition-shadow hover:shadow-[0_0_40px_rgba(168,85,247,0.5)]"
-            >
-              {dict.games.startTracking}
-            </Button>
-          </Link>
+          <Button
+            size="lg"
+            nativeButton={false}
+            render={<Link href={`/${locale}/onboarding`} />}
+            className="h-12 rounded-full bg-gradient-brand px-8 text-white shadow-[0_0_30px_rgba(168,85,247,0.35)] transition-shadow hover:shadow-[0_0_40px_rgba(168,85,247,0.5)]"
+          >
+            {dict.games.startTracking}
+          </Button>
 
-          <Link href={`/${locale}/features`}>
-            <InteractiveHoverButton
-              text={dict.games.seeAllFeatures}
-              className="h-12 w-auto rounded-full border-white/15 bg-white/5 px-8 text-white"
-            />
-          </Link>
+          <InteractiveHoverButton
+            href={`/${locale}/features`}
+            text={dict.games.seeAllFeatures}
+            className="h-12 w-auto rounded-full border-white/15 bg-white/5 px-8 text-white"
+          />
         </div>
       </section>
 

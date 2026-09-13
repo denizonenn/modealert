@@ -35,22 +35,25 @@ export function Cta() {
           </p>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Link href={path("/onboarding")}>
-              <Button size="lg" className="h-12 rounded-full bg-gradient-brand px-8 text-white shadow-[0_0_30px_rgba(168,85,247,0.35)] transition-shadow hover:shadow-[0_0_40px_rgba(168,85,247,0.5)]">
-                {dict.cta.startTracking}
-              </Button>
-            </Link>
+            <Button
+              size="lg"
+              nativeButton={false}
+              render={<Link href={path("/onboarding")} />}
+              className="h-12 rounded-full bg-gradient-brand px-8 text-white shadow-[0_0_30px_rgba(168,85,247,0.35)] transition-shadow hover:shadow-[0_0_40px_rgba(168,85,247,0.5)]"
+            >
+              {dict.cta.startTracking}
+            </Button>
 
-            <Link href={path("/dashboard")}>
-              <Button
-                size="lg"
-                variant="outline"
-                className="h-12 rounded-full border-white/15 bg-white/5 px-8 text-white hover:bg-white/10"
-              >
-                {dict.cta.viewDashboard}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
+            <Button
+              size="lg"
+              variant="outline"
+              nativeButton={false}
+              render={<Link href={path("/dashboard")} />}
+              className="h-12 rounded-full border-white/15 bg-white/5 px-8 text-white hover:bg-white/10"
+            >
+              {dict.cta.viewDashboard}
+              <ArrowRight aria-hidden="true" className="ml-2 h-4 w-4" />
+            </Button>
           </div>
         </div>
       </motion.div>

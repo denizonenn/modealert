@@ -638,16 +638,15 @@ function DataExportSection({ dict }: { dict: Dictionary }) {
 
   return (
     <Section title={t.yourDataTitle} description={t.yourDataDesc}>
-      <Link href="/api/account/export">
-        <Button
-          type="button"
-          variant="outline"
-          className="w-fit border-white/15 bg-white/5 text-white hover:bg-white/10"
-        >
-          <Download className="h-4 w-4" />
-          {t.downloadMyData}
-        </Button>
-      </Link>
+      <Button
+        variant="outline"
+        nativeButton={false}
+        render={<Link href="/api/account/export" />}
+        className="w-fit border-white/15 bg-white/5 text-white hover:bg-white/10"
+      >
+        <Download aria-hidden="true" className="h-4 w-4" />
+        {t.downloadMyData}
+      </Button>
     </Section>
   )
 }

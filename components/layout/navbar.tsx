@@ -45,7 +45,11 @@ export function Navbar() {
 
         <nav className="ml-10 hidden items-center gap-6 text-sm text-zinc-400 md:flex">
           {navLinks.map((link) => (
-            <Link key={link.href} href={path(link.href)} className="hover:text-white">
+            <Link
+              key={link.href}
+              href={path(link.href)}
+              className="rounded-sm hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+            >
               {link.label}
             </Link>
           ))}
@@ -74,16 +78,21 @@ export function Navbar() {
             </>
           ) : (
             <>
-              <Link href={path("/signin")}>
-                <Button variant="ghost" className="text-white hover:bg-white/10">
-                  {dict.nav.signIn}
-                </Button>
-              </Link>
-              <Link href={path("/onboarding")}>
-                <Button className="bg-white text-black hover:bg-zinc-200">
-                  {dict.nav.getStarted}
-                </Button>
-              </Link>
+              <Button
+                variant="ghost"
+                nativeButton={false}
+                render={<Link href={path("/signin")} />}
+                className="text-white hover:bg-white/10"
+              >
+                {dict.nav.signIn}
+              </Button>
+              <Button
+                nativeButton={false}
+                render={<Link href={path("/onboarding")} />}
+                className="bg-white text-black hover:bg-zinc-200"
+              >
+                {dict.nav.getStarted}
+              </Button>
             </>
           )}
         </div>

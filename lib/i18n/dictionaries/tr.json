@@ -237,7 +237,9 @@
     "youreOnPremium": "Premium'dasın",
     "signInToUpgrade": "Yükseltmek için giriş yap",
     "upgradeToPremium": "Premium'a yükselt",
-    "upgradesNotLive": "Yükseltmeler henüz aktif değil — daha sonra tekrar bak."
+    "upgradesNotLive": "Yükseltmeler henüz aktif değil.",
+    "upgradesNotLiveHint": "Ücretsiz plandaki her şey ücretsiz kalıyor — şimdi takibe başla, Premium açıldığında listen seni bekliyor olacak.",
+    "billingIntervalLabel": "Faturalandırma aralığı"
   },
   "auth": {
     "welcomeBack": "Tekrar hoş geldin",

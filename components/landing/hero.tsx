@@ -88,7 +88,7 @@ export async function Hero() {
       <div className="relative mx-auto flex max-w-7xl flex-col items-center px-6 py-24 text-center md:py-32">
         <div className="mb-6 flex items-center gap-2 rounded-full border border-white/10 bg-black/40 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.2em] text-zinc-400 backdrop-blur-sm">
           <span className="relative flex h-1.5 w-1.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75 motion-reduce:animate-none" />
             <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
           </span>
           {dict.home.liveBadge}
@@ -109,18 +109,19 @@ export async function Hero() {
         </p>
 
         <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-          <Link href={`/${locale}/onboarding`}>
-            <Button className="h-12 rounded-full bg-gradient-brand px-8 text-white shadow-[0_0_30px_rgba(168,85,247,0.35)] transition-shadow hover:shadow-[0_0_40px_rgba(168,85,247,0.5)]">
-              {dict.home.startTracking}
-            </Button>
-          </Link>
+          <Button
+            nativeButton={false}
+            render={<Link href={`/${locale}/onboarding`} />}
+            className="h-12 rounded-full bg-gradient-brand px-8 text-white shadow-[0_0_30px_rgba(168,85,247,0.35)] transition-shadow hover:shadow-[0_0_40px_rgba(168,85,247,0.5)]"
+          >
+            {dict.home.startTracking}
+          </Button>
 
-          <Link href={`/${locale}/games`}>
-            <InteractiveHoverButton
-              text={dict.home.viewSupportedGames}
-              className="h-12 w-auto rounded-full border-white/15 bg-white/5 px-8 text-white"
-            />
-          </Link>
+          <InteractiveHoverButton
+            href={`/${locale}/games`}
+            text={dict.home.viewSupportedGames}
+            className="h-12 w-auto rounded-full border-white/15 bg-white/5 px-8 text-white"
+          />
         </div>
 
         <StatsBar

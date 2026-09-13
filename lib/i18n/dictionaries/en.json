@@ -237,7 +237,9 @@
     "youreOnPremium": "You're on Premium",
     "signInToUpgrade": "Sign in to upgrade",
     "upgradeToPremium": "Upgrade to Premium",
-    "upgradesNotLive": "Upgrades aren't live yet — check back soon."
+    "upgradesNotLive": "Upgrades aren't live yet.",
+    "upgradesNotLiveHint": "Everything on the free plan stays free — start tracking now and you'll keep your watchlist when Premium opens.",
+    "billingIntervalLabel": "Billing interval"
   },
   "auth": {
     "welcomeBack": "Welcome back",

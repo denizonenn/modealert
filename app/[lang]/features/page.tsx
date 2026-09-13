@@ -165,25 +165,25 @@ export default async function FeaturesPage() {
         </p>
 
         <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <Link href={`/${locale}/onboarding`}>
-            <Button
-              size="lg"
-              className="h-12 rounded-full bg-gradient-brand px-8 text-white shadow-[0_0_30px_rgba(168,85,247,0.35)] transition-shadow hover:shadow-[0_0_40px_rgba(168,85,247,0.5)]"
-            >
-              {dict.featuresPage.startTracking}
-            </Button>
-          </Link>
+          <Button
+            size="lg"
+            nativeButton={false}
+            render={<Link href={`/${locale}/onboarding`} />}
+            className="h-12 rounded-full bg-gradient-brand px-8 text-white shadow-[0_0_30px_rgba(168,85,247,0.35)] transition-shadow hover:shadow-[0_0_40px_rgba(168,85,247,0.5)]"
+          >
+            {dict.featuresPage.startTracking}
+          </Button>
 
-          <Link href={`/${locale}/games`}>
-            <Button
-              size="lg"
-              variant="outline"
-              className="h-12 rounded-full border-white/15 bg-white/5 px-8 text-white hover:bg-white/10"
-            >
-              {dict.featuresPage.seeSupportedGames}
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </Link>
+          <Button
+            size="lg"
+            variant="outline"
+            nativeButton={false}
+            render={<Link href={`/${locale}/games`} />}
+            className="h-12 rounded-full border-white/15 bg-white/5 px-8 text-white hover:bg-white/10"
+          >
+            {dict.featuresPage.seeSupportedGames}
+            <ArrowRight aria-hidden="true" className="ml-2 h-4 w-4" />
+          </Button>
         </div>
       </section>
 

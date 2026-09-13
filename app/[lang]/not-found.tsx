@@ -31,11 +31,13 @@ export default async function NotFound() {
           {dict.notFoundPage.intro}
         </p>
 
-        <Link href={`/${locale}`} className="mt-8">
-          <Button className="bg-white text-black hover:bg-zinc-200">
-            {dict.notFoundPage.backToHomepage}
-          </Button>
-        </Link>
+        <Button
+          nativeButton={false}
+          render={<Link href={`/${locale}`} />}
+          className="mt-8 bg-white text-black hover:bg-zinc-200"
+        >
+          {dict.notFoundPage.backToHomepage}
+        </Button>
       </main>
 
       <Footer />
