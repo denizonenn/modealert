@@ -17,7 +17,7 @@ export function Footer() {
     { href: "/feed.xml", label: dict.footer.rss },
     { href: path("/privacy"), label: dict.footer.privacy },
     { href: path("/terms"), label: dict.footer.terms },
-    { href: `${path("/terms")}#refunds`, label: dict.footer.refunds },
+    { href: path("/refunds"), label: dict.footer.refunds },
   ]
 
   return (
