@@ -2136,6 +2136,30 @@ Documentation
 
 ---
 
+# P2 — Social Broadcast Bots (Twitter/X, Reddit)
+
+Status: 🔴 Not started (added 2026-09-29)
+
+Public, account-level announcements when a tracked event changes
+status (e.g. "URF is live on EUW") — a growth channel, distinct from
+the per-user email/Discord alerts. Both bots should plug into the
+same place the existing channels do (`lib/notifications/`, triggered
+from `notification-trigger.service.ts`), as one shared "broadcast"
+path rather than two separate integrations.
+
+- **Twitter/X bot** — Deniz will provide the details (account, what
+  to post, how often). Nothing decided yet.
+- **Reddit bot** — posts to a few chosen subreddits at first.
+  Open decisions before building: which subreddits (and whether their
+  rules/mods allow bot posts), which events qualify (probably only
+  limited-time modes going LIVE, not every status change), and the
+  Reddit account + API app it posts from. Reddit API access for new
+  apps needs approval, and unannounced promotional bot posts get
+  accounts banned — so start with our own subreddit or with explicit
+  mod permission.
+
+---
+
 # P2 — Browser Extension
 
 Chrome
