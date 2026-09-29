@@ -71,6 +71,13 @@ export const env = {
   MONETIZATION_ENABLED:
     process.env.MONETIZATION_ENABLED === "true",
 
+  // Ad-slot scaffolding (ADR-067) — see components/shared/ad-slot.tsx.
+  // Off by default: no ad network is wired in yet, and none of its
+  // domains are in next.config.ts's CSP, so turning this on before
+  // that would just show empty/broken boxes.
+  ADS_ENABLED:
+    process.env.ADS_ENABLED === "true",
+
   // Paddle Billing — see docs/06_DECISIONS.md ADR-066. All optional:
   // until they're set, checkout stays hidden ("Upgrades aren't live
   // yet"), not broken — same rollout pattern as Resend/Google OAuth.

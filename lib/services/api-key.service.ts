@@ -3,8 +3,10 @@ import { randomBytes, createHash } from "crypto";
 import {
   createApiKey,
   getApiKeyByHash,
+  getApiKeyOwnedByUser,
   getAllApiKeys,
   getApiKeysByUser,
+  countActiveApiKeysForUser,
   touchApiKeyLastUsed,
   revokeApiKey,
 } from "@/lib/repositories/api-key.repository";
@@ -14,6 +16,13 @@ import { API_LIMIT, API_WINDOW_MS } from "@/lib/api/verify-api-key";
 
 const KEY_PREFIX = "mdlrt_live_";
 const PREFIX_DISPLAY_LENGTH = 12;
+
+// Self-serve issuance (docs/09_BACKLOG.md "Sellable API" — ADR-067
+// made this genuinely self-serve, at the one flat free-tier limit,
+// while monetization is off). Capped per user so nothing prevents
+// someone from scripting thousands of keys; revoked keys don't count
+// against it.
+export const MAX_KEYS_PER_USER = 5;
 
 function hashKey(rawKey: string): string {
   return createHash("sha256").update(rawKey).digest("hex");
@@ -91,5 +100,32 @@ export const apiKeyService = {
 
   async revoke(id: string) {
     return revokeApiKey(id);
+  },
+
+  // Self-serve counterpart to createForEmail — the caller is the
+  // signed-in user creating a key for themselves, not an admin acting
+  // on someone else's account.
+  async createForUser(userId: string, name: string) {
+    const activeCount = await countActiveApiKeysForUser(userId);
+
+    if (activeCount >= MAX_KEYS_PER_USER) {
+      return { error: "limit_reached" as const };
+    }
+
+    return apiKeyService.create(userId, name);
+  },
+
+  // Self-serve counterpart to revoke — only revokes a key that
+  // actually belongs to `userId`, so one user can't revoke another's
+  // key by guessing its id.
+  async revokeOwn(id: string, userId: string) {
+    const owned = await getApiKeyOwnedByUser(id, userId);
+
+    if (!owned) {
+      return { error: "not_found" as const };
+    }
+
+    await revokeApiKey(id);
+    return { success: true as const };
   },
 };

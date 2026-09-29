@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/shared/skeleton"
 
 import { useRequireAuth } from "@/hooks/use-require-auth"
 import { useI18n } from "@/components/providers/i18n-provider"
+import { ApiKeysSection } from "@/components/settings/api-keys-section"
 import { PLAN_LABELS, type Plan } from "@/lib/constants/plan"
 import { LOCALES, LOCALE_LABELS } from "@/lib/i18n/config"
 import type { Dictionary } from "@/lib/i18n/dictionaries"
@@ -812,6 +813,8 @@ export default function SettingsPage() {
                 )
               }
             />
+
+            <ApiKeysSection dict={dict} />
 
             <DataExportSection dict={dict} />
 

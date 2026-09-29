@@ -1394,11 +1394,24 @@ Done
   `/api/admin/api-keys`, issued by email via `isAdminEmail()`. No
   self-serve signup or billing tier exists yet.
 
+Done (2026-09-29, ADR-067)
+
+- **Self-serve issuance.** Paywall going free-for-everyone (ADR-067)
+  meant self-serve no longer needs to wait on a payment processor.
+  `POST/GET /api/keys`, `DELETE /api/keys/[id]` — session-gated,
+  ownership-checked, capped at `MAX_KEYS_PER_USER` (5). New "API keys"
+  section on `/dashboard/settings`
+  (`components/settings/api-keys-section.tsx`) finally gives
+  `apiKeyService.listForUser()` a real caller. `/developers`'s "email
+  us, invite-only" copy replaced with "sign in and generate one."
+
 Remaining
 
-- Self-serve signup + a real paid tier (separate from consumer
-  Premium — different audience, developers not watchlist users),
-  blocked on Lemon Squeezy the same way Premium is.
+- **A real paid tier** (higher limit, separate from consumer Premium —
+  different audience, developers not watchlist users) — still blocked
+  on a working payment processor, same as Premium (ADR-067). Everyone
+  is on the same flat 300 req/hour limit for now; no tier boundaries
+  invented speculatively.
 
 Done (2026-09-04)
 

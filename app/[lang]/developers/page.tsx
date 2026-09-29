@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Link from "next/link"
 
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
@@ -13,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: "ModeAlert API — Developers",
     description:
-      "Read-only REST API for normalized game event and mode status across 15+ games. Currently invite-only.",
+      "Read-only REST API for normalized game event and mode status across 15+ games. Free, self-serve keys.",
     alternates: localeAlternates(locale, "/developers"),
   }
 }
@@ -49,6 +50,8 @@ function Endpoint({
 }
 
 export default async function DevelopersPage() {
+  const locale = await getLocale()
+
   return (
     <main id="main-content" className="min-h-screen bg-black text-white">
       <Navbar />
@@ -72,15 +75,23 @@ export default async function DevelopersPage() {
         <div>
           <h2 className="text-xl font-semibold">Access</h2>
           <p className="mt-3 text-zinc-400">
-            The API is currently invite-only while pricing is finalized.
-            Email{" "}
+            Free and self-serve — sign in to ModeAlert and generate a key
+            from{" "}
+            <Link
+              href={`/${locale}/dashboard/settings`}
+              className="text-white underline underline-offset-4"
+            >
+              Dashboard → Settings
+            </Link>
+            . No approval wait, up to 5 keys per account. Building
+            something bigger, or want a higher limit? Email{" "}
             <a
               href={`mailto:${SUPPORT_EMAIL}?subject=ModeAlert%20API%20access`}
               className="text-white underline underline-offset-4"
             >
               {SUPPORT_EMAIL}
-            </a>{" "}
-            with what you&apos;re building and you&apos;ll get a key manually.
+            </a>
+            .
           </p>
         </div>
 

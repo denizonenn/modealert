@@ -40,6 +40,23 @@ export async function getApiKeysByUser(userId: string) {
   });
 }
 
+// Ownership check for self-serve revoke — `userId` must match, not
+// just `id`, or any signed-in user could revoke any other user's key
+// by guessing/enumerating ids.
+export async function getApiKeyOwnedByUser(id: string, userId: string) {
+  return prisma.apiKey.findFirst({
+    where: { id, userId },
+  });
+}
+
+export async function countActiveApiKeysForUser(
+  userId: string
+): Promise<number> {
+  return prisma.apiKey.count({
+    where: { userId, revokedAt: null },
+  });
+}
+
 export async function touchApiKeyLastUsed(id: string) {
   return prisma.apiKey.update({
     where: { id },

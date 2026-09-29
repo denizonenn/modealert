@@ -115,6 +115,13 @@ export const revokeApiKeySchema = z.object({
   id: z.string().trim().min(1),
 });
 
+// Self-serve issuance (docs/09_BACKLOG.md "Sellable API") — unlike
+// createApiKeySchema (admin-only), no email: the key belongs to the
+// signed-in session's own user, never a caller-supplied account.
+export const createOwnApiKeySchema = z.object({
+  name: z.string().trim().min(1).max(100),
+});
+
 // The only untyped part of a (signature-verified) Paddle webhook: the
 // custom_data our checkout attaches. Paddle copies it from the
 // checkout onto the resulting transaction and subscription.

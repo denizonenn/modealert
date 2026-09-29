@@ -5975,3 +5975,42 @@ modelinin ne için kullanıldığı, rate limiting, kullanım ölçümü;
 reklam: hangi ağ, GDPR/consent, gizlilik politikası güncellemesi) ve
 tek bir oturumda kapsamı tahmin ederek büyük bir iş başlatmak yerine
 Deniz'le kapsamı netleştirilecek.
+
+## Ek (2026-09-29, aynı gün): API'yi kendi-kendine-servis yaptık, reklam iskeleti eklendi
+
+Paywall kapatılırken Deniz iki gelecekteki gelir kaynağının
+altyapısının hazır olmasını istedi — ikisi de bilinçli olarak
+**sadece iskelet**, gerçek para toplama ya da reklam ağı bağlanmadı:
+
+### API erişimi artık kendi-kendine-servis
+
+`docs/09_BACKLOG.md`'deki "Sellable API"nin "Remaining" maddesiydi
+("Self-serve signup... blocked on Lemon Squeezy the same way Premium
+is"). Paywall zaten kapalı olduğu için ödeme beklemeden yapılabildi:
+
+- `POST/GET /api/keys`, `DELETE /api/keys/[id]` — giriş yapmış
+  kullanıcı kendi API key'ini oluşturur/listeler/iptal eder, admin
+  onayı yok. Kullanıcı başına en fazla 5 aktif key
+  (`MAX_KEYS_PER_USER`, `api-key.service.ts`).
+- Var olan admin-only `/api/admin/api-keys` dokunulmadan duruyor
+  (başka birinin hesabına key vermek için hâlâ gerekli olabilir).
+- `apiKeyService.revokeOwn`/`createForUser` — sahiplik kontrolü var,
+  bir kullanıcı başkasının key'ini ID tahmin ederek iptal edemez.
+- `/dashboard/settings`'e yeni bir "API keys" bölümü
+  (`components/settings/api-keys-section.tsx`, admin panelinin
+  self-serve versiyonu). `/developers` sayfasındaki "invite-only, email
+  gönder" metni "sign in, Settings'ten oluştur" olarak güncellendi.
+- Rate limit değişmedi: hâlâ düz 300 istek/saat, tüm kullanıcılar için
+  aynı (ücretli katman icat edilmedi — bu gerçek bir fiyatlandırma
+  kararı, tahmin edilip kodlanmadı).
+
+### Reklam — sadece iskelet, hiçbir sayfaya yerleştirilmedi
+
+`components/shared/ad-slot.tsx` — `ADS_ENABLED` (varsayılan kapalı)
+açık değilken hiçbir şey render etmiyor; açıldığında bile gerçek bir
+reklam ağı yok, sadece boyutlandırılmış bir placeholder kutusu. **Hiçbir
+sayfaya eklenmedi** — nereye konacağı bir tasarım kararı, altyapı
+kararı değil. Bir ağ seçilince (`next.config.ts`'in CSP'sine o ağın
+domain'i eklenmesi, AB hedefleniyorsa consent banner'ı, gizlilik
+politikası güncellemesi gerekecek — hepsi bileşenin içindeki TODO
+yorumunda not edildi).
