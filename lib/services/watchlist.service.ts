@@ -5,7 +5,8 @@ import {
   getWatchlistsByUser,
   updateWatchlistChannels,
 } from "@/lib/repositories/watchlist.repository";
-import { FREE_WATCHLIST_LIMIT } from "@/lib/constants/plan";
+import { env } from "@/lib/config/env";
+import { FREE_WATCHLIST_LIMIT, UNLIMITED_WATCHLIST } from "@/lib/constants/plan";
 
 // Thrown instead of creating the row — API routes translate this into
 // a 402, distinct from a generic 500. See docs/06_DECISIONS.md
@@ -32,10 +33,15 @@ export const watchlistService = {
     userId: string,
     eventId: string
   ) {
+    // ADR-067: while MONETIZATION_ENABLED is off, nobody is capped —
+    // the DB-level plan check inside createWatchlistWithLimitCheck
+    // still runs, it just never trips against an infinite limit.
     const result = await createWatchlistWithLimitCheck(
       userId,
       eventId,
-      FREE_WATCHLIST_LIMIT
+      env.MONETIZATION_ENABLED
+        ? FREE_WATCHLIST_LIMIT
+        : UNLIMITED_WATCHLIST
     );
 
     if (result.limitReached) {

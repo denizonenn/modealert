@@ -58,6 +58,19 @@ export const env = {
   ADMIN_EMAILS:
     process.env.ADMIN_EMAILS ?? "",
 
+  // Global kill switch for the paywall — see docs/06_DECISIONS.md
+  // ADR-067. Both Lemon Squeezy and Paddle declined the merchant-of-
+  // record application, so there is currently no working payment
+  // processor; this flag makes every Premium-gated feature free for
+  // everyone (including signed-out visitors — see billingService.getPlan)
+  // without touching the Paddle integration, the DB, or any user's
+  // real `plan` value, so it can be flipped back on the moment a
+  // processor works. Defaults to OFF (paywall enforced) — must be
+  // explicitly set to "true" to disable it, the same safe-default
+  // pattern as every other optional flag here.
+  MONETIZATION_ENABLED:
+    process.env.MONETIZATION_ENABLED === "true",
+
   // Paddle Billing — see docs/06_DECISIONS.md ADR-066. All optional:
   // until they're set, checkout stays hidden ("Upgrades aren't live
   // yet"), not broken — same rollout pattern as Resend/Google OAuth.

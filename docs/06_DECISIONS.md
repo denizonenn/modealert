@@ -5884,3 +5884,94 @@ Paddle'ın "Set up your live account" adımı (doğrulamadan bağımsız,
 
 - **Paddle Retain (`pwCustomer`)** kurulmadı — churn-önleme özelliği,
   opsiyonel, hiç konuşulmadı. İstenirse ayrı bir iş olarak eklenir.
+
+---
+
+# ADR-067: Paddle de Reddetti — Paywall Geçici Olarak Kapatıldı
+
+Status: Accepted
+
+Date: 2026-09-29
+
+## Bağlam
+
+Paddle, kimlik doğrulama başvurusunu **kesin ret** ile sonuçlandırdı
+("we cannot approve your application... This decision is final"),
+gerekçe paylaşmadan. Bu, ikinci ödeme sağlayıcısının (önce Lemon
+Squeezy — ADR-065, şimdi Paddle) aynı şekilde reddetmesi. Aradan geçen
+sürede Paddle ayrıca domain onayı için soru sormuştu (canlı yayın var
+mı, indirilebilir medya var mı, Discord mesajlarında görsel/video var
+mı, iade politikası 14 gün minimumunu karşılamıyor) — ama bu sorulara
+cevap verilmeden gelen "final" ret, muhtemelen ayrı ve daha temel bir
+kimlik/risk değerlendirmesinden kaynaklanıyor, ürünle ilgili değil.
+
+## Karar
+
+Deniz'in kararı: **şimdilik ücretsiz yap, paywall kodu kalsın, tekrar
+denemek istediğimizde tek bayrakla geri açabilelim.**
+
+## Uygulama
+
+Tek bir global anahtar: `MONETIZATION_ENABLED` (`lib/config/env.ts`,
+varsayılan `false` — set edilmezse kapalı, yani **herkese ücretsiz**).
+Prisma şemasına, Paddle entegrasyonuna, webhook'a, kataloğa
+**dokunulmadı** — hepsi olduğu gibi duruyor, sadece kullanılmıyor.
+
+Erişim kontrolü tek bir noktadan geçiyor: `billingService.getPlan()`.
+Bayrak kapalıyken bu fonksiyon **herkes için** (giriş yapmamış
+ziyaretçiler dahil) `PLANS.PREMIUM` döndürüyor — kullanıcının gerçek
+`User.plan` sütununa hiç dokunmadan. Önceden bu kontrolün üç farklı
+yerden yapıldığı ortaya çıktı, hepsi tek noktaya toplandı:
+
+- `gameWatchlistService.follow()` artık `getUserPlan` repository'sini
+  doğrudan çağırmıyor, `billingService.getPlan()` üzerinden geçiyor.
+- `watchlistService.create()`, `FREE_WATCHLIST_LIMIT` yerine bayrak
+  kapalıyken `UNLIMITED_WATCHLIST` (`Number.POSITIVE_INFINITY`)
+  geçiriyor — `createWatchlistWithLimitCheck`'in transaction içindeki
+  gerçek `user.plan` okuması ve advisory lock'u **değişmedi**, sadece
+  karşılaştırdığı limit değişti (mimari kuralı ihlal etmemek için:
+  repository katmanı hâlâ iş kuralı içermiyor, karar service
+  katmanında veriliyor).
+- `GET /api/account`, `plan` alanını artık `billing.plan` (ham DB
+  değeri) yerine ayrıca çağrılan `billingService.getPlan()`'dan alıyor.
+  `subscriptionStatus`/`subscriptionRenewsAt`/`manageSubscriptionUrl`
+  hâlâ gerçek değerler — bu yüzden ayarlar sayfasında "Premium" rozeti
+  görünür ama yenileme tarihi ya da "Manage subscription" butonu
+  görünmez (gerçek bir abonelik olmadığı için), kafa karıştırıcı değil.
+
+`/pricing` sayfası da etkileniyor: bayrak kapalıyken **giriş yapmamış
+ziyaretçi dahil herkes** "You're on Premium" görüyor, satın alma
+butonu hiç render edilmiyor (`isPremium` kontrolü `signInHref`/`canBuy`
+dallarından önce geliyor). Kasıtlı olarak sayfa metni "her şey ücretsiz"
+diye değiştirilmedi — sadece işlevsel taraf kapatıldı. İstenirse ayrı
+bir iş olarak kopya güncellenebilir.
+
+## Doğrulama
+
+Yerel sunucuda bayrak açık/kapalı iki durumda da test edildi —
+bayrak kapalıyken (`MONETIZATION_ENABLED` set edilmemiş, yani
+production'daki gerçek hâli) anonim bir istekte `/pricing` gerçekten
+"You're on Premium" render ediyor (RSC payload'daki gömülü metin
+değil, asıl HTML çıktısı doğrulandı). 282 test hâlâ geçiyor.
+
+## Geri açma
+
+`MONETIZATION_ENABLED=true` Vercel production env'ine eklenip
+redeploy edilince paywall anında geri döner — kod, katalog, webhook
+hepsi hazır bekliyor. Yeni bir ödeme sağlayıcısı bulunursa
+(Paddle/LS'in aksine Stripe kısıtlaması olmayan, Türkiye merkezli
+satıcı kabul eden biri — ADR-041'deki kısıt hâlâ geçerli) sadece
+`lib/billing/paddle-client.ts`'in yerini alacak yeni bir client + aynı
+`billingService` arayüzü yeterli, gating kodunun hiçbirine dokunmaya
+gerek yok.
+
+## Bilinçli olarak yapılmayan (ayrı, kapsamı belirsiz işler)
+
+Deniz para almadığımız süreçte iki alternatif gelir kaynağının
+altyapısını hazırlamayı istedi: (1) API erişimini ücretli satmak,
+(2) sitede reklam. İkisi de bu ADR'nin kapsamı dışında bırakıldı —
+her biri kendi mimari kararını gerektiriyor (API: mevcut `ApiKey`
+modelinin ne için kullanıldığı, rate limiting, kullanım ölçümü;
+reklam: hangi ağ, GDPR/consent, gizlilik politikası güncellemesi) ve
+tek bir oturumda kapsamı tahmin ederek büyük bir iş başlatmak yerine
+Deniz'le kapsamı netleştirilecek.

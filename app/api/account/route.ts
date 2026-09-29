@@ -17,7 +17,7 @@ export const GET = withErrorHandling(async () => {
     );
   }
 
-  const [user, billing] = await Promise.all([
+  const [user, billing, plan] = await Promise.all([
     prisma.user.findUnique({
       where: { id: session.user.id },
       select: {
@@ -30,6 +30,10 @@ export const GET = withErrorHandling(async () => {
       },
     }),
     billingService.getBillingInfo(session.user.id),
+    // Deliberately separate from `billing.plan` (the raw DB value,
+    // still real below for subscriptionStatus/renewsAt/manage-link) —
+    // this is the one that honors MONETIZATION_ENABLED. See ADR-067.
+    billingService.getPlan(session.user.id),
   ]);
 
   if (!user) {
@@ -46,7 +50,7 @@ export const GET = withErrorHandling(async () => {
     emailOptOut: user.emailOptOut,
     discordWebhookUrl: user.discordWebhookUrl,
     locale: user.locale,
-    plan: billing?.plan ?? "FREE",
+    plan,
     subscriptionStatus: billing?.subscriptionStatus ?? null,
     subscriptionRenewsAt: billing?.subscriptionRenewsAt ?? null,
     // A same-origin route that mints the Paddle portal session only when

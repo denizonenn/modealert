@@ -10,6 +10,12 @@ export type Plan = (typeof PLANS)[keyof typeof PLANS];
 // deleted), only new additions past the cap are blocked.
 export const FREE_WATCHLIST_LIMIT = 5;
 
+// Passed instead of FREE_WATCHLIST_LIMIT when MONETIZATION_ENABLED is
+// off (ADR-067) — `count >= UNLIMITED_WATCHLIST` can never be true, so
+// the limit check in createWatchlistWithLimitCheck never trips for
+// anyone. A plain JS comparison, never interpolated into SQL.
+export const UNLIMITED_WATCHLIST = Number.POSITIVE_INFINITY;
+
 export const BILLING_INTERVALS = {
   MONTHLY: "monthly",
   YEARLY: "yearly",

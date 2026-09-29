@@ -4,7 +4,7 @@ import {
   getGameWatchlistsByUser,
   updateGameWatchlistChannels,
 } from "@/lib/repositories/game-watchlist.repository";
-import { getUserPlan } from "@/lib/repositories/user.repository";
+import { billingService } from "@/lib/services/billing.service";
 import { PLANS } from "@/lib/constants/plan";
 
 // Thrown instead of creating the row — API routes translate this into
@@ -25,7 +25,9 @@ export const gameWatchlistService = {
   },
 
   async follow(userId: string, gameId: string) {
-    const plan = await getUserPlan(userId);
+    // Routes through billingService.getPlan, not the repository
+    // directly, so this honors MONETIZATION_ENABLED too (ADR-067).
+    const plan = await billingService.getPlan(userId);
 
     if (plan !== PLANS.PREMIUM) {
       throw new GameWatchlistPremiumRequiredError();

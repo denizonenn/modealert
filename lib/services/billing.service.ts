@@ -6,6 +6,7 @@ import {
   type TransactionCompletedEvent,
 } from "@paddle/paddle-node-sdk";
 
+import { env } from "@/lib/config/env";
 import { analyticsService } from "@/lib/services/analytics.service";
 import { ANALYTICS_EVENTS } from "@/lib/constants/analytics-events";
 import {
@@ -88,9 +89,20 @@ export type CheckoutOptions = NonNullable<
 >;
 
 export const billingService = {
+  // The one place every Premium gate in the app ultimately reads from
+  // (page-level `isPremium` checks, gameWatchlistService.follow, the
+  // /api/account response). When MONETIZATION_ENABLED is off, this
+  // returns PREMIUM unconditionally — including for signed-out
+  // visitors, so publicly-visible gated content (prediction blur
+  // teasers, calendar date-gating) unlocks too — without touching any
+  // user's real `plan` column. See docs/06_DECISIONS.md ADR-067.
   async getPlan(
     userId: string | undefined | null
   ): Promise<Plan> {
+    if (!env.MONETIZATION_ENABLED) {
+      return PLANS.PREMIUM;
+    }
+
     if (!userId) {
       return PLANS.FREE;
     }
