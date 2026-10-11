@@ -14,6 +14,10 @@ import {
   notificationTriggerService,
 } from "@/lib/services/notification-trigger.service";
 
+import {
+  socialBroadcastService,
+} from "@/lib/services/social-broadcast.service";
+
 export const eventChangeHandlerService = {
   async handle(
     event: ProviderEvent
@@ -52,6 +56,14 @@ export const eventChangeHandlerService = {
     }
 
     await notificationTriggerService.trigger(
+      event,
+      result.previous
+    );
+
+    // Public @ModeAlertApp post — independent of whether anyone is
+    // watching this event (the trigger above returns early with no
+    // recipients). Dormant unless X_BROADCAST_ENABLED; never throws.
+    await socialBroadcastService.maybeBroadcast(
       event,
       result.previous
     );

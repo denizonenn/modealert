@@ -2147,8 +2147,25 @@ same place the existing channels do (`lib/notifications/`, triggered
 from `notification-trigger.service.ts`), as one shared "broadcast"
 path rather than two separate integrations.
 
-- **Twitter/X bot** — Deniz will provide the details (account, what
-  to post, how often). Nothing decided yet.
+- **Twitter/X bot** — 🟡 **Built, deliberately OFF (2026-10-11).**
+  Account: **@ModeAlertApp**. Deniz's decisions: post only when a
+  limited-time PLAYABLE mode goes LIVE, no links in posts (X pay-per-use:
+  $0.015/post, $0.20 with a URL — site link lives in the bio), max 5
+  posts per rolling 24h. Activate only once the product makes money.
+  Code: `lib/notifications/x/` (hand-written OAuth 1.0a signer verified
+  against X's documented example, post text rules, API client) +
+  `lib/services/social-broadcast.service.ts` (called from
+  `event-change-handler.service.ts`, never throws; daily cap and 48h
+  per-event dedupe persisted in `RateLimitHit`, no migration).
+  **To turn on:** (1) developer.x.com logged in as @ModeAlertApp → buy a
+  few dollars of credits → create an app; (2) User authentication
+  settings → permissions **Read and write**, type "Web App, Automated
+  App or Bot", callback/website `https://www.modealert.app`; (3) Keys and
+  tokens → API Key/Secret + generate Access Token/Secret **after** step 2
+  (a token made before it is read-only → 403); (4) set `X_API_KEY`,
+  `X_API_SECRET`, `X_ACCESS_TOKEN`, `X_ACCESS_TOKEN_SECRET` and
+  `X_BROADCAST_ENABLED=true` in Vercel, redeploy. Free access exists only
+  case-by-case for "public utility" apps — worth asking X before paying.
 - **Reddit bot** — posts to a few chosen subreddits at first.
   Open decisions before building: which subreddits (and whether their
   rules/mods allow bot posts), which events qualify (probably only

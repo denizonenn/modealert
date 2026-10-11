@@ -78,6 +78,27 @@ export const env = {
   ADS_ENABLED:
     process.env.ADS_ENABLED === "true",
 
+  // X (@ModeAlertApp) public announcements — see
+  // lib/services/social-broadcast.service.ts. Dormant until
+  // X_BROADCAST_ENABLED=true AND all four keys are set: X's API is
+  // pay-per-use, so this stays off until there's revenue to pay for it.
+  // The four keys come from the app's "Keys and tokens" page on
+  // developer.x.com (access token generated AFTER enabling Read+Write).
+  X_BROADCAST_ENABLED:
+    process.env.X_BROADCAST_ENABLED === "true",
+
+  X_API_KEY:
+    process.env.X_API_KEY ?? "",
+
+  X_API_SECRET:
+    process.env.X_API_SECRET ?? "",
+
+  X_ACCESS_TOKEN:
+    process.env.X_ACCESS_TOKEN ?? "",
+
+  X_ACCESS_TOKEN_SECRET:
+    process.env.X_ACCESS_TOKEN_SECRET ?? "",
+
   // Paddle Billing — see docs/06_DECISIONS.md ADR-066. All optional:
   // until they're set, checkout stays hidden ("Upgrades aren't live
   // yet"), not broken — same rollout pattern as Resend/Google OAuth.
