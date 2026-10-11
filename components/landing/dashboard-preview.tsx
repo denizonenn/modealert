@@ -62,9 +62,13 @@ export function DashboardPreview({ events, monitoredCount }: Props) {
         </div>
       </div>
 
-      <div className="grid gap-6 p-4 sm:p-8 lg:grid-cols-2">
+      {/* grid-cols-1 = minmax(0,1fr): without it the single mobile
+          column sizes to its widest nowrap child, so a long event
+          title (truncate) pushes the cards off-screen. text-left
+          undoes the hero's text-center inheritance. */}
+      <div className="grid grid-cols-1 gap-6 p-4 text-left sm:p-8 lg:grid-cols-2">
 
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
 
           {events.length === 0 ? (
             <p className="text-sm text-zinc-500">

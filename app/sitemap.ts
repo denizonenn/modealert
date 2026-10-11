@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next"
 
 import { SITE_URL } from "@/lib/constants/site"
+import { env } from "@/lib/config/env"
 import { gameService } from "@/lib/services/game.service"
 import { eventQueryService } from "@/lib/services/event-query.service"
 import { LOCALES } from "@/lib/i18n/config"
@@ -50,7 +51,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: "", changeFrequency: "daily", priority: 1 },
     { path: "/features", changeFrequency: "monthly", priority: 0.8 },
     { path: "/games", changeFrequency: "weekly", priority: 0.8 },
-    { path: "/pricing", changeFrequency: "monthly", priority: 0.7 },
+    // /pricing redirects away while everything is free (ADR-067).
+    ...(env.MONETIZATION_ENABLED
+      ? [{ path: "/pricing", changeFrequency: "monthly", priority: 0.7 } as const]
+      : []),
+    { path: "/developers", changeFrequency: "monthly", priority: 0.5 },
     { path: "/live", changeFrequency: "hourly", priority: 0.6 },
     { path: "/calendar", changeFrequency: "daily", priority: 0.6 },
     { path: "/status", changeFrequency: "hourly", priority: 0.3 },

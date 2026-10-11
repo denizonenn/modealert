@@ -28,6 +28,15 @@ const CSP = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  // Client components (navbar, settings) need to know whether the
+  // paywall is on so they can hide Pricing/subscription UI while
+  // everything is free (ADR-067). Derived from the same server-side
+  // MONETIZATION_ENABLED var at build time — one switch, not two.
+  // Vercel rebuilds on every env change, so this never goes stale.
+  env: {
+    NEXT_PUBLIC_MONETIZATION_ENABLED:
+      process.env.MONETIZATION_ENABLED === "true" ? "true" : "false",
+  },
   async headers() {
     return [
       {

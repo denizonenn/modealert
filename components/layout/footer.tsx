@@ -14,6 +14,7 @@ export function Footer() {
   const links = [
     { href: path("/status"), label: dict.footer.status },
     { href: path("/statistics"), label: dict.footer.statistics },
+    { href: path("/developers"), label: "API" },
     { href: "/feed.xml", label: dict.footer.rss },
     { href: path("/privacy"), label: dict.footer.privacy },
     { href: path("/terms"), label: dict.footer.terms },

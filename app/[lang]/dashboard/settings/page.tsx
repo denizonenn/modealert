@@ -16,7 +16,11 @@ import { Skeleton } from "@/components/shared/skeleton"
 import { useRequireAuth } from "@/hooks/use-require-auth"
 import { useI18n } from "@/components/providers/i18n-provider"
 import { ApiKeysSection } from "@/components/settings/api-keys-section"
-import { PLAN_LABELS, type Plan } from "@/lib/constants/plan"
+import {
+  MONETIZATION_ENABLED_PUBLIC,
+  PLAN_LABELS,
+  type Plan,
+} from "@/lib/constants/plan"
 import { LOCALES, LOCALE_LABELS } from "@/lib/i18n/config"
 import type { Dictionary } from "@/lib/i18n/dictionaries"
 
@@ -761,12 +765,16 @@ export default function SettingsPage() {
               </div>
             </Section>
 
-            <SubscriptionSection
-              account={account}
-              dict={dict}
-              path={path}
-              locale={locale}
-            />
+            {/* Hidden while everything is free (ADR-067) — there's no
+                plan to show or upgrade to. */}
+            {MONETIZATION_ENABLED_PUBLIC && (
+              <SubscriptionSection
+                account={account}
+                dict={dict}
+                path={path}
+                locale={locale}
+              />
+            )}
 
             <ProfileSection
               account={account}

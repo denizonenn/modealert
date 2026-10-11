@@ -16,6 +16,7 @@ import { NotificationBell } from "@/components/layout/notification-bell";
 import { FeedbackWidget } from "@/components/layout/feedback-widget";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { useI18n } from "@/components/providers/i18n-provider";
+import { MONETIZATION_ENABLED_PUBLIC } from "@/lib/constants/plan";
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
@@ -23,10 +24,14 @@ export function Navbar() {
   const isAuthed = status === "authenticated";
   const { dict, path } = useI18n();
 
+  // While everything is free (ADR-067) there's nothing to price, so the
+  // slot points at the public API instead.
   const navLinks = [
     { href: "/features", label: dict.nav.features },
     { href: "/games", label: dict.nav.games },
-    { href: "/pricing", label: dict.nav.pricing },
+    MONETIZATION_ENABLED_PUBLIC
+      ? { href: "/pricing", label: dict.nav.pricing }
+      : { href: "/developers", label: "API" },
     { href: "/#faq", label: dict.nav.faq },
     { href: "/live", label: dict.nav.live },
     { href: "/calendar", label: dict.nav.calendar },

@@ -16,6 +16,12 @@ export const FREE_WATCHLIST_LIMIT = 5;
 // anyone. A plain JS comparison, never interpolated into SQL.
 export const UNLIMITED_WATCHLIST = Number.POSITIVE_INFINITY;
 
+// Client-safe mirror of env.MONETIZATION_ENABLED (inlined at build time
+// by next.config.ts). Use it only to hide/show Pricing UI — every real
+// gate still goes through billingService.getPlan on the server.
+export const MONETIZATION_ENABLED_PUBLIC =
+  process.env.NEXT_PUBLIC_MONETIZATION_ENABLED === "true";
+
 export const BILLING_INTERVALS = {
   MONTHLY: "monthly",
   YEARLY: "yearly",

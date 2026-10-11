@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
+import { redirect } from "next/navigation"
 import { Check } from "lucide-react"
 
 import { Navbar } from "@/components/layout/navbar"
@@ -10,6 +11,7 @@ import { PricingToggle } from "@/components/pricing/pricing-toggle"
 
 import { auth } from "@/auth"
 import { billingService } from "@/lib/services/billing.service"
+import { env } from "@/lib/config/env"
 import { PLANS, FREE_WATCHLIST_LIMIT } from "@/lib/constants/plan"
 import { getDictionary, getLocale } from "@/lib/i18n/dictionaries"
 import { localeAlternates } from "@/lib/i18n/alternates"
@@ -30,6 +32,13 @@ export default async function PricingPage() {
     getDictionary(),
     getLocale(),
   ])
+  // Nothing to sell while every feature is free (ADR-067) — a Premium
+  // card would only confuse ("You're on Premium" for everyone). The
+  // page comes back automatically when MONETIZATION_ENABLED is set.
+  if (!env.MONETIZATION_ENABLED) {
+    redirect(`/${locale}/features`)
+  }
+
   const userId = session?.user?.id
 
   const plan = await billingService.getPlan(userId)

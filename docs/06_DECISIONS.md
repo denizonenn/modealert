@@ -6014,3 +6014,22 @@ kararı değil. Bir ağ seçilince (`next.config.ts`'in CSP'sine o ağın
 domain'i eklenmesi, AB hedefleniyorsa consent banner'ı, gizlilik
 politikası güncellemesi gerekecek — hepsi bileşenin içindeki TODO
 yorumunda not edildi).
+
+### Güncelleme (2026-10-11) — Premium arayüzü de gizlendi, API görünür yapıldı
+
+İlk turda sadece *kısıtlamalar* kaldırılmıştı; Pricing linki, `/pricing`
+sayfası ve Ayarlar'daki abonelik bölümü görünmeye devam ediyordu (herkese
+"You're on Premium" gösteriyordu). Artık `MONETIZATION_ENABLED` kapalıyken:
+
+- `next.config.ts` aynı değişkeni build sırasında
+  `NEXT_PUBLIC_MONETIZATION_ENABLED` olarak client'a aktarıyor
+  (`MONETIZATION_ENABLED_PUBLIC`, `lib/constants/plan.ts`) — tek anahtar,
+  iki ayrı env değişkeni değil. Sadece UI gizleme için; gerçek kapılar
+  hâlâ sunucuda `billingService.getPlan`.
+- Navbar'daki "Pricing" yerine "API" (`/developers`) linki; footer'a da
+  "API" eklendi — self-serve API key'leri daha önce hiçbir yerden link
+  almıyordu.
+- `/pricing` → `/features`'a yönlendiriyor, sitemap'ten çıkarıldı
+  (`/developers` eklendi). Ayarlar'daki abonelik bölümü gizli.
+- `MONETIZATION_ENABLED=true` yapılıp redeploy edilince hepsi otomatik
+  geri geliyor. `/refunds` ve `/terms` yasal sayfalar olarak duruyor.
