@@ -80,7 +80,7 @@ export function FeedbackWidget() {
 
       <PopoverContent
         align="end"
-        className="w-80 border border-white/10 bg-black p-4 text-white shadow-2xl"
+        className="w-80 max-w-[calc(100vw-1.5rem)] border border-white/10 bg-black p-4 text-white shadow-2xl"
       >
         {sent ? (
           <div className="py-2 text-center">

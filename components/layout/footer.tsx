@@ -24,7 +24,7 @@ export function Footer() {
     <footer className="border-t border-white/10 bg-black/60">
       <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-8 text-sm text-zinc-500 md:flex-row md:items-center">
         <p>{dict.footer.builtBy}</p>
-        <div className="md:ml-auto flex items-center gap-6">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-3 md:ml-auto md:justify-end">
           {links.map((link) => (
             <Link key={link.href} href={link.href} className="hover:text-white">
               {link.label}

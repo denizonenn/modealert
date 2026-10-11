@@ -82,7 +82,7 @@ export default function EventStatusCard({
         duration: 0.3,
         delay: Math.min(index * 0.03, 0.3),
       }}
-      className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 transition-colors hover:border-white/20"
+      className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 transition-colors hover:border-white/20 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
     >
       <div className="flex min-w-0 items-center gap-4">
         <GameIcon
@@ -93,7 +93,7 @@ export default function EventStatusCard({
         />
 
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <p className="truncate text-sm text-zinc-500">
               {game.name}
             </p>
@@ -131,7 +131,7 @@ export default function EventStatusCard({
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-3">
+      <div className="flex shrink-0 flex-wrap items-center gap-3">
         <span className="hidden text-xs text-zinc-500 sm:inline">
           {formatRelativeTime(updatedAt, locale)}
         </span>

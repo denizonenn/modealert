@@ -97,6 +97,14 @@ export function Navbar() {
           )}
         </div>
 
+        {/* The desktop action cluster is hidden below md, so the language
+            switcher and notification bell live here on mobile — otherwise
+            a phone user can't change language or see notifications. */}
+        <div className="ml-auto flex items-center gap-2 md:hidden">
+          <LanguageSwitcher />
+          {isAuthed && <NotificationBell />}
+        </div>
+
         <Drawer
           open={open}
           onOpenChange={setOpen}
@@ -106,7 +114,7 @@ export function Navbar() {
             render={
               <button
                 type="button"
-                className="ml-auto flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-white md:hidden"
+                className="ml-2 flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-white md:hidden"
                 aria-label={dict.nav.openMenu}
               />
             }

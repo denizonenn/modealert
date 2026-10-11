@@ -96,7 +96,7 @@ export async function Hero() {
 
         <ModeRotator />
 
-        <h1 className="max-w-4xl text-5xl font-bold tracking-tight md:text-7xl">
+        <h1 className="max-w-4xl text-4xl font-bold tracking-tight break-words sm:text-5xl md:text-7xl">
           {dict.home.heroTitlePre}{" "}
           <span className="text-gradient-brand">
             {dict.home.heroTitleHighlight}

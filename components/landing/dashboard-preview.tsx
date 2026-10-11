@@ -47,7 +47,7 @@ export function DashboardPreview({ events, monitoredCount }: Props) {
       viewport={{ once: true }}
       className="w-full max-w-6xl rounded-3xl border border-white/10 bg-zinc-950 shadow-2xl"
     >
-      <div className="border-b border-white/10 px-8 py-5">
+      <div className="border-b border-white/10 px-5 py-5 sm:px-8">
         <div className="flex items-center gap-3">
           <div className="rounded-xl bg-white p-2 text-black">
             <Bell size={18} />
@@ -62,7 +62,7 @@ export function DashboardPreview({ events, monitoredCount }: Props) {
         </div>
       </div>
 
-      <div className="grid gap-6 p-8 lg:grid-cols-2">
+      <div className="grid gap-6 p-4 sm:p-8 lg:grid-cols-2">
 
         <div className="space-y-4">
 
@@ -124,7 +124,7 @@ export function DashboardPreview({ events, monitoredCount }: Props) {
 
         </div>
 
-        <div className="flex flex-col justify-center rounded-2xl border border-white/10 bg-white/[0.03] p-8">
+        <div className="flex flex-col justify-center rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-left sm:p-8">
 
           <div className="flex items-center gap-3">
             <CheckCircle2 className="text-emerald-400" />

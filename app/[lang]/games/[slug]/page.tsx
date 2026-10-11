@@ -197,8 +197,8 @@ export default async function GameDetailPage({ params }: Props) {
                   key={event.id}
                   className="rounded-2xl border border-white/10 bg-white/5 p-5"
                 >
-                  <div className="flex items-center justify-between gap-3">
-                    <h3 className="font-semibold">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <h3 className="min-w-0 font-semibold">
                       {event.slug ? (
                         <Link
                           href={`/${locale}/events/${event.slug}`}
@@ -210,7 +210,7 @@ export default async function GameDetailPage({ params }: Props) {
                         event.title
                       )}
                     </h3>
-                    <div className="flex shrink-0 items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-zinc-500">
                         {eventCategoryLabel(
                           event.category as EventCategory,

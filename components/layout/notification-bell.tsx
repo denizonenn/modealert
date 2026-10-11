@@ -48,7 +48,7 @@ export function NotificationBell() {
 
       <PopoverContent
         align="end"
-        className="w-80 border border-white/10 bg-black p-3 text-white shadow-2xl"
+        className="w-80 max-w-[calc(100vw-1.5rem)] border border-white/10 bg-black p-3 text-white shadow-2xl"
       >
         <NotificationCenter />
       </PopoverContent>

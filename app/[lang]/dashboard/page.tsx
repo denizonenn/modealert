@@ -24,14 +24,14 @@ export default function DashboardPage() {
           <div className="space-y-8">
             <div>
               <Skeleton className="h-4 w-28" />
-              <Skeleton className="mt-3 h-10 w-72" />
-              <Skeleton className="mt-3 h-4 w-96" />
+              <Skeleton className="mt-3 h-10 w-72 max-w-full" />
+              <Skeleton className="mt-3 h-4 w-96 max-w-full" />
             </div>
 
             <div className="flex flex-wrap gap-4">
-              <Skeleton className="h-[76px] w-[200px]" />
-              <Skeleton className="h-[76px] w-[200px]" />
-              <Skeleton className="h-[76px] w-[200px]" />
+              <Skeleton className="h-[76px] w-[200px] max-w-full" />
+              <Skeleton className="h-[76px] w-[200px] max-w-full" />
+              <Skeleton className="h-[76px] w-[200px] max-w-full" />
             </div>
           </div>
         ) : (
