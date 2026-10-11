@@ -27,7 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: dict.featuresPage.eyebrow,
     description: `See how ModeAlert detects game events across League of Legends, Valorant, Destiny 2, and ${
       GAMES_WITH_PROVIDER.size - 3
-    } other games before they're officially announced, and alerts you the moment something changes.`,
+    } other games before they're officially announced, and alerts you when something changes.`,
     alternates: localeAlternates(locale, "/features"),
   }
 }

@@ -35,6 +35,18 @@ import { getDictionary, getLocale } from "@/lib/i18n/dictionaries"
 import type { Dictionary } from "@/lib/i18n/dictionaries"
 import { resolveEventDescription } from "@/lib/i18n/event-descriptions"
 import { localeAlternates } from "@/lib/i18n/alternates"
+import {
+  buildEventSeo,
+  isSearchIntentEvent,
+} from "@/lib/services/event-seo"
+
+// Only real LIVE occurrence spans answer "is it live / when was it
+// last on" — TRACKING spans (pass progress etc.) aren't availability.
+function liveSpans(
+  history: { status: string; startedAt: Date; endedAt: Date | null }[]
+) {
+  return history.filter((span) => span.status === "LIVE")
+}
 
 function fieldLabel(field: string, dict: Dictionary): string {
   const t = dict.eventDetailPage
@@ -88,6 +100,28 @@ export async function generateMetadata({
 
   if (!event) {
     return { title: dict.eventDetailPage.notFoundTitle }
+  }
+
+  // Limited-time modes get question-style copy ("Is URF live?") built
+  // from real tracked history — that's how people search for them.
+  // See docs/06_DECISIONS.md ADR-068.
+  if (isSearchIntentEvent(event)) {
+    const history = event.seriesKey
+      ? await eventHistoryService.getBySeriesKey(event.seriesKey)
+      : await eventHistoryService.getByEvent(event.id)
+
+    const seo = buildEventSeo(
+      { ...event, gameName: event.game.name },
+      liveSpans(history),
+      dict.eventDetailPage,
+      locale
+    )
+
+    return {
+      title: seo.title,
+      description: seo.description,
+      alternates: localeAlternates(locale, `/events/${slug}`),
+    }
   }
 
   return {
@@ -182,6 +216,17 @@ export default async function EventDetailPage({ params }: Props) {
       : undefined
 
   const timeline = [...history].reverse()
+
+  // Visible one-line answer matching the search snippet — Google
+  // favors pages whose body actually answers the query in the title.
+  const searchAnswer = isSearchIntentEvent(event)
+    ? buildEventSeo(
+        { ...event, gameName: event.game.name },
+        liveSpans(history),
+        t,
+        locale
+      ).answer
+    : null
   const renderedAt = Date.now()
 
   const premiumTeaserProps = {
@@ -257,6 +302,12 @@ export default async function EventDetailPage({ params }: Props) {
             labels={{ share: dict.common.share, copied: dict.common.linkCopied }}
           />
         </div>
+
+        {searchAnswer && (
+          <p className="mt-4 max-w-2xl text-base font-medium text-zinc-200">
+            {searchAnswer}
+          </p>
+        )}
 
         {description && (
           <p className="mt-4 max-w-2xl text-sm text-zinc-400">

@@ -14,6 +14,18 @@ import {
 
 import type { EventWithGame } from "@/lib/repositories/event.repository";
 
+import { isProviderEnabled } from "@/lib/providers/core/registry";
+
+// Hides rows from a provider that's been switched off (e.g. EA FC after
+// fut.gg started blocking Vercel's IPs) — their last-synced status is
+// no longer being checked, so showing it would present a stale snapshot
+// as live data.
+function fromEnabledProvider<T extends { source: string }>(
+  events: T[]
+): T[] {
+  return events.filter((event) => isProviderEnabled(event.source));
+}
+
 // Event.trackedUsers is written by every provider as a hardcoded 0
 // (providers have no way to know real watchlist counts) and never
 // overridden anywhere else — same "DB column is decorative, override
@@ -42,7 +54,9 @@ const RECOMMENDATION_LIMIT = 5;
 
 export const eventQueryService = {
   async getAll() {
-    return withRealTrackedUsers(getEvents());
+    return fromEnabledProvider(
+      await withRealTrackedUsers(getEvents())
+    );
   },
 
   async getById(
@@ -64,7 +78,7 @@ export const eventQueryService = {
   ) {
     const event = await getEventBySlug(slug);
 
-    if (!event) {
+    if (!event || !isProviderEnabled(event.source)) {
       return null;
     }
 
@@ -76,7 +90,9 @@ export const eventQueryService = {
   async getByGame(
     gameId: string
   ) {
-    return withRealTrackedUsers(getEventsByGame(gameId));
+    return fromEnabledProvider(
+      await withRealTrackedUsers(getEventsByGame(gameId))
+    );
   },
 
   // Real collaborative filtering, not a guess — see
@@ -93,8 +109,8 @@ export const eventQueryService = {
       return [];
     }
 
-    const events = await getEventsByIds(
-      related.map((r) => r.eventId)
+    const events = fromEnabledProvider(
+      await getEventsByIds(related.map((r) => r.eventId))
     );
 
     const countByEventId = new Map(

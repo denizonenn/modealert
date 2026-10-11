@@ -6033,3 +6033,72 @@ sayfası ve Ayarlar'daki abonelik bölümü görünmeye devam ediyordu (herkese
   (`/developers` eklendi). Ayarlar'daki abonelik bölümü gizli.
 - `MONETIZATION_ENABLED=true` yapılıp redeploy edilince hepsi otomatik
   geri geliyor. `/refunds` ve `/terms` yasal sayfalar olarak duruyor.
+
+---
+
+# ADR-068: Etkinlik Sayfaları İçin Arama Niyetli SEO Metni
+
+Status: Accepted
+
+Date: 2026-10-11
+
+## Bağlam
+
+İnsanlar süreli modları soru olarak arıyor: "is URF live", "URF ne zaman
+geri gelecek". Etkinlik sayfalarının başlığı ise sadece
+"URF — League of Legends" idi; aramadaki soruya cevap vermiyordu.
+
+## Karar
+
+`lib/services/event-seo.ts` (saf fonksiyon, `event-seo.test.ts` ile
+test edildi) — sadece `PLAYABLE` + `isLimitedTime` etkinlikler için
+(`isSearchIntentEvent`):
+
+- **Başlık:** "Is {title} live? {title} status & return date — {game}"
+  (TR: "{title} açık mı? …").
+- **Meta description:** gerçek takip geçmişinden üretiliyor — LIVE ise
+  "şu an açık (X tarihinden beri), genelde Y sürüyor"; değilse "en son
+  A – B arasında açıktı (Z gün)". **Asla tahmini bir dönüş tarihi
+  yazılmıyor** (frozen-snapshot / uydurma veri kuralı).
+- **Sayfada görünen tek satırlık cevap** ("Evet — URF şu an açık" /
+  "Hayır — …"), başlığın sorusuna sayfanın kendisinin de cevap vermesi
+  için.
+- Sadece gerçek LIVE geçmiş aralıkları sayılıyor; TRACKING aralıkları
+  (pass ilerlemesi vb.) "açıktı" sayılmıyor.
+
+Diğer kategoriler (season pass, platform status, kalıcı modlar) eski
+genel başlığı koruyor.
+
+---
+
+# ADR-069: EA FC Kapatıldı, Kapalı Provider Verisi Gizleniyor, "Instant" İddiası Düzeltildi
+
+Status: Accepted
+
+Date: 2026-10-11
+
+## Bağlam
+
+Lansman öncesi kontrolde: (1) EA FC provider'ı (`fut.gg`, resmi EA API'si
+yok) ~2026-09-10'dan beri Vercel'e HTTP 403 dönüyor — tek etkinliği
+("Squad Building Challenges") bir aydır LIVE olarak donmuş duruyordu.
+(2) Site "Instant email & Discord alerts" / "the moment it goes live"
+diyordu, ama sync Vercel Hobby limiti yüzünden günde 1 kez çalışıyor.
+
+## Karar
+
+- `eaFcProvider.enabled = false`. Kapalı bir provider bir daha sync
+  edilmediği için son yazdığı satırlar donmuş snapshot'tır:
+  yeni `isProviderEnabled()` (`lib/providers/core/registry.ts`)
+  üzerinden `event-query.service` ve `event.service` bu satırları
+  listelerden, slug sayfasından (404) ve API'den gizliyor. `/api/events`
+  da repository yerine servisi kullanacak şekilde düzeltildi (katman
+  ihlaliydi). Veri silinmedi — provider tekrar açılınca geri gelir.
+- `GAMES_WITH_PROVIDER` EA FC'yi hariç tutuyor (oyun sayısı 13 → 12,
+  onboarding'de sunulmuyor). Provider tekrar açılırsa
+  `GAMES_WITHOUT_WORKING_PROVIDER`'dan çıkarılmalı.
+- "Instant/anında/the moment" ifadeleri EN+TR sözlükte ve meta
+  açıklamalarda "automatic / when / günlük kontrolümüz … gördüğünde"
+  olarak değiştirildi. **Vercel Pro'ya geçilip cron saatliğe çekilirse
+  bu metin tekrar güçlendirilebilir.** Not: Vercel Hobby planı ticari
+  kullanıma izin vermiyor — gelir başlayınca Pro zaten gerekli.

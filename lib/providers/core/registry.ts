@@ -55,3 +55,16 @@ export function getProviderName(
     )?.name ?? id
   );
 }
+// A disabled provider is never synced again, so whatever it last wrote
+// is a frozen snapshot that would otherwise sit in the DB as LIVE
+// forever (see the frozen-snapshot rule). Read paths use this to hide
+// those rows. Unknown sources (not a registered provider) stay visible.
+export function isProviderEnabled(
+  id: string
+): boolean {
+  return (
+    providers.find(
+      (provider) => provider.id === id
+    )?.enabled ?? true
+  );
+}

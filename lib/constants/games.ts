@@ -30,8 +30,18 @@ export const GAME_IDS = {
 // Anything else is a placeholder Game row with no live data behind it
 // yet — see docs/06_DECISIONS.md ADR-006/ADR-011/ADR-013/ADR-014/
 // ADR-015/ADR-016.
+// EA FC is excluded while its provider is disabled (fut.gg blocks
+// Vercel — see lib/providers/ea-fc/provider.ts): a game with no live
+// data must not be counted, offered in onboarding or shown as "Live".
+// Remove it from this set when the provider is re-enabled.
+const GAMES_WITHOUT_WORKING_PROVIDER: Set<string> = new Set([
+  "ea-fc",
+]);
+
 export const GAMES_WITH_PROVIDER: Set<string> = new Set(
-  Object.values(GAME_IDS)
+  Object.values(GAME_IDS).filter(
+    (id) => !GAMES_WITHOUT_WORKING_PROVIDER.has(id)
+  )
 );
 
 // Display names, matching the real `Game.name` values in the DB

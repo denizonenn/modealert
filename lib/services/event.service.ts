@@ -4,9 +4,19 @@ import {
   getEventsByGame,
 } from "@/lib/repositories/event.repository";
 
+import { isProviderEnabled } from "@/lib/providers/core/registry";
+
+// Same rule as event-query.service: a disabled provider's last sync is
+// a frozen snapshot, never shown as current data.
+async function getEnabledEvents() {
+  const events = await getEvents();
+
+  return events.filter((event) => isProviderEnabled(event.source));
+}
+
 export const eventService = {
   async getAllEvents() {
-    return getEvents();
+    return getEnabledEvents();
   },
 
   async getById(id: string) {
@@ -14,11 +24,13 @@ export const eventService = {
   },
 
   async getByGame(gameId: string) {
-    return getEventsByGame(gameId);
+    const events = await getEventsByGame(gameId);
+
+    return events.filter((event) => isProviderEnabled(event.source));
   },
 
   async getLiveEvents() {
-    const events = await getEvents();
+    const events = await getEnabledEvents();
 
     return events.filter(
       (event) => event.status === "LIVE"
@@ -26,7 +38,7 @@ export const eventService = {
   },
 
   async getUpcomingEvents() {
-    const events = await getEvents();
+    const events = await getEnabledEvents();
 
     return events.filter(
       (event) => event.status === "UPCOMING"
